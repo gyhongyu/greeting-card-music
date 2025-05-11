@@ -1,0 +1,76 @@
+@keyframes fallFlower {
+    0% {
+        transform: translateY(-10%) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100vh) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes floatText {
+    0% {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    5% {
+        transform: translateY(90%);
+        opacity: 1;
+    }
+    90% {
+        transform: translateY(-90%);
+        opacity: 1;
+    }
+    95% {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+}
+
+@keyframes glow {
+    0% {
+        text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #ff69b4, 0 0 20px #ff69b4;
+    }
+    100% {
+        text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #ff69b4, 0 0 40px #ff69b4;
+    }
+}
+
+.loading-text {
+    animation: glow 1.5s ease-in-out infinite alternate;
+}
+
+.fade-in {
+    animation: fadeIn 2s ease-in-out;
+}
+
+.float-text {
+    animation: floatText 44s linear infinite;  /* Doubled from 22s to 44s for slower scroll */
+}
+
+.start-button {
+    animation: glow 2s ease-in-out infinite alternate;
+    transition: transform 0.3s ease;
+}
+
+.start-button:hover {
+    transform: scale(1.05);
+}
+
+.start-button:active {
+    transform: scale(0.95);
+}
