@@ -31,10 +31,13 @@
     <!-- Configuration & Pure JS (原生載入無 CORS 限制) -->
     <script src="core/BackdropShader.js"></script>
     <script src="core/ParticleEngine.js"></script>
+    <script src="core/CardEngine.js"></script>
     <script src="js/constants.js"></script>
     <script src="js/config.js"></script>
     <script src="js/gas_client.js"></script>
     <script src="js/workspace_store.js"></script>
+    <script src="js/image_uploader.js"></script>
+    <script src="js/workspace_views.js"></script>
 
     <!-- 
       重要說明：
@@ -43,726 +46,15 @@
       頂層 React 視圖路由維持內聯，保證 100% 模組化且零伺服器本機雙擊秒開！
     -->
     <script type="text/babel">
-        // =========================================================================
-        // 1. CARD ENGINE (渲染舞台)
-        // =========================================================================
-        function CardEngine({ card, template }) {
-            const [currentIndex, setCurrentIndex] = React.useState(0);
-            const [isPaused, setIsPaused] = React.useState(false);
-
-            const photos = (card && card.media && card.media.photos && card.media.photos.length > 0)
-                ? card.media.photos
-                : [];
-
-            const hasPhotos = photos.length > 0;
-            const theme = (template && template.theme) || {};
-            const effect = (template && template.effects) || {};
-            const layout = (card && card.layout) || (template && template.layout) || 'star-wars-crawl';
-            const bgShader = (template && template.bgShader) || 'none';
-            const bgBrightness = (template && template.bgDimmer) || 0.95;
-            const crawlSpeed = `${(template && template.crawlSpeed) || 44}s`;
-
-            React.useEffect(() => {
-                if (window.BackdropShader) {
-                    window.BackdropShader.init("bg-shader-canvas", bgShader);
-                }
-                return () => {
-                    if (window.BackdropShader) window.BackdropShader.stop();
-                };
-            }, [bgShader]);
-
-            React.useEffect(() => {
-                if (photos.length <= 1) return;
-                const interval = setInterval(() => {
-                    setCurrentIndex(prev => (prev + 1) % photos.length);
-                }, 5000);
-                return () => clearInterval(interval);
-            }, [photos.length]);
-
-            if (!card) return null;
-
-            return (
-                <div 
-                    className="absolute inset-0 w-full h-full overflow-hidden select-none"
-                    style={{ backgroundColor: theme.bgColor || '#09090b' }}
-                >
-                    <canvas 
-                        id="bg-shader-canvas" 
-                        className="absolute inset-0 w-full h-full pointer-events-none z-0" 
-                    />
-
-                    {hasPhotos && (
-                        <div className="absolute inset-0 w-full h-full pointer-events-none z-0 overflow-hidden">
-                            {photos.map((url, idx) => {
-                                const isActive = idx === currentIndex;
-                                return (
-                                    <div
-                                        key={url + idx}
-                                        className={`absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-1000 ease-in-out ${isActive ? 'opacity-100 ken-burns-bg' : 'opacity-0'}`}
-                                        style={{
-                                            backgroundImage: `url('${url}')`,
-                                            filter: `brightness(${bgBrightness}) saturate(1.05)`,
-                                            mixBlendMode: bgShader !== 'none' ? 'screen' : 'normal',
-                                            opacity: isActive ? (bgShader !== 'none' ? 0.65 : 1) : 0
-                                        }}
-                                    />
-                                );
-                            })}
-                        </div>
-                    )}
-
-                    <div 
-                        className="absolute inset-0 pointer-events-none z-10"
-                        style={{
-                            background: 'radial-gradient(circle at center, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.35) 100%)'
-                        }}
-                    />
-
-                    <ParticleEngine effect={{
-                        particleType: effect.particleType || 'rising-stardust',
-                        color: theme.primaryColor || '#c9a96e',
-                        particleDensity: effect.particleDensity || 25
-                    }} />
-
-                    <header className="absolute top-0 left-0 right-0 z-30 pt-6 pb-4 text-center px-4 pointer-events-none bg-gradient-to-b from-black/75 via-black/20 to-transparent">
-                        <h1 
-                            className="text-3xl md:text-5xl font-light tracking-wide clean-title-glow text-white"
-                            style={{ 
-                                fontFamily: theme.fontFamily || 'serif',
-                                '--title-color': theme.titleColor || '#ffffff',
-                                '--title-glow': theme.primaryColor || '#c9a96e'
-                            }}
-                        >
-                            {card.title}
-                        </h1>
-                    </header>
-
-                    {layout === 'star-wars-crawl' && (
-                        <div 
-                            className="absolute inset-x-0 top-24 bottom-6 z-20 flex justify-center items-start overflow-hidden cursor-pointer crawl-mask-container"
-                            onClick={() => setIsPaused(!isPaused)}
-                        >
-                            <div 
-                                className={`w-full max-w-2xl px-6 md:px-8 text-center text-white anim-star-wars-crawl ${isPaused ? 'is-paused' : ''}`}
-                                style={{ 
-                                    fontFamily: theme.fontFamily || 'serif',
-                                    '--crawl-duration': crawlSpeed
-                                }}
-                            >
-                                <div className="w-full py-8 px-4 space-y-8">
-                                    {card.recipient && (
-                                        <div 
-                                            className="text-2xl md:text-3xl font-semibold tracking-wider clean-text-shadow"
-                                            style={{ color: theme.primaryColor || '#fbcfe8' }}
-                                        >
-                                            {card.recipient}
-                                        </div>
-                                    )}
-
-                                    <div className="space-y-6 text-lg md:text-2xl leading-relaxed font-light tracking-wide clean-text-shadow text-white/95">
-                                        {(card.paragraphs || []).map((p, idx) => (
-                                            <p key={idx} className="whitespace-pre-line">
-                                                {p}
-                                            </p>
-                                        ))}
-                                    </div>
-
-                                    {card.sender && (
-                                        <div className="pt-6 text-right">
-                                            <p 
-                                                className="text-xl md:text-2xl italic font-serif clean-text-shadow whitespace-pre-line font-medium"
-                                                style={{ color: theme.primaryColor || '#fbcfe8' }}
-                                            >
-                                                {card.sender}
-                                            </p>
-                                        </div>
-                                    )}
-
-                                    {card.cta && card.cta.length > 0 && (
-                                        <div className="pt-8 flex flex-wrap gap-4 justify-center pointer-events-auto">
-                                            {card.cta.map((btn, idx) => (
-                                                <a
-                                                    key={idx}
-                                                    href={btn.url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-semibold tracking-wider uppercase border border-white text-white bg-black/40 hover:bg-black/70 backdrop-blur-md transition-all duration-300 hover:scale-105 shadow-lg"
-                                                    style={{ borderColor: theme.primaryColor }}
-                                                >
-                                                    {btn.icon && <i className={`fa-solid ${btn.icon}`}></i>}
-                                                    <span>{btn.label}</span>
-                                                </a>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {layout === 'boxed-card' && (
-                        <div className="absolute inset-x-0 top-24 bottom-6 z-20 overflow-y-auto custom-scrollbar flex justify-center items-center p-4 md:p-6">
-                            <div 
-                                className="max-w-2xl w-full rounded-2xl p-6 md:p-8 backdrop-blur-xl border border-white/15 shadow-2xl space-y-6"
-                                style={{ 
-                                    background: 'rgba(15, 17, 23, 0.85)',
-                                    fontFamily: theme.fontFamily || 'serif'
-                                }}
-                            >
-                                {hasPhotos && (
-                                    <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden shadow-lg border border-white/10">
-                                        <img
-                                            src={photos[currentIndex]}
-                                            alt="Slide"
-                                            className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
-                                        />
-                                        <div className="absolute bottom-2 right-2 px-2.5 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-[11px] text-white/80">
-                                            {currentIndex + 1} / {photos.length}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {card.recipient && (
-                                    <h2 
-                                        className="text-xl md:text-2xl font-semibold tracking-wider border-b border-white/10 pb-3"
-                                        style={{ color: theme.primaryColor || '#c9a96e' }}
-                                    >
-                                        {card.recipient}
-                                    </h2>
-                                )}
-
-                                <div className="space-y-4 text-base md:text-lg leading-relaxed text-zinc-200 font-light">
-                                    {(card.paragraphs || []).map((p, idx) => (
-                                        <p key={idx} className="whitespace-pre-line">
-                                            {p}
-                                        </p>
-                                    ))}
-                                </div>
-
-                                {card.sender && (
-                                    <div className="pt-4 border-t border-white/10 text-right">
-                                        <p 
-                                            className="text-lg md:text-xl italic font-serif whitespace-pre-line font-medium"
-                                            style={{ color: theme.primaryColor || '#c9a96e' }}
-                                        >
-                                            {card.sender}
-                                        </p>
-                                    </div>
-                                )}
-
-                                {card.cta && card.cta.length > 0 && (
-                                    <div className="pt-4 flex flex-wrap gap-3 justify-center">
-                                        {card.cta.map((btn, idx) => (
-                                            <a
-                                                key={idx}
-                                                href={btn.url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-semibold tracking-wider uppercase border border-current text-white bg-white/10 hover:bg-white/25 transition-all shadow-md"
-                                                style={{ color: theme.primaryColor }}
-                                            >
-                                                {btn.icon && <i className={`fa-solid ${btn.icon}`}></i>}
-                                                <span>{btn.label}</span>
-                                            </a>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-                </div>
-            );
-        }
-        // =========================================================================
-        // 2. WORKSPACE MODAL DIALOGS (彈窗元件)
-        // =========================================================================
-        function PreviewModal({ modalCard, onClose, onCloudPublish }) {
-            if (!modalCard) return null;
-            return (
-                <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4">
-                    <div className="absolute top-4 right-4 z-20 flex items-center gap-3">
-                        <button
-                            onClick={() => onCloudPublish(modalCard.card)}
-                            className="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-white font-bold text-xs flex items-center gap-2 shadow-lg transition-all"
-                        >
-                            <i className="fa-solid fa-cloud-arrow-up"></i>
-                            <span>發布雲端短網址</span>
-                        </button>
-                        <button
-                            onClick={onClose}
-                            className="w-10 h-10 rounded-full bg-zinc-800/80 hover:bg-zinc-700 text-white flex items-center justify-center transition-colors text-base"
-                        >
-                            <i className="fa-solid fa-xmark"></i>
-                        </button>
-                    </div>
-
-                    <div className="w-full max-w-sm h-[85vh] max-h-[720px] rounded-3xl overflow-hidden shadow-2xl border border-zinc-700/60 relative bg-black">
-                        <CardEngine
-                            card={modalCard.card}
-                            template={modalCard.template}
-                        />
-                    </div>
-                </div>
-            );
-        }
-
-        function CloudShareModal({ shareModal, onClose, onShowToast }) {
-            if (!shareModal) return null;
-            return (
-                <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 cloud-toast">
-                    <div className="bg-zinc-900 border border-zinc-700 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2.5">
-                                <span className="w-8 h-8 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center text-sm font-bold border border-sky-500/30">
-                                    <i className="fa-solid fa-cloud-check"></i>
-                                </span>
-                                <div>
-                                    <h3 className="font-bold text-white text-base">賀卡雲端分享已就緒</h3>
-                                    <p className="text-[11px] text-zinc-400">免 Git Commit ✕ 自動生成社群圖文預覽</p>
-                                </div>
-                            </div>
-                            <button 
-                                onClick={onClose}
-                                className="text-zinc-400 hover:text-white text-lg p-1"
-                            >
-                                <i className="fa-solid fa-xmark"></i>
-                            </button>
-                        </div>
-
-                        {shareModal.isSaving ? (
-                            <div className="py-8 flex flex-col items-center justify-center space-y-3">
-                                <i className="fa-solid fa-circle-notch fa-spin text-3xl text-sky-400"></i>
-                                <p className="text-xs text-zinc-300 font-medium">{shareModal.statusText}</p>
-                            </div>
-                        ) : (
-                            <div className="space-y-4">
-                                <div className="p-3 bg-zinc-950 rounded-lg border border-zinc-800 space-y-1.5 text-xs">
-                                    <div className="text-zinc-400">專屬短分享網址：</div>
-                                    <div className="flex items-center gap-2">
-                                        <input 
-                                            type="text" 
-                                            readOnly 
-                                            value={shareModal.shareUrl} 
-                                            className="flex-1 bg-zinc-900 border border-zinc-700 rounded px-2.5 py-1.5 text-sky-300 text-xs font-mono outline-none"
-                                        />
-                                        <button
-                                            onClick={() => {
-                                                navigator.clipboard.writeText(shareModal.shareUrl);
-                                                onShowToast('已複製分享短網址！');
-                                            }}
-                                            className="px-3 py-1.5 bg-amber-400 hover:bg-amber-300 text-zinc-950 font-bold rounded text-xs shrink-0 shadow"
-                                        >
-                                            複製
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="p-3 bg-sky-950/40 rounded-lg border border-sky-800/40 space-y-1 text-[11px] text-sky-200/90">
-                                    <div className="font-bold flex items-center gap-1.5 text-sky-300">
-                                        <i className="fa-solid fa-circle-info"></i>
-                                        <span>社群預覽卡片 (Open Graph) 已生效</span>
-                                    </div>
-                                    <p className="leading-relaxed text-zinc-400">
-                                        將此連結直接貼至 <strong>LINE、Facebook、WhatsApp、WeChat</strong>，受眾視窗會自動呈現此卡片的自訂標題、封面圖與祝福摘要！
-                                    </p>
-                                </div>
-
-                                <div className="flex items-center justify-end gap-2 pt-2">
-                                    <a
-                                        href={shareModal.shareUrl}
-                                        target="_blank"
-                                        className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded text-xs font-medium flex items-center gap-1.5 transition-colors"
-                                    >
-                                        <i className="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
-                                        <span>親自體驗播放</span>
-                                    </a>
-                                    <button
-                                        onClick={onClose}
-                                        className="px-4 py-2 bg-sky-500 hover:bg-sky-400 text-white font-bold rounded text-xs shadow-lg transition-all"
-                                    >
-                                        關閉完成
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            );
-        }
-
-        // =========================================================================
-        // 3. WORKSPACE NAVBAR (頂部導覽列組件)
-        // =========================================================================
-        function WorkspaceNavbar({
-            currentView,
-            setCurrentView,
-            activeGalleryTab,
-            setActiveGalleryTab,
-            cardsCount,
-            templatesCount,
-            editingTemplate,
-            setEditingTemplate,
-            currentEditingCard,
-            editorPreviewDevice,
-            setEditorPreviewDevice,
-            onSaveTemplate,
-            onCloudPublish,
-            onExportAllJSON
-        }) {
-            return (
-                <header className="h-14 border-b border-zinc-800/80 bg-zinc-950 px-6 flex items-center justify-between sticky top-0 z-30 shadow-md">
-                    <div className="flex items-center gap-3">
-                        <span className="w-8 h-8 rounded-lg bg-gradient-to-tr from-amber-400 via-rose-500 to-indigo-500 flex items-center justify-center text-zinc-950 font-black text-xs shadow">
-                            CF
-                        </span>
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <span className="font-bold tracking-wide text-sm text-white">CardForge Studio</span>
-                                <span className="px-1.5 py-0.5 rounded text-[10px] bg-amber-400/10 text-amber-300 border border-amber-400/20 font-mono">
-                                    3D Canvas + Cloud SSOT
-                                </span>
-                            </div>
-                            <div className="text-[10px] text-zinc-500">免 Git Commit ✕ 社交動態預覽 ✕ 雙軌賀卡工坊</div>
-                        </div>
-                    </div>
-
-                    {currentView === 'gallery' ? (
-                        <nav className="flex items-center bg-zinc-900 border border-zinc-800 rounded-lg p-1 text-xs">
-                            <button
-                                onClick={() => setActiveGalleryTab('cards')}
-                                className={`px-4 py-1.5 rounded-md flex items-center gap-2 font-medium transition-all ${activeGalleryTab === 'cards' ? 'bg-amber-400 text-zinc-950 font-bold shadow' : 'text-zinc-400 hover:text-white'}`}
-                            >
-                                <i className="fa-solid fa-address-card"></i>
-                                <span>卡片管理 ({cardsCount})</span>
-                            </button>
-                            <button
-                                onClick={() => setActiveGalleryTab('templates')}
-                                className={`px-4 py-1.5 rounded-md flex items-center gap-2 font-medium transition-all ${activeGalleryTab === 'templates' ? 'bg-indigo-500 text-white font-bold shadow' : 'text-zinc-400 hover:text-white'}`}
-                            >
-                                <i className="fa-solid fa-wand-magic-sparkles"></i>
-                                <span>模板管理 ({templatesCount})</span>
-                            </button>
-                        </nav>
-                    ) : currentView === 'template_editor' ? (
-                        <div className="flex items-center gap-3">
-                            <button
-                                onClick={() => {
-                                    setEditingTemplate(null);
-                                    setCurrentView('gallery');
-                                }}
-                                className="px-4 py-1.5 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-indigo-400 hover:bg-zinc-800 text-indigo-300 font-bold text-xs flex items-center gap-2 shadow transition-all"
-                            >
-                                <i className="fa-solid fa-arrow-left"></i>
-                                <span>返回模板庫</span>
-                            </button>
-                            <span className="text-zinc-500 text-xs">|</span>
-                            <span className="text-xs text-zinc-300 font-medium hidden sm:inline">
-                                正在設計模板：<span className="text-indigo-300 font-bold">{editingTemplate?.name}</span>
-                            </span>
-                        </div>
-                    ) : (
-                        <div className="flex items-center gap-3">
-                            <button
-                                onClick={() => setCurrentView('gallery')}
-                                className="px-4 py-1.5 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-amber-400 hover:bg-zinc-800 text-amber-300 font-bold text-xs flex items-center gap-2 shadow transition-all"
-                            >
-                                <i className="fa-solid fa-arrow-left"></i>
-                                <span>返回卡片庫</span>
-                            </button>
-                            <span className="text-zinc-500 text-xs">|</span>
-                            <span className="text-xs text-zinc-300 font-medium hidden sm:inline">
-                                正在編輯：<span className="text-amber-300 font-bold">{currentEditingCard?.name}</span>
-                            </span>
-                        </div>
-                    )}
-
-                    <div className="flex items-center gap-3">
-                        {/* 頂部預覽模式切換開關 (由中間畫布搬遷至頂部 Navbar) */}
-                        {(currentView === 'card_editor' || currentView === 'template_editor') && (
-                            <div className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-700/80 px-2.5 py-1 rounded-full text-xs shadow-inner">
-                                <span className="text-zinc-400 text-[11px] font-mono pl-1 hidden md:inline">視角：</span>
-                                <button
-                                    type="button"
-                                    onClick={() => setEditorPreviewDevice('mobile')}
-                                    className={`px-2.5 py-0.5 rounded-full flex items-center gap-1 transition-all text-xs ${editorPreviewDevice === 'mobile' ? (currentView === 'template_editor' ? 'bg-indigo-500 text-white font-bold shadow' : 'bg-amber-400 text-zinc-950 font-bold shadow') : 'text-zinc-400 hover:text-white'}`}
-                                >
-                                    <i className="fa-solid fa-mobile-screen text-[10px]"></i>
-                                    <span>手機</span>
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setEditorPreviewDevice('desktop')}
-                                    className={`px-2.5 py-0.5 rounded-full flex items-center gap-1 transition-all text-xs ${editorPreviewDevice === 'desktop' ? (currentView === 'template_editor' ? 'bg-indigo-500 text-white font-bold shadow' : 'bg-amber-400 text-zinc-950 font-bold shadow') : 'text-zinc-400 hover:text-white'}`}
-                                >
-                                    <i className="fa-solid fa-desktop text-[10px]"></i>
-                                    <span>桌面寬屏</span>
-                                </button>
-                            </div>
-                        )}
-
-                        {currentView === 'template_editor' && editingTemplate && (
-                            <button
-                                onClick={onSaveTemplate}
-                                className="px-4 py-1.5 text-xs rounded bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold flex items-center gap-1.5 shadow-lg shadow-indigo-500/25 transition-all border border-indigo-400/40"
-                                title="保存當前模板視覺與 3D 特效規格"
-                            >
-                                <i className="fa-solid fa-floppy-disk"></i>
-                                <span>保存模板規格</span>
-                            </button>
-                        )}
-
-                        {currentView === 'card_editor' && (
-                            <button
-                                onClick={onCloudPublish}
-                                className="px-3.5 py-1.5 text-xs rounded bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold flex items-center gap-1.5 shadow-lg shadow-sky-500/20 transition-all border border-sky-400/30"
-                                title="儲存至 Google Sheet SSOT 並取得社群預覽分享短網址"
-                            >
-                                <i className="fa-solid fa-cloud-arrow-up"></i>
-                                <span>發布至雲端 (免 Commit)</span>
-                            </button>
-                        )}
-
-                        <button
-                            onClick={onExportAllJSON}
-                            title="匯出完整 JSON 台帳備份"
-                            className="px-3 py-1.5 text-xs rounded border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hidden md:flex items-center gap-1.5 transition-colors"
-                        >
-                            <i className="fa-solid fa-download"></i>
-                            <span>備份導出</span>
-                        </button>
-                        <a
-                            href="index.html"
-                            target="_blank"
-                            className="px-3.5 py-1.5 text-xs rounded bg-amber-400 hover:bg-amber-300 text-zinc-950 font-bold flex items-center gap-1.5 shadow transition-all"
-                        >
-                            <i className="fa-solid fa-play text-[10px]"></i>
-                            <span>開啟播放器</span>
-                        </a>
-                    </div>
-                </header>
-            );
-        }
-
-        // =========================================================================
-        // 4. GALLERY COMPONENTS (畫廊網格組件)
-        // =========================================================================
-        function CardsGallery({ cards, templates, onCreateCard, onDuplicateCard, onDeleteCard, onPreviewCard, onEditCard, onCloudPublish }) {
-            return (
-                <section>
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                        <div>
-                            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                                <span>我的賀卡庫 (Cards Gallery)</span>
-                            </h2>
-                            <p className="text-xs text-zinc-400 mt-1">
-                                管理與自訂送給親友或夥伴的專屬卡片。支援免 Commit 一鍵雲端發布、動態社交預覽與複製短網址。
-                            </p>
-                        </div>
-                        <button
-                            onClick={onCreateCard}
-                            className="px-4 py-2 rounded-lg bg-amber-400 hover:bg-amber-300 text-zinc-950 font-bold text-xs flex items-center gap-2 shadow-lg transition-all self-start sm:self-auto"
-                        >
-                            <i className="fa-solid fa-plus"></i>
-                            <span>新增卡片</span>
-                        </button>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {cards.map(c => {
-                            const appliedTpl = templates.find(t => t.id === c.templateId) || templates[0];
-                            return (
-                                <div
-                                    key={c.id}
-                                    className="bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 rounded-xl p-5 flex flex-col justify-between shadow-xl transition-all hover:bg-zinc-900/90 group"
-                                >
-                                    <div>
-                                        <div className="flex items-center justify-between text-[11px] text-zinc-400 mb-2">
-                                            <span className="px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 font-medium border border-zinc-700/60">
-                                                {c.category === 'business' ? '商務夥伴' : c.category === 'festive' ? '節慶祝賀' : '個人親友'}
-                                            </span>
-                                            <span className="font-mono text-zinc-500">{c.updatedAt}</span>
-                                        </div>
-
-                                        <h3 className="text-base font-bold text-white group-hover:text-amber-300 transition-colors">
-                                            {c.name}
-                                        </h3>
-                                        <div className="text-xs text-amber-200/80 font-medium mt-1">
-                                            {c.title || '無標題'}
-                                        </div>
-
-                                        <div className="mt-3 p-3 rounded-lg bg-zinc-950/70 border border-zinc-800/80 space-y-1.5 text-xs text-zinc-300">
-                                            <div className="text-zinc-400 font-medium">{c.recipient || '致 受贈者：'}</div>
-                                            <div className="text-zinc-400/90 line-clamp-2 leading-relaxed text-[11px]">
-                                                {c.paragraphs && c.paragraphs[0] ? c.paragraphs[0] : '尚無內文...'}
-                                            </div>
-                                        </div>
-
-                                        <div className="mt-3 flex items-center gap-2 text-[11px] text-zinc-400">
-                                            <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ backgroundColor: appliedTpl?.theme?.primaryColor || '#c9a96e' }}></span>
-                                            <span>風格：<span className="text-zinc-200 font-medium">{appliedTpl?.name || '默認'}</span></span>
-                                            <span className="text-zinc-600">|</span>
-                                            <span className="font-mono text-zinc-500">{appliedTpl?.layout}</span>
-                                        </div>
-                                    </div>
-
-                                    <div className="mt-5 pt-3 border-t border-zinc-800/80 flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <button
-                                                onClick={() => onEditCard(c.id)}
-                                                className="px-3 py-1.5 rounded-md bg-amber-400 hover:bg-amber-300 text-zinc-950 font-bold text-xs flex items-center gap-1.5 transition-all shadow"
-                                            >
-                                                <i className="fa-solid fa-pen-to-square text-[11px]"></i>
-                                                <span>編輯卡片</span>
-                                            </button>
-                                            <button
-                                                onClick={() => onCloudPublish(c)}
-                                                className="px-2.5 py-1.5 rounded-md bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 text-xs flex items-center gap-1 transition-all"
-                                                title="發布至雲端生成短連結"
-                                            >
-                                                <i className="fa-solid fa-cloud-arrow-up text-[10px]"></i>
-                                                <span>雲端分享</span>
-                                            </button>
-                                        </div>
-
-                                        <div className="flex items-center gap-2">
-                                            <button
-                                                onClick={() => onPreviewCard(c, appliedTpl)}
-                                                className="p-1.5 text-zinc-400 hover:text-amber-300 transition-colors"
-                                                title="即時預覽試看"
-                                            >
-                                                <i className="fa-solid fa-eye"></i>
-                                            </button>
-                                            <button
-                                                onClick={() => onDuplicateCard(c)}
-                                                className="p-1.5 text-zinc-400 hover:text-white transition-colors"
-                                                title="複製卡片副本"
-                                            >
-                                                <i className="fa-regular fa-copy"></i>
-                                            </button>
-                                            <button
-                                                onClick={() => onDeleteCard(c.id, c.name)}
-                                                className="p-1.5 text-zinc-500 hover:text-rose-400 transition-colors"
-                                                title="刪除卡片"
-                                            >
-                                                <i className="fa-regular fa-trash-can"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </section>
-            );
-        }
-
-        function TemplatesGallery({ templates, onCreateTemplate, onDuplicateTemplate, onDeleteTemplate, onPreviewTemplate, onEditTemplate }) {
-            return (
-                <section>
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                        <div>
-                            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                                <i className="fa-solid fa-wand-magic-sparkles text-indigo-400"></i>
-                                <span>模板與視覺規範庫 (Templates)</span>
-                            </h2>
-                            <p className="text-xs text-zinc-400 mt-1">
-                                統一管理 3D WebGL Shader 背景、前景粒子群、字體配色與星戰升空速度等可復用風格模板。
-                            </p>
-                        </div>
-                        <button
-                            onClick={onCreateTemplate}
-                            className="px-4 py-2 rounded-lg bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-xs flex items-center gap-2 shadow-lg transition-all self-start sm:self-auto"
-                        >
-                            <i className="fa-solid fa-plus"></i>
-                            <span>新增模板</span>
-                        </button>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {templates.map(t => (
-                            <div
-                                key={t.id}
-                                className="bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 rounded-xl p-5 flex flex-col justify-between shadow-xl transition-all hover:bg-zinc-900/90 group"
-                            >
-                                <div>
-                                    <div className="flex items-center justify-between text-[11px] text-zinc-400 mb-2">
-                                        <span className="px-2 py-0.5 rounded bg-zinc-800 text-indigo-300 font-medium border border-zinc-700/60 font-mono">
-                                            {t.id}
-                                        </span>
-                                        <span className="px-2 py-0.5 rounded bg-indigo-950/40 text-indigo-300 border border-indigo-800/40 text-[10px]">
-                                            {t.category === 'editorial' ? '人文專題' : t.category === 'luxury' ? '奢華慶典' : '自訂風格'}
-                                        </span>
-                                    </div>
-
-                                    <h3 className="text-base font-bold text-white group-hover:text-indigo-300 transition-colors">
-                                        {t.name}
-                                    </h3>
-                                    <p className="text-xs text-zinc-400 mt-1 line-clamp-2 leading-relaxed">
-                                        {t.description || '無描述說明'}
-                                    </p>
-
-                                    <div className="mt-4 p-3 rounded-lg bg-zinc-950/70 border border-zinc-800/80 space-y-1.5 text-[11px]">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-zinc-500">預設版型：</span>
-                                            <span className="text-zinc-300 font-medium">
-                                                {t.layout === 'star-wars-crawl' ? '星戰漫遊升空' : '精裝方盒卡片'}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-zinc-500">3D 前景特效：</span>
-                                            <span className="text-amber-300 font-medium">
-                                                {t.effects?.particleType || '純淨無粒子'}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-zinc-500">背景 Shader：</span>
-                                            <span className="text-indigo-300 font-mono text-[10px]">
-                                                {t.bgShader || 'none (純相片/黑底)'}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="mt-5 pt-3 border-t border-zinc-800/80 flex items-center justify-between">
-                                    <button
-                                        onClick={() => onDuplicateTemplate(t)}
-                                        className="text-xs text-zinc-400 hover:text-white flex items-center gap-1 transition-colors"
-                                        title="一鍵複製副本"
-                                    >
-                                        <i className="fa-regular fa-copy"></i>
-                                        <span>一鍵複製副本</span>
-                                    </button>
-
-                                    <div className="flex items-center gap-2">
-                                        <button
-                                            onClick={() => onPreviewTemplate(t)}
-                                            className="p-1.5 text-zinc-400 hover:text-amber-300 transition-colors"
-                                            title="試看排版與 3D 效果"
-                                        >
-                                            <i className="fa-solid fa-eye"></i>
-                                        </button>
-                                        <button
-                                            onClick={() => onEditTemplate(t)}
-                                            className="p-1.5 text-zinc-400 hover:text-indigo-300 transition-colors"
-                                            title="進入全螢幕模板工坊與 3D 特效微調"
-                                        >
-                                            <i className="fa-solid fa-pencil"></i>
-                                        </button>
-                                        <button
-                                            onClick={() => onDeleteTemplate(t.id, t.name)}
-                                            className="p-1.5 text-zinc-500 hover:text-rose-400 transition-colors"
-                                            title="刪除模板"
-                                        >
-                                            <i className="fa-regular fa-trash-can"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </section>
-            );
-        }
+        // 引用外部已模組化的核心渲染舞台 (core/CardEngine.js)
+        // 解構外部純 JS 模組化視圖組件 (js/workspace_views.js)
+        const {
+            PreviewModal,
+            CloudShareModal,
+            WorkspaceNavbar,
+            CardsGallery,
+            TemplatesGallery
+        } = window.WorkspaceViews;
 
         // =========================================================================
         // 5. WORKSPACE APP (創作者工坊主體)
@@ -781,6 +73,8 @@
             const [cloudShareModal, setCloudShareModal] = React.useState(null);
             const [editorPreviewDevice, setEditorPreviewDevice] = React.useState('mobile');
             const [toastMessage, setToastMessage] = React.useState('');
+            const [uploadStatus, setUploadStatus] = React.useState(null); // { isUploading: bool, message: string }
+            const fileInputRef = React.useRef(null);
 
             const showToast = (msg) => {
                 setToastMessage(msg);
@@ -946,6 +240,44 @@
                 showToast(`模板「${updatedTpl.name}」規格已成功保存！`);
             };
 
+            // 處理使用者選取或拖曳上傳圖片 (WebP 極致壓縮 + ImgBB 直傳)
+            const handleImageUpload = async (file) => {
+                if (!file) return;
+                if (!window.ImageUploader) {
+                    alert('未檢測到圖片上傳模組 (ImageUploader)');
+                    return;
+                }
+
+                setUploadStatus({ isUploading: true, message: '正在啟動圖片處理...' });
+
+                try {
+                    const result = await window.ImageUploader.processAndUpload(file, {
+                        onProgress: (status) => {
+                            setUploadStatus({ isUploading: true, message: status.message });
+                        }
+                    });
+
+                    // 上傳成功，自動追加到當前編輯卡片的 photos 陣列
+                    if (currentEditingCard && result.url) {
+                        const currentPhotos = currentEditingCard.media?.photos || [];
+                        const updatedPhotos = [...currentPhotos, result.url];
+                        updateEditingCard({
+                            media: {
+                                ...(currentEditingCard.media || {}),
+                                photos: updatedPhotos
+                            }
+                        });
+                        showToast(`⚡ 壓縮 ${result.stats.savedPercent}%！已成功新增照片外鏈`);
+                    }
+                } catch (err) {
+                    console.error('上傳照片失敗:', err);
+                    alert(`上傳失敗: ${err.message || '連線逾時'}`);
+                } finally {
+                    setUploadStatus(null);
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                }
+            };
+
             const currentEditingCard = cards.find(c => c.id === editingCardId) || cards[0];
             const currentEditingTemplate = templates.find(t => t.id === currentEditingCard?.templateId) || templates[0];
 
@@ -1089,21 +421,12 @@
                                     </div>
                                 </div>
 
-                                <div className="mt-auto pt-3 border-t border-zinc-800 flex items-center justify-between">
-                                    <button
-                                        onClick={() => setCurrentView('gallery')}
-                                        className="text-amber-400 hover:underline flex items-center gap-1 text-xs"
-                                    >
-                                        <i className="fa-solid fa-arrow-left text-[10px]"></i>
-                                        <span>儲存並返回卡片庫</span>
-                                    </button>
-                                    <button
-                                        onClick={() => handleCloudPublish(currentEditingCard)}
-                                        className="px-3 py-1.5 rounded bg-sky-500 hover:bg-sky-400 text-white font-bold flex items-center gap-1 text-xs shadow"
-                                    >
-                                        <i className="fa-solid fa-cloud-arrow-up text-[10px]"></i>
-                                        <span>雲端短連結</span>
-                                    </button>
+                                <div className="mt-auto pt-3 border-t border-zinc-800 flex items-center justify-between text-[11px] text-zinc-500">
+                                    <div className="flex items-center gap-1.5">
+                                        <i className="fa-solid fa-cloud text-emerald-400 text-[10px]"></i>
+                                        <span>實時自動儲存 (Auto-Saved)</span>
+                                    </div>
+                                    <span className="text-[10px] text-zinc-600 font-mono">頂部統一操作</span>
                                 </div>
                             </aside>
 
@@ -1206,22 +529,96 @@
 
                                 <div className="space-y-3 bg-zinc-900/50 p-3 rounded-lg border border-zinc-800">
                                     <div className="flex items-center justify-between">
-                                        <label className="text-zinc-400 font-medium">背景相片輪播 (URL)</label>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                const currentPhotos = currentEditingCard.media?.photos || [];
-                                                const updatedPhotos = [...currentPhotos, 'https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=1200&q=80'];
-                                                updateEditingCard({ media: { ...(currentEditingCard.media || {}), photos: updatedPhotos } });
-                                            }}
-                                            className="text-amber-400 hover:text-amber-300 text-[11px] flex items-center gap-1"
-                                        >
-                                            <i className="fa-solid fa-plus text-[10px]"></i>
-                                            <span>增加相片</span>
-                                        </button>
+                                        <div className="flex items-center gap-1.5">
+                                            <label className="text-zinc-300 font-medium">背景相片展示</label>
+                                            <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
+                                                (currentEditingCard.media?.photos || []).length <= 1 
+                                                    ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-800/40' 
+                                                    : 'bg-amber-950/60 text-amber-400 border border-amber-800/40'
+                                            }`}>
+                                                {(currentEditingCard.media?.photos || []).length <= 1 ? '單張·Ken Burns慢鏡' : `${(currentEditingCard.media?.photos || []).length}張·5s輪播`}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const currentPhotos = currentEditingCard.media?.photos || [];
+                                                    const updatedPhotos = [...currentPhotos, 'https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=1200&q=80'];
+                                                    updateEditingCard({ media: { ...(currentEditingCard.media || {}), photos: updatedPhotos } });
+                                                }}
+                                                className="text-zinc-400 hover:text-zinc-300 text-[11px] flex items-center gap-1"
+                                                title="手動輸入照片網址"
+                                            >
+                                                <i className="fa-solid fa-plus text-[10px]"></i>
+                                                <span>加外鏈</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                disabled={uploadStatus?.isUploading}
+                                                onClick={() => fileInputRef.current?.click()}
+                                                className="text-amber-400 hover:text-amber-300 bg-amber-400/10 hover:bg-amber-400/20 border border-amber-400/30 px-2 py-0.5 rounded text-[11px] flex items-center gap-1 transition-colors"
+                                                title="極速壓縮轉 WebP 並直傳 ImgBB"
+                                            >
+                                                <i className="fa-solid fa-cloud-arrow-up text-[10px]"></i>
+                                                <span>上傳照片</span>
+                                            </button>
+                                        </div>
                                     </div>
+
+                                    {/* 隱藏的 File Input */}
+                                    <input 
+                                        type="file" 
+                                        ref={fileInputRef} 
+                                        accept="image/*" 
+                                        className="hidden" 
+                                        onChange={e => {
+                                            if (e.target.files && e.target.files[0]) {
+                                                handleImageUpload(e.target.files[0]);
+                                            }
+                                        }} 
+                                    />
+
+                                    {/* 圖片上傳拖曳提示框 */}
+                                    <div 
+                                        onDragOver={e => { e.preventDefault(); e.stopPropagation(); }}
+                                        onDrop={e => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                                                handleImageUpload(e.dataTransfer.files[0]);
+                                            }
+                                        }}
+                                        onClick={() => !uploadStatus?.isUploading && fileInputRef.current?.click()}
+                                        className="border border-dashed border-zinc-700/80 hover:border-amber-400/60 bg-zinc-950/40 hover:bg-zinc-950/70 rounded-lg p-2.5 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-1"
+                                    >
+                                        {uploadStatus?.isUploading ? (
+                                            <div className="flex items-center gap-2 text-amber-400 font-medium py-1">
+                                                <i className="fa-solid fa-circle-notch fa-spin text-xs"></i>
+                                                <span>{uploadStatus.message}</span>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div className="flex items-center gap-1.5 text-zinc-400 text-[11px]">
+                                                    <i className="fa-regular fa-image text-amber-400"></i>
+                                                    <span>拖曳圖片至此，或點擊選圖上傳</span>
+                                                </div>
+                                                <div className="text-[10px] text-zinc-500">
+                                                    ⚡ 自動等比縮放 + WebP 80% 極致壓縮 ➔ 免塞 Git 直出 CDN 外鏈
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+
+                                    {/* 照片網址清單 */}
                                     {(currentEditingCard.media?.photos || []).map((photoUrl, idx) => (
-                                        <div key={idx} className="flex items-center gap-2">
+                                        <div key={idx} className="flex items-center gap-2 bg-zinc-950/60 p-1.5 rounded border border-zinc-800/80">
+                                            <img 
+                                                src={photoUrl} 
+                                                alt={`相片 ${idx + 1}`} 
+                                                className="w-7 h-7 object-cover rounded border border-zinc-700 shrink-0" 
+                                                onError={(e) => { e.target.style.display = 'none'; }}
+                                            />
                                             <input
                                                 type="text"
                                                 value={photoUrl}
@@ -1231,6 +628,7 @@
                                                     updateEditingCard({ media: { ...currentEditingCard.media, photos: updatedPhotos } });
                                                 }}
                                                 className="flex-1 bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-[11px] text-white outline-none focus:border-amber-400 font-mono"
+                                                placeholder="https://..."
                                             />
                                             <button
                                                 type="button"
@@ -1238,7 +636,8 @@
                                                     const updatedPhotos = currentEditingCard.media.photos.filter((_, i) => i !== idx);
                                                     updateEditingCard({ media: { ...currentEditingCard.media, photos: updatedPhotos } });
                                                 }}
-                                                className="p-1.5 text-zinc-500 hover:text-rose-400 transition-colors"
+                                                className="p-1.5 text-zinc-500 hover:text-rose-400 transition-colors shrink-0"
+                                                title="移除相片"
                                             >
                                                 <i className="fa-regular fa-trash-can text-[10px]"></i>
                                             </button>
@@ -1344,24 +743,12 @@
                                     <p>在左側與右側調整任何數值，中間螢幕會以 60 FPS 實時呈現 Shader 與粒子演算光影。</p>
                                 </div>
 
-                                <div className="mt-auto pt-3 border-t border-zinc-800 flex items-center justify-between">
-                                    <button
-                                        onClick={() => {
-                                            setEditingTemplate(null);
-                                            setCurrentView('gallery');
-                                        }}
-                                        className="text-zinc-400 hover:text-white flex items-center gap-1 text-xs transition-colors"
-                                    >
-                                        <i className="fa-solid fa-arrow-left text-[10px]"></i>
-                                        <span>返回模板庫</span>
-                                    </button>
-                                    <button
-                                        onClick={() => handleSaveTemplate(editingTemplate)}
-                                        className="px-3.5 py-1.5 rounded bg-indigo-500 hover:bg-indigo-400 text-white font-bold flex items-center gap-1.5 text-xs shadow transition-all"
-                                    >
-                                        <i className="fa-solid fa-floppy-disk text-[10px]"></i>
-                                        <span>保存模板規格</span>
-                                    </button>
+                                <div className="mt-auto pt-3 border-t border-zinc-800 flex items-center justify-between text-[11px] text-zinc-500">
+                                    <div className="flex items-center gap-1.5">
+                                        <i className="fa-solid fa-circle-check text-indigo-400 text-[10px]"></i>
+                                        <span>即時預覽中</span>
+                                    </div>
+                                    <span className="text-[10px] text-zinc-600 font-mono">頂部統一保存</span>
                                 </div>
                             </aside>
 

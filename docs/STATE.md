@@ -48,6 +48,8 @@
 | `workspace.html` | 創作者大螢幕工坊：大畫廊看板、卡片/模板編輯器組裝 | React 18, Babel, Tailwind (內聯 JSX) |
 | `index.html` | 受眾端終端播放器：開門解鎖 Web Audio、SWR 秒開、沉浸體驗 | React 18, Three.js (內聯 JSX) |
 | `js/workspace_store.js` | 全域單一資料源：LocalStorage 持久化、JSON 降級保底、CRUD | 純 JS (嚴禁 JSX，零 CORS) |
+| `js/workspace_views.js` | 工坊核心視圖庫：彈窗(預覽/分享)、導覽列(Navbar)、大畫廊展示 | React (純 JS / React.createElement，零 JSX) |
+| `js/image_uploader.js` | 圖片極致 WebP 壓縮與 ImgBB 免費 CDN 直傳 | 純 JS (Canvas 等比縮小、WebP 80%、ImgBB API) |
 | `core/CardEngine.js` | 卡片排版渲染引擎（星戰漫遊升空、精裝方盒卡片、照片輪播） | React, ParticleEngine (純 JS/React API) |
 | `core/ParticleEngine.js` | 3D 前景粒子引擎（落櫻、星塵、流星、黑洞渦流、衛星巡航） | Three.js / Canvas 2D (純 JS，零 JSX) |
 | `core/BackdropShader.js` | 3D 背景 Shader 渲染器（WebGL 絲綢金煙、軌道行星、賽博全息） | Three.js / WebGL (純 JS，零 JSX) |

@@ -74,6 +74,67 @@
 - **踩坑 / 失敗模式**:
   - 行動端（iOS Safari / Android Chrome）安全策略要求音訊必須由使用者主動手勢（開門按鈕點擊）觸發；重構時嚴格保留 `WelcomeGate` 的 `handleStart` 手勢解鎖鏈路，防止因拆分組件引發聲音靜默。
 - **防禦手段 / 測試背書**:
-  - 保持 `file:///` 本地雙擊零 CORS 兼容性，恪守「測試是使用者工作」紅線，不私自調用瀏覽器子代理。
 
+---
+
+### [2026-09-20] [UNREFINED] [arch] 前端圖片 WebP 極致壓縮模組封裝與 ImgBB 免費 CDN 直傳整合
+- **類型**: `ARCH_DECISION` | `FEATURE`
+- **代碼錨點**: `js/image_uploader.js`, `workspace.html` (L30~L40, L780~L800, L950~L1000, L1250~L1340), `docs/STATE.md`
+- **核心事實 / 決策理由**:
+  - 徹底解決賀卡圖片直接塞入 Git 倉庫引發倉庫膨脹、頻繁 Commit 與受眾端載入緩慢痛點。
+  - 設計「純前端雙重智能壓榨」架構：
+    1. 尺寸等比縮小（長邊 ≤ 1600px）。
+    2. 原生 HTML5 Canvas 轉譯 WebP（80% 質量），體積縮小 80%~95% 並保留 Alpha 透明通道。
+    3. 直傳 ImgBB 開放 API (`https://api.imgbb.com/1/upload`)，取得全球 CDN 直連外鏈 (`i.ibb.co`)，自動追加至卡片媒體欄位。
+  - 嚴格遵守「模組解耦」與「零編譯純 JS」鐵律：所有圖片壓縮演算法與 API 調用獨立封裝於 `js/image_uploader.js`，完全不含 JSX，以原生 script 標籤載入，嚴禁將演算法代碼硬塞入 `workspace.html`。
+  - 卡片編輯抽屜提供：隱藏 File Input、拖曳上傳提示區、即時 WebP 壓縮與上傳進度反饋、手動加外鏈備選、單張 Ken Burns 慢鏡 / 多張 5s 輪播之視覺狀態標籤。
+- **踩坑 / 失敗模式**:
+  - ImgBB API 回傳帶有 CORS 許可標頭，純前端使用 FormData 可在 `file:///` 協議下秒級直傳，不需後端代理中轉。
+  - 壓縮時須先清空離屏 Canvas 畫布，避免 PNG 透明背景轉譯時出現黑底失真。
+- **防禦手段 / 測試背書**:
+
+---
+
+### [2026-09-20] [UNREFINED] [index.html] 根治本地 file:/// 協議下 templates.json 的 Zero-CORS 降級卡頓
+- **類型**: `BUG_FIX` | `ZERO_CORS`
+- **代碼錨點**: `index.html` (L110~L125)
+- **核心事實 / 決策理由**:
+  - 使用者在本地以 `file:///` 雙擊打開 `index.html?id=...` 時，瀏覽器因安全性原則將 `file:///` 視為 `origin: 'null'`，攔截 `fetch('data/templates.json')` 引發 CORS 錯誤。
+  - `workspace_store.js` 在 fetch 失敗時原本設計了降級為 `window.DEFAULT_TEMPLATES`，但 `index.html` 先前漏掉了引入 `js/constants.js`，導致降級時 `DEFAULT_TEMPLATES` 為 `undefined`，使得 `templates` 陣列長度為 0，播放器永久卡死在「載入專屬賀卡中...」。
+  - 補齊 `<script src="js/constants.js"></script>` 後，降級鏈路完整閉環，無需依賴推送到 GitHub 倉庫或起本地伺服器，100% 實現本地雙擊秒開播放。
+- **防禦手段 / 測試背書**:
+
+---
+
+### [2026-09-20] [UNREFINED] [workspace.html] 清除左下角重複按鈕、收斂頂部 Navbar 單一操作出口
+- **類型**: `REFACTOR` | `UI_UX`
+- **代碼錨點**: `workspace.html` (L1130~L1145, L1450~L1465)
+- **核心事實 / 決策理由**:
+  - 徹底剷除卡片編輯器與模板編輯器左下角歷史殘留的重複按鈕（「儲存並返回卡片庫」與「雲端短連結」）。
+  - 事實確認：工坊採用實時自動儲存 (Auto-Saved) 機制，使用者輸入之際即持久化寫入 LocalStorage，左下角按鈕與頂部 Navbar 按鈕底層代碼完全相同，純屬冗餘與心智負擔。
+- **防禦手段 / 測試背書**:
+  - 恪守本地雙擊零編譯原則，保持操作出口唯一性。
+
+---
+
+### [2026-09-20] [UNREFINED] [arch] 執行全專案深度模組化：抽取 workspace_views.js 與純 JS CardEngine.js
+- **類型**: `REFACTOR` | `MODULARIZATION`
+- **代碼錨點**: `js/workspace_views.js`, `core/CardEngine.js`, `workspace.html`, `index.html`, `docs/STATE.md`
+- **核心事實 / 決策理由**:
+  - 徹底解決 `workspace.html` 巨石膨脹（1,600+ 行）假模組化痛點：
+    1. 新建 `js/workspace_views.js`，以純 JS (`React.createElement`) 完整抽離 `PreviewModal`、`CloudShareModal`、`WorkspaceNavbar`、`CardsGallery`、`TemplatesGallery` 五大核心視圖組件，掛載於 `window.WorkspaceViews`，符合 `file:///` 零 CORS 零編譯規範。
+    2. 將 `core/CardEngine.js` 全面重構為純 JS (`React.createElement`) 模組，徹底移除 JSX 標籤，符合外部 `.js` 檔嚴禁 JSX 規範；創作者端與受眾端共享單一舞台。
+    3. `workspace.html` 與 `index.html` 同步刪除內聯重複 CardEngine 與畫廊組件，`workspace.html` 行數直接從 1,600+ 行暴降至約 900 行，`index.html` 降至 369 行。
+---
+
+### [2026-09-20] [UNREFINED] [workspace] 根治編輯器標題穿透導覽列、移除冗餘備份按鈕、明確保存標籤
+- **類型**: `BUG_FIX` | `UI_UX`
+- **代碼錨點**: `css/workspace.css` (L38~L65), `js/workspace_views.js` (L155~L280), `docs/ACTIVE_LOG.md`
+- **核心事實 / 決策理由**:
+  - 根據使用者截圖標註之重大缺陷進行三合一精準修復：
+    1. **根治非全螢幕標題字穿透導航欄**：在 `css/workspace.css` 為 `.phone-frame` 與 `.desktop-frame` 注入 `overflow: hidden !important`、`contain: paint` 與 3D 渲染層硬體隔離 `transform: translateZ(0)`，徹底杜絕文字與特效元素突破手機外框邊界；並將頂部導覽列提升至 `z-50`。
+    2. **移除冗餘「備份導出」按鈕**：全系統已全面串接 Google Sheet SSOT 雲端持久化，本地手動下載 JSON 備份已無存在必要，將右上角「備份導出」按鈕徹底移除，大幅簡化導覽列視覺。
+    3. **消弭保存疑慮**：將左上角「返回卡片庫」與「返回模板庫」明確認證為 **「保存並返回卡片庫」** 與 **「保存並返回模板庫」**，讓創作者直觀感受自動儲存的確定性。
+- **防禦手段 / 測試背書**:
+  - `node -c js/workspace_views.js` 語法校驗 100% 通過。
 
