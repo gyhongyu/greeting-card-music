@@ -102,3 +102,27 @@ window.TEXT_REVEAL_OPTIONS = [
     { value: 'stagger-fade', label: '📜 逐行深情浮現 (Stagger Fade-up)' },
     { value: 'glow-focus', label: '💫 星光凝聚聚焦 (Starlight Focus)' }
 ];
+
+window.FONT_FAMILY_OPTIONS = [
+    {
+        id: 'kaisho-tai',
+        label: '📜 典雅標楷 (台標楷體 / 手機楷體 / 莊重書法)',
+        value: "'DFKai-SB', 'BiauKai', 'Kaiti SC', 'STKaiti', 'Noto Serif TC', serif"
+    },
+    {
+        id: 'serif-classic',
+        label: '⚜️ 人文宋體 (思源宋體 / Garamond / 深情信箋)',
+        value: "'Cormorant Garamond', 'Noto Serif TC', 'Songti SC', 'SimSun', serif"
+    },
+    {
+        id: 'sans-modern',
+        label: '🚀 都會黑體 (思源黑體 / 蘋方 / 正黑體 / Jost)',
+        value: "'Jost', 'PingFang TC', 'Microsoft JhengHei', 'Noto Sans TC', sans-serif"
+    },
+    {
+        id: 'mono-tech',
+        label: '💻 科技等寬 (JetBrains Mono / 極客未來的代碼風)',
+        value: "'JetBrains Mono', Consolas, Monaco, monospace"
+    }
+];
+

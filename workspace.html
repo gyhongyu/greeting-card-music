@@ -8,7 +8,7 @@
     <!-- Fonts & Tailwind -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Jost:wght@300;400;500;600;700&family=Noto+Serif+TC:wght@300;400;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Jost:wght@300;400;500;600;700&family=Noto+Serif+TC:wght@300;400;600&family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
 
@@ -693,6 +693,101 @@
                                         className="w-full bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1.5 text-white outline-none focus:border-amber-400 font-mono text-[11px]"
                                     />
                                 </div>
+
+                                {/* 卡片文字排版與字體大小 (Typography & Font Size) */}
+                                {currentEditingTemplate && (
+                                    <div className="space-y-3 bg-zinc-900/50 p-3 rounded-lg border border-zinc-800">
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-zinc-300 font-semibold flex items-center gap-1.5">
+                                                <i className="fa-solid fa-font text-amber-400"></i>
+                                                <span>文字字型與大小 (Typography)</span>
+                                            </label>
+                                            <span className="text-[10px] px-1.5 py-0.5 rounded font-mono bg-amber-950/60 text-amber-300 border border-amber-800/40">
+                                                即時渲染
+                                            </span>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-zinc-400 mb-1 text-[11px]">字型風格 (Font Family)</label>
+                                            <select
+                                                value={currentEditingTemplate.theme?.fontFamily || "'DFKai-SB', 'BiauKai', 'Kaiti SC', 'STKaiti', 'Noto Serif TC', serif"}
+                                                onChange={e => {
+                                                    const val = e.target.value;
+                                                    const updatedTpls = templates.map(t => t.id === currentEditingTemplate.id ? {
+                                                        ...t,
+                                                        theme: { ...(t.theme || {}), fontFamily: val }
+                                                    } : t);
+                                                    saveTemplates(updatedTpls);
+                                                }}
+                                                className="w-full bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1.5 text-white text-[11px] outline-none focus:border-amber-400 cursor-pointer"
+                                            >
+                                                {(window.FONT_FAMILY_OPTIONS || []).map(font => (
+                                                    <option key={font.id} value={font.value}>{font.label}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        <div className="pt-1 border-t border-zinc-800/60">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <label className="text-zinc-400 text-[11px]">內文字體大小 (Body Scale)</label>
+                                                <span className="font-mono text-amber-400 font-bold">
+                                                    {Math.round((currentEditingTemplate.theme?.fontSizeScale !== undefined ? Number(currentEditingTemplate.theme?.fontSizeScale) : 1.0) * 100)}%
+                                                </span>
+                                            </div>
+                                            <input
+                                                type="range"
+                                                min="80"
+                                                max="140"
+                                                step="5"
+                                                value={Math.round((currentEditingTemplate.theme?.fontSizeScale !== undefined ? Number(currentEditingTemplate.theme?.fontSizeScale) : 1.0) * 100)}
+                                                onChange={e => {
+                                                    const val = parseFloat(e.target.value) / 100;
+                                                    const updatedTpls = templates.map(t => t.id === currentEditingTemplate.id ? {
+                                                        ...t,
+                                                        theme: { ...(t.theme || {}), fontSizeScale: val }
+                                                    } : t);
+                                                    saveTemplates(updatedTpls);
+                                                }}
+                                                className="w-full accent-amber-500 cursor-pointer"
+                                            />
+                                            <div className="flex justify-between text-[9px] text-zinc-500 font-mono">
+                                                <span>80% (精緻)</span>
+                                                <span>100% (標準)</span>
+                                                <span>140% (大字)</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="pt-1 border-t border-zinc-800/60">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <label className="text-zinc-400 text-[11px]">主標題大小 (Title Size)</label>
+                                                <span className="font-mono text-amber-400 font-bold">
+                                                    {currentEditingTemplate.theme?.titleSize !== undefined ? currentEditingTemplate.theme?.titleSize : 36}px
+                                                </span>
+                                            </div>
+                                            <input
+                                                type="range"
+                                                min="26"
+                                                max="54"
+                                                step="2"
+                                                value={currentEditingTemplate.theme?.titleSize !== undefined ? currentEditingTemplate.theme?.titleSize : 36}
+                                                onChange={e => {
+                                                    const val = parseInt(e.target.value, 10);
+                                                    const updatedTpls = templates.map(t => t.id === currentEditingTemplate.id ? {
+                                                        ...t,
+                                                        theme: { ...(t.theme || {}), titleSize: val }
+                                                    } : t);
+                                                    saveTemplates(updatedTpls);
+                                                }}
+                                                className="w-full accent-amber-500 cursor-pointer"
+                                            />
+                                            <div className="flex justify-between text-[9px] text-zinc-500 font-mono">
+                                                <span>26px (典雅)</span>
+                                                <span>36px (標準)</span>
+                                                <span>54px (震撼)</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </aside>
                         </div>
                     )}
@@ -1092,6 +1187,94 @@
                                                     className="w-full bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-white font-mono text-[11px]"
                                                 />
                                             </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* 文字排版與字型規格 (Typography & Font Size) */}
+                                <div className="space-y-3 bg-zinc-900/50 p-3 rounded-lg border border-zinc-800">
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-zinc-300 font-semibold flex items-center gap-1.5">
+                                            <i className="fa-solid fa-font text-indigo-400"></i>
+                                            <span>文字排版與字型規格 (Typography)</span>
+                                        </label>
+                                        <span className="text-[10px] px-1.5 py-0.5 rounded font-mono bg-indigo-950/60 text-indigo-300 border border-indigo-800/40">
+                                            繁簡英·全跨平台相容
+                                        </span>
+                                    </div>
+
+                                    {/* 字型選單 */}
+                                    <div>
+                                        <label className="block text-zinc-400 mb-1 text-[11px]">字型風格 (Font Family)</label>
+                                        <select
+                                            value={editingTemplate.theme?.fontFamily || "'DFKai-SB', 'BiauKai', 'Kaiti SC', 'STKaiti', 'Noto Serif TC', serif"}
+                                            onChange={e => setEditingTemplate({
+                                                ...editingTemplate,
+                                                theme: { ...(editingTemplate.theme || {}), fontFamily: e.target.value }
+                                            })}
+                                            className="w-full bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1.5 text-white text-[11px] outline-none focus:border-indigo-400 cursor-pointer"
+                                        >
+                                            {(window.FONT_FAMILY_OPTIONS || []).map(font => (
+                                                <option key={font.id} value={font.value}>{font.label}</option>
+                                            ))}
+                                        </select>
+                                        <div className="text-[10px] text-zinc-500 mt-1 flex items-center justify-between">
+                                            <span>支援台灣標楷、思源宋體、蘋方黑體</span>
+                                            <span className="text-indigo-400/80">iOS / Android / PC 自動降級保底</span>
+                                        </div>
+                                    </div>
+
+                                    {/* 內文字級縮放拉桿 */}
+                                    <div className="pt-1 border-t border-zinc-800/60">
+                                        <div className="flex items-center justify-between mb-1">
+                                            <label className="text-zinc-400 text-[11px]">內文字體大小 (Body Scale)</label>
+                                            <span className="font-mono text-indigo-400 font-bold">
+                                                {Math.round((editingTemplate.theme?.fontSizeScale !== undefined ? Number(editingTemplate.theme?.fontSizeScale) : 1.0) * 100)}%
+                                            </span>
+                                        </div>
+                                        <input
+                                            type="range"
+                                            min="80"
+                                            max="140"
+                                            step="5"
+                                            value={Math.round((editingTemplate.theme?.fontSizeScale !== undefined ? Number(editingTemplate.theme?.fontSizeScale) : 1.0) * 100)}
+                                            onChange={e => setEditingTemplate({
+                                                ...editingTemplate,
+                                                theme: { ...(editingTemplate.theme || {}), fontSizeScale: parseFloat(e.target.value) / 100 }
+                                            })}
+                                            className="w-full accent-indigo-500 cursor-pointer"
+                                        />
+                                        <div className="flex justify-between text-[9px] text-zinc-500 font-mono">
+                                            <span>80% (精緻緊湊)</span>
+                                            <span>100% (標準)</span>
+                                            <span>140% (醒目大字)</span>
+                                        </div>
+                                    </div>
+
+                                    {/* 大標題字級拉桿 */}
+                                    <div className="pt-1 border-t border-zinc-800/60">
+                                        <div className="flex items-center justify-between mb-1">
+                                            <label className="text-zinc-400 text-[11px]">主標題大小 (Title Size)</label>
+                                            <span className="font-mono text-indigo-400 font-bold">
+                                                {editingTemplate.theme?.titleSize !== undefined ? editingTemplate.theme?.titleSize : 36}px
+                                            </span>
+                                        </div>
+                                        <input
+                                            type="range"
+                                            min="26"
+                                            max="54"
+                                            step="2"
+                                            value={editingTemplate.theme?.titleSize !== undefined ? editingTemplate.theme?.titleSize : 36}
+                                            onChange={e => setEditingTemplate({
+                                                ...editingTemplate,
+                                                theme: { ...(editingTemplate.theme || {}), titleSize: parseInt(e.target.value, 10) }
+                                            })}
+                                            className="w-full accent-indigo-500 cursor-pointer"
+                                        />
+                                        <div className="flex justify-between text-[9px] text-zinc-500 font-mono">
+                                            <span>26px (典雅端莊)</span>
+                                            <span>36px (標準大器)</span>
+                                            <span>54px (震撼磅礴)</span>
                                         </div>
                                     </div>
                                 </div>

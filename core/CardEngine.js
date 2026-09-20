@@ -29,6 +29,12 @@
         const bgShaderSpeed = (template && template.bgShaderSpeed !== undefined) ? template.bgShaderSpeed : 1.0;
         const crawlDurationSec = (template && template.crawlSpeed) ? Number(template.crawlSpeed) : 44;
 
+        // 文字排版與字級微調 (Typography & Size Scaling)
+        const fontFamily = theme.fontFamily || "'DFKai-SB', 'BiauKai', 'Kaiti SC', 'STKaiti', 'Noto Serif TC', serif";
+        const fontSizeScale = Number(theme.fontSizeScale !== undefined ? theme.fontSizeScale : 1.0);
+        const titleSize = Number(theme.titleSize !== undefined ? theme.titleSize : 36);
+
+
         // Initialize 3D / WebGL Shaders (Silk Smoke / Particle Orbit / Hologram)
         React.useEffect(() => {
             if (window.BackdropShader && bgShader && bgShader !== 'none') {
@@ -124,9 +130,10 @@
                 key: 'header-title',
                 className: 'absolute top-0 left-0 right-0 z-30 pt-6 pb-4 text-center px-4 pointer-events-none bg-gradient-to-b from-black/75 via-black/20 to-transparent'
             }, h('h1', {
-                className: 'text-3xl md:text-5xl font-light tracking-wide clean-title-glow text-white',
+                className: 'font-light tracking-wide clean-title-glow text-white leading-tight',
                 style: {
-                    fontFamily: theme.fontFamily || 'serif',
+                    fontFamily: fontFamily,
+                    fontSize: `${titleSize}px`,
                     '--title-color': theme.titleColor || '#ffffff',
                     '--title-glow': theme.primaryColor || '#c9a96e'
                 }
@@ -142,8 +149,11 @@
             if (card && card.recipient) {
                 crawlChildren.push(h('div', {
                     key: 'recipient',
-                    className: 'text-2xl md:text-3xl font-semibold tracking-wider clean-text-shadow',
-                    style: { color: theme.primaryColor || '#fbcfe8' }
+                    className: 'font-semibold tracking-wider clean-text-shadow',
+                    style: {
+                        color: theme.primaryColor || '#fbcfe8',
+                        fontSize: `calc(1.5rem * ${fontSizeScale})`
+                    }
                 }, card.recipient));
             }
 
@@ -151,11 +161,14 @@
             if (card && card.paragraphs) {
                 const paragraphsElements = card.paragraphs.map((p, idx) => h('p', {
                     key: idx,
-                    className: 'whitespace-pre-line'
+                    className: 'whitespace-pre-line leading-relaxed font-light tracking-wide clean-text-shadow text-white/95'
                 }, p));
                 crawlChildren.push(h('div', {
                     key: 'paragraphs',
-                    className: 'space-y-6 text-lg md:text-2xl leading-relaxed font-light tracking-wide clean-text-shadow text-white/95'
+                    className: 'space-y-6',
+                    style: {
+                        fontSize: `calc(1.2rem * ${fontSizeScale})`
+                    }
                 }, paragraphsElements));
             }
 
@@ -165,8 +178,12 @@
                     key: 'sender',
                     className: 'pt-6 text-right'
                 }, h('p', {
-                    className: 'text-xl md:text-2xl italic font-serif clean-text-shadow whitespace-pre-line font-medium',
-                    style: { color: theme.primaryColor || '#fbcfe8' }
+                    className: 'italic clean-text-shadow whitespace-pre-line font-medium',
+                    style: {
+                        color: theme.primaryColor || '#fbcfe8',
+                        fontFamily: fontFamily,
+                        fontSize: `calc(1.25rem * ${fontSizeScale})`
+                    }
                 }, card.sender)));
             }
 
@@ -207,7 +224,7 @@
             }, h('div', {
                 className: `w-full max-w-2xl px-6 md:px-8 text-center text-white ${animClass} ${isPaused ? 'is-paused' : ''}`,
                 style: {
-                    fontFamily: theme.fontFamily || 'serif',
+                    fontFamily: fontFamily,
                     '--crawl-duration': `${crawlDurationSec}s`
                 }
             }, h('div', {
@@ -238,9 +255,10 @@
                         '--reveal-duration': `${durationSec}s`
                     }
                 }, h('h1', {
-                    className: 'text-3xl md:text-5xl font-light tracking-wide clean-title-glow text-white',
+                    className: 'font-light tracking-wide clean-title-glow text-white leading-tight',
                     style: {
-                        fontFamily: theme.fontFamily || 'serif',
+                        fontFamily: fontFamily,
+                        fontSize: `${titleSize}px`,
                         '--title-color': theme.titleColor || '#ffffff',
                         '--title-glow': theme.primaryColor || '#c9a96e'
                     }
@@ -274,9 +292,10 @@
             if (card && card.recipient) {
                 posterChildren.push(h('h2', {
                     key: 'poster-recipient',
-                    className: `${fxClass} text-xl md:text-2xl font-semibold tracking-wider pt-3 pb-1`,
+                    className: `${fxClass} font-semibold tracking-wider pt-3 pb-1`,
                     style: {
                         color: theme.primaryColor || '#c9a96e',
+                        fontSize: `calc(1.35rem * ${fontSizeScale})`,
                         animationDelay: nextDelay(),
                         '--reveal-duration': `${durationSec}s`
                     }
@@ -287,8 +306,9 @@
             if (card && card.paragraphs) {
                 const paragraphElements = card.paragraphs.map((p, idx) => h('p', {
                     key: idx,
-                    className: `${fxClass} whitespace-pre-line text-base md:text-lg leading-relaxed text-zinc-100/90 font-light`,
+                    className: `${fxClass} whitespace-pre-line leading-relaxed text-zinc-100/90 font-light`,
                     style: { 
+                        fontSize: `calc(1.05rem * ${fontSizeScale})`,
                         animationDelay: nextDelay(),
                         '--reveal-duration': `${durationSec}s`
                     }
@@ -309,8 +329,12 @@
                         '--reveal-duration': `${durationSec}s`
                     }
                 }, h('p', {
-                    className: 'text-lg md:text-xl italic font-serif whitespace-pre-line font-medium',
-                    style: { color: theme.primaryColor || '#c9a96e' }
+                    className: 'italic whitespace-pre-line font-medium',
+                    style: {
+                        color: theme.primaryColor || '#c9a96e',
+                        fontFamily: fontFamily,
+                        fontSize: `calc(1.15rem * ${fontSizeScale})`
+                    }
                 }, card.sender)));
             }
 
@@ -346,9 +370,10 @@
                 }
             }, h('div', {
                 className: 'w-full max-w-xl mx-auto space-y-4 text-center sm:text-left',
-                style: { fontFamily: theme.fontFamily || 'serif' }
+                style: { fontFamily: fontFamily }
             }, posterChildren)));
         }
+
 
         return h('div', {
             className: 'absolute inset-0 w-full h-full overflow-hidden select-none',
