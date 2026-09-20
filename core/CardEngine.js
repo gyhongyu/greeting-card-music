@@ -211,15 +211,17 @@
                 }, ctaButtons));
             }
 
-            // 星戰透視深度精確還原：perspective: 500px, perspectiveOrigin: 50% 85% (舒適不陡峭)
+            // 星戰透視深度：perspective: 500px, perspectiveOrigin: 50% 85% (舒適 24deg 仰角，文字端正不扁塌)
             const container3DStyle = isStarWars ? {
                 perspective: '500px',
                 perspectiveOrigin: '50% 85%'
             } : {};
 
+            // 星戰板面寬度設為 220% 居中超寬展開，文字在下方巨大並直接突破手機左右兩側邊界！
             const boardStyle = isStarWars ? {
-                width: '100%',
-                maxWidth: '100%',
+                width: '220%',
+                minWidth: '220%',
+                maxWidth: '220%',
                 fontFamily: fontFamily,
                 '--crawl-duration': `${crawlDurationSec}s`
             } : {
@@ -230,7 +232,7 @@
             };
 
             const boardClasses = isStarWars 
-                ? `px-1 text-white ${animClass} ${isPaused ? 'is-paused' : ''}`
+                ? `px-2 text-white ${animClass} ${isPaused ? 'is-paused' : ''}`
                 : `w-full max-w-2xl px-6 md:px-8 text-center text-white ${animClass} ${isPaused ? 'is-paused' : ''}`;
 
             rootChildren.push(h('div', {
