@@ -265,14 +265,15 @@
                     h('span', null, '發布至雲端 (免 Commit)')
                 ) : null,
 
-                h('a', {
+                !isTplEditor ? h('a', {
                     href: 'index.html',
                     target: '_blank',
-                    className: 'px-3.5 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-zinc-950 font-bold text-xs flex items-center gap-1.5 shadow-lg shadow-amber-400/20 transition-all'
+                    className: 'px-3.5 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-zinc-950 font-bold text-xs flex items-center gap-1.5 shadow-lg shadow-amber-400/20 transition-all',
+                    title: '開啟受眾端 3D 沉浸賀卡播放器'
                 },
                     h('i', { className: 'fa-solid fa-play text-[10px]' }),
                     h('span', null, '開啟播放器')
-                )
+                ) : null
             )
         );
     }
