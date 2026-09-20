@@ -211,16 +211,18 @@
                 }, ctaButtons));
             }
 
-            // 星戰需要 3D 透視深度 (perspective: 450px) 創造大氣舒展的梯形前大後小仰角
+            // 區分真正的 3D 星戰 vs 平直電影卷軸
+            // 星戰專屬：強烈 3D 透視深度 (perspective: 280px, perspectiveOrigin: 50% 40%)
+            // 文字板面寬度設為 220% 居中，最底部文字超大且左右完全突破邊界溢出；滾到中間時剛好縮成符合手機寬度的滿版閱讀面！
             const container3DStyle = isStarWars ? {
-                perspective: '450px',
-                perspectiveOrigin: '50% 88%'
+                perspective: '280px',
+                perspectiveOrigin: '50% 42%'
             } : {};
 
-            // 星戰大板面寬度設為 135% 居中，底部文字左右飽滿貼齊手機外框甚至微凸，往上升空時受梯形透視自然向內收縮
             const boardStyle = isStarWars ? {
-                width: '135%',
-                maxWidth: '135%',
+                width: '220%',
+                minWidth: '220%',
+                maxWidth: '220%',
                 fontFamily: fontFamily,
                 '--crawl-duration': `${crawlDurationSec}s`
             } : {
@@ -231,7 +233,7 @@
             };
 
             const boardClasses = isStarWars 
-                ? `px-3 text-white ${animClass} ${isPaused ? 'is-paused' : ''}`
+                ? `text-white ${animClass} ${isPaused ? 'is-paused' : ''}`
                 : `w-full max-w-2xl px-6 md:px-8 text-center text-white ${animClass} ${isPaused ? 'is-paused' : ''}`;
 
             rootChildren.push(h('div', {
@@ -243,7 +245,7 @@
                 className: boardClasses,
                 style: boardStyle
             }, h('div', {
-                className: isStarWars ? 'w-full py-8 space-y-7' : 'w-full py-8 px-4 space-y-8'
+                className: isStarWars ? 'w-full py-8 px-2 space-y-7' : 'w-full py-8 px-4 space-y-8'
             }, crawlChildren))));
         } else if (isPoster) {
             // 🖼️ 滿版動態海報賀卡 (Cinematic Full-bleed Poster) - 徹底打破生硬小方盒！
