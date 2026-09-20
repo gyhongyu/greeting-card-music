@@ -3,12 +3,12 @@
    ========================================================================== */
 
 /* 1. 🌌 真正星際大戰 3D 梯形滅點升空 (Star Wars 3D Deep Space Vanishing)
-   - 起點字體飽滿大氣 (scale 1.15，文字大而清晰)
-   - 隨 3D 仰角平滑向上推進，自然梯形前大後小，在遠方星空優雅淡出
+   - 起點飽滿貼近手機左右邊緣 (scale 1.15 ~ 1.2，大氣舒展)，自然前大後小
+   - 仰角平滑向深空遠方延伸，在滅點自然淡出
 */
 @keyframes starWars3DDeepSpace {
   0% {
-    transform: rotateX(24deg) translateY(420px);
+    transform: rotateX(25deg) translateY(420px) scale(1.18);
     opacity: 0.95;
   }
   3% {
@@ -21,7 +21,7 @@
     opacity: 0;
   }
   100% {
-    transform: rotateX(24deg) translateY(-130%);
+    transform: rotateX(25deg) translateY(-140%) scale(0.65);
     opacity: 0;
   }
 }
@@ -29,6 +29,7 @@
 .anim-star-wars-crawl {
   animation: starWars3DDeepSpace var(--crawl-duration, 44s) linear infinite;
   transform-origin: 50% 100%;
+  width: 100%;
   will-change: transform, opacity;
 }
 

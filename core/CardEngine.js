@@ -210,11 +210,14 @@
             const isStarWars = layout === 'star-wars-crawl';
             const animClass = isStarWars ? 'anim-star-wars-crawl' : 'anim-cinematic-credits';
             
-            // 星戰需要 3D 透視深度 (perspective: 500px) 創造大氣舒展的梯形前大後小仰角
+            // 星戰需要 3D 透視深度 (perspective: 450px) 創造大氣舒展的梯形前大後小仰角
             const container3DStyle = isStarWars ? {
-                perspective: '500px',
-                perspectiveOrigin: '50% 85%'
+                perspective: '450px',
+                perspectiveOrigin: '50% 88%'
             } : {};
+
+            const containerPadding = isStarWars ? 'px-2' : 'px-6 md:px-8';
+            const innerPadding = isStarWars ? 'w-full py-8 px-1 space-y-7' : 'w-full py-8 px-4 space-y-8';
 
             rootChildren.push(h('div', {
                 key: `scroll-container-${layout}`,
@@ -222,13 +225,13 @@
                 style: container3DStyle,
                 onClick: () => setIsPaused(!isPaused)
             }, h('div', {
-                className: `w-full max-w-2xl px-6 md:px-8 text-center text-white ${animClass} ${isPaused ? 'is-paused' : ''}`,
+                className: `w-full max-w-2xl ${containerPadding} text-center text-white ${animClass} ${isPaused ? 'is-paused' : ''}`,
                 style: {
                     fontFamily: fontFamily,
                     '--crawl-duration': `${crawlDurationSec}s`
                 }
             }, h('div', {
-                className: 'w-full py-8 px-4 space-y-8'
+                className: innerPadding
             }, crawlChildren))));
         } else if (isPoster) {
             // 🖼️ 滿版動態海報賀卡 (Cinematic Full-bleed Poster) - 徹底打破生硬小方盒！
