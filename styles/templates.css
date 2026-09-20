@@ -3,14 +3,13 @@
    ========================================================================== */
 
 /* 1. 🌌 真正星際大戰 3D 梯形滅點升空 (Star Wars 3D Deep Space Vanishing)
-   - 0 秒文字直接在手機外框下緣清晰可見（不用等待 5 秒）
-   - 隨 Z 軸推入深空，文字等比縮小至 20%、模糊並融入星河消融
+   - 起點字體飽滿大氣 (scale 1.15，文字大而清晰)
+   - 隨 3D 仰角平滑向上推進，自然梯形前大後小，在遠方星空優雅淡出
 */
 @keyframes starWars3DDeepSpace {
   0% {
-    transform: rotateX(25deg) translateY(450px) translateZ(0px) scale(1);
+    transform: rotateX(24deg) translateY(420px);
     opacity: 0.95;
-    filter: blur(0px);
   }
   3% {
     opacity: 1;
@@ -22,17 +21,15 @@
     opacity: 0;
   }
   100% {
-    transform: rotateX(25deg) translateY(-140%) translateZ(-750px) scale(0.2);
+    transform: rotateX(24deg) translateY(-130%);
     opacity: 0;
-    filter: blur(4px);
   }
 }
 
 .anim-star-wars-crawl {
   animation: starWars3DDeepSpace var(--crawl-duration, 44s) linear infinite;
   transform-origin: 50% 100%;
-  transform-style: preserve-3d;
-  will-change: transform, opacity, filter;
+  will-change: transform, opacity;
 }
 
 .anim-star-wars-crawl:hover,

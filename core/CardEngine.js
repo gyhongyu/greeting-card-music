@@ -193,10 +193,10 @@
             const isStarWars = layout === 'star-wars-crawl';
             const animClass = isStarWars ? 'anim-star-wars-crawl' : 'anim-cinematic-credits';
             
-            // 星戰需要 3D 透視深度 (perspective: 320px) 創造強烈梯形前大後小效果
+            // 星戰需要 3D 透視深度 (perspective: 500px) 創造大氣舒展的梯形前大後小仰角
             const container3DStyle = isStarWars ? {
-                perspective: '320px',
-                perspectiveOrigin: '50% 100%'
+                perspective: '500px',
+                perspectiveOrigin: '50% 85%'
             } : {};
 
             rootChildren.push(h('div', {
