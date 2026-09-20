@@ -22,7 +22,7 @@
       "particleType": "sakura-canvas",
       "particleDensity": 30
     },
-    "defaultMusic": "https://gyhongyu.github.io/greeting-card-music/In%20Love%20With%20You.mp3"
+    "defaultMusic": "assets/audio/In Love With You.mp3"
   },
   {
     "id": "obsidian-silk",
@@ -47,7 +47,7 @@
       "particleType": "rising-stardust",
       "particleDensity": 35
     },
-    "defaultMusic": "https://gyhongyu.github.io/greeting-card-music/In%20Love%20With%20You.mp3"
+    "defaultMusic": "assets/audio/In Love With You.mp3"
   },
   {
     "id": "mission-control",
@@ -72,7 +72,7 @@
       "particleType": "orbital-satellites",
       "particleDensity": 25
     },
-    "defaultMusic": "https://gyhongyu.github.io/greeting-card-music/In%20Love%20With%20You.mp3"
+    "defaultMusic": "assets/audio/In Love With You.mp3"
   },
   {
     "id": "hologram-cyber",
@@ -97,7 +97,7 @@
       "particleType": "blackhole-vortex",
       "particleDensity": 30
     },
-    "defaultMusic": "https://gyhongyu.github.io/greeting-card-music/In%20Love%20With%20You.mp3"
+    "defaultMusic": "assets/audio/In Love With You.mp3"
   },
   {
     "id": "festive-red",
@@ -122,6 +122,6 @@
       "particleType": "meteor-shower",
       "particleDensity": 25
     },
-    "defaultMusic": "https://gyhongyu.github.io/greeting-card-music/In%20Love%20With%20You.mp3"
+    "defaultMusic": "assets/audio/In Love With You.mp3"
   }
 ]

@@ -1,0 +1,96 @@
+/**
+ * constants.js - CardForge 全域常數與預設配置
+ * 純 JavaScript，保證在 file:/// 協議下零 CORS 阻擋原生秒載入
+ */
+
+window.DEFAULT_CARDS = [
+    {
+        id: 'card-mothers-day',
+        templateId: 'mothers-day',
+        name: '母親節溫情卡 (示範卡片)',
+        category: 'personal',
+        updatedAt: '2026-05-10',
+        title: "Happy Mother's Day",
+        recipient: 'Dear My Love,',
+        paragraphs: [
+            'On this special day, I just want to say thank you.',
+            'Thank you for staying by my side all these years, for taking care of me with so much love and patience.',
+            'Wishing you peace, love, and all the happiness you deserve.'
+        ],
+        sender: 'With all my love,\nChen Hung Yu',
+        media: { bgMode: 'slideshow', photos: [] }
+    }
+];
+
+window.DEFAULT_TEMPLATES = [
+    {
+        id: 'mothers-day',
+        name: '典雅溫情 · 櫻花信箋',
+        category: 'personal',
+        description: '3D 落櫻花瓣輕盈飄落翻轉。純情浪漫首選。',
+        layout: 'star-wars-crawl',
+        bgShader: 'none',
+        crawlSpeed: 44,
+        theme: { primaryColor: '#f472b6', accentColor: '#fbbf24', bgColor: '#14050b' },
+        effects: { particleType: 'sakura-canvas', particleDensity: 30 }
+    },
+    {
+        id: 'birthday-aurora',
+        name: '星夜極光 · 歡慶誕生',
+        category: 'birthday',
+        description: '極光流轉背景與璀璨金光星塵，適合生日驚喜。',
+        layout: 'star-wars-crawl',
+        bgShader: 'silk-smoke',
+        crawlSpeed: 38,
+        theme: { primaryColor: '#38bdf8', accentColor: '#facc15', bgColor: '#030712' },
+        effects: { particleType: 'rising-stardust', particleDensity: 40 }
+    },
+    {
+        id: 'cosmic-vortex',
+        name: '星際奇航 · 宇宙黑洞',
+        category: 'festival',
+        description: '浩瀚星軌與黑洞引力渦流，充滿未來科技與深邃感。',
+        layout: 'star-wars-crawl',
+        bgShader: 'hologram',
+        crawlSpeed: 42,
+        theme: { primaryColor: '#a855f7', accentColor: '#38bdf8', bgColor: '#05030a' },
+        effects: { particleType: 'blackhole-vortex', particleDensity: 50 }
+    }
+];
+
+window.TEMPLATE_DUMMY_CARD = {
+    id: 'dummy-template-preview',
+    title: 'Sample Typography Title',
+    recipient: '致 預覽示範對象 (Recipient)：',
+    paragraphs: [
+        '這是一段用於測試模板字型、字級大小、字距行高與漫遊速度的示範文字段落。',
+        '在此處可以目測背景 3D Shader、前景粒子特效與深淺遮罩在動態滾動時的穿透視覺質感。',
+        '確認排版與光影協調後，保存模板即可供卡片製作頁面一鍵套用。'
+    ],
+    sender: '模板示範署名 (Signature)\nCardForge Studio',
+    media: { bgMode: 'slideshow', photos: [] },
+    cta: [
+        { label: '示範按鈕 (CTA)', url: '#', icon: 'fa-sparkles' }
+    ]
+};
+
+window.SHADER_OPTIONS = [
+    { value: 'none', label: 'none (純淨相片/黑底深色漸層)' },
+    { value: 'silk-smoke', label: 'silk-smoke (典雅金煙與流體絲綢)' },
+    { value: 'particle-orbit', label: 'particle-orbit (斐波那契星環粒子球)' },
+    { value: 'hologram', label: 'hologram (青紫全息點雲星雲)' }
+];
+
+window.PARTICLE_OPTIONS = [
+    { value: 'none', label: 'none (純淨無粒子)' },
+    { value: 'sakura-canvas', label: 'sakura-canvas (3D 飄落翻轉櫻花)' },
+    { value: 'rising-stardust', label: 'rising-stardust (金光升騰星塵)' },
+    { value: 'orbital-satellites', label: 'orbital-satellites (軌道衛星光跡)' },
+    { value: 'blackhole-vortex', label: 'blackhole-vortex (黑洞渦流引力)' },
+    { value: 'meteor-shower', label: 'meteor-shower (掠過流星雨)' }
+];
+
+window.LAYOUT_OPTIONS = [
+    { value: 'star-wars-crawl', label: '星戰漫遊升空 (Star Wars Crawl 經典 3D 仰角)' },
+    { value: 'fixed-card', label: '精裝方盒卡片 (Fixed Card 現代商務立體框)' }
+];
