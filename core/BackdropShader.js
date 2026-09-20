@@ -33,6 +33,13 @@ window.BackdropShader = (function () {
         }
     }
 
+    function getContainerSize(canvas) {
+        const parent = canvas.parentElement;
+        const w = parent ? parent.clientWidth : window.innerWidth;
+        const h = parent ? parent.clientHeight : window.innerHeight;
+        return { width: Math.max(w, 300), height: Math.max(h, 400) };
+    }
+
     /* ---------------- 1. OBSIDIAN SILK & GOLD SMOKE (Raw WebGL) ---------------- */
     function initSilkSmoke(canvas) {
         let gl = canvas.getContext("webgl", { antialias: false, alpha: true });
@@ -50,14 +57,14 @@ window.BackdropShader = (function () {
             " for(int i=0;i<5;i++){v+=a*noise(p);p=p*2.03+vec2(11.7,7.3);a*=.52;}return v;}",
             "void main(){",
             " vec2 uv=(gl_FragCoord.xy-.5*u_res)/u_res.y;",
-            " float t=u_time*.06;",
+            " float t=u_time*.08;",
             " vec2 q=vec2(fbm(uv*1.6+t),fbm(uv*1.6-t*.8+3.1));",
             " vec2 r=vec2(fbm(uv*1.6+q*1.9+vec2(1.7,9.2)+t*.6),fbm(uv*1.6+q*1.9+vec2(8.3,2.8)-t*.4));",
             " float v=fbm(uv*1.6+r*1.6);",
-            " vec3 col=mix(vec3(.02,.02,.03),vec3(.09,.07,.05),clamp(v*v*1.6,0.,1.));",
-            " col+=smoothstep(.45,.92,r.y)*vec3(.82,.68,.44)*.28*(.35+v);",
-            " float vig=smoothstep(1.3,.35,length(uv));",
-            " col*=vig*.95+.05;",
+            " vec3 col=mix(vec3(.03,.03,.05),vec3(.14,.11,.08),clamp(v*v*1.8,0.,1.));",
+            " col+=smoothstep(.35,.88,r.y)*vec3(1.0,.82,.48)*.55*(.45+v);",
+            " float vig=smoothstep(1.4,.25,length(uv));",
+            " col*=vig*.9+.1;",
             " gl_FragColor=vec4(col,1.);",
             "}"
         ].join("\n");
@@ -88,9 +95,10 @@ window.BackdropShader = (function () {
         const uTime = gl.getUniformLocation(prog, "u_time");
 
         function resize() {
-            const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-            canvas.width = window.innerWidth * dpr;
-            canvas.height = window.innerHeight * dpr;
+            const size = getContainerSize(canvas);
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            canvas.width = size.width * dpr;
+            canvas.height = size.height * dpr;
             gl.viewport(0, 0, canvas.width, canvas.height);
         }
         resize();
@@ -108,6 +116,9 @@ window.BackdropShader = (function () {
         return () => {
             cancelAnimationFrame(animId);
             window.removeEventListener("resize", resize);
+            try {
+                gl.getExtension('WEBGL_lose_context')?.loseContext();
+            } catch (e) {}
         };
     }
 
@@ -116,10 +127,13 @@ window.BackdropShader = (function () {
         if (!window.THREE) return () => {};
         const THREE = window.THREE;
 
+        const size = getContainerSize(canvas);
         const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
         renderer.setClearColor(0x050a14, 1);
+        renderer.setSize(size.width, size.height, false);
+
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+        const camera = new THREE.PerspectiveCamera(50, size.width / size.height, 0.1, 100);
         camera.position.z = 4.8;
 
         // Particle Planet Sphere
@@ -136,7 +150,7 @@ window.BackdropShader = (function () {
         }
         const geo = new THREE.BufferGeometry();
         geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-        const mat = new THREE.PointsMaterial({ color: 0x4fd1c5, size: 0.025, transparent: true, opacity: 0.85 });
+        const mat = new THREE.PointsMaterial({ color: 0x4fd1c5, size: 0.03, transparent: true, opacity: 0.9 });
         const sphere = new THREE.Points(geo, mat);
         scene.add(sphere);
 
@@ -152,18 +166,18 @@ window.BackdropShader = (function () {
         }
         const ringGeo = new THREE.BufferGeometry();
         ringGeo.setAttribute("position", new THREE.BufferAttribute(ringPos, 3));
-        const ringMat = new THREE.PointsMaterial({ color: 0xc9a96e, size: 0.032, transparent: true, opacity: 0.9 });
+        const ringMat = new THREE.PointsMaterial({ color: 0xfacc15, size: 0.038, transparent: true, opacity: 0.95 });
         const ring = new THREE.Points(ringGeo, ringMat);
         ring.rotation.x = Math.PI * 0.35;
         ring.rotation.y = Math.PI * 0.12;
         scene.add(ring);
 
         function resize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
+            const s = getContainerSize(canvas);
+            camera.aspect = s.width / s.height;
             camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setSize(s.width, s.height, false);
         }
-        resize();
         window.addEventListener("resize", resize);
 
         let animId = null;
@@ -179,7 +193,14 @@ window.BackdropShader = (function () {
         return () => {
             cancelAnimationFrame(animId);
             window.removeEventListener("resize", resize);
-            renderer.dispose();
+            try {
+                renderer.dispose();
+                geo.dispose();
+                mat.dispose();
+                ringGeo.dispose();
+                ringMat.dispose();
+                renderer.forceContextLoss();
+            } catch (e) {}
         };
     }
 
@@ -188,17 +209,20 @@ window.BackdropShader = (function () {
         if (!window.THREE) return () => {};
         const THREE = window.THREE;
 
+        const size = getContainerSize(canvas);
         const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
         renderer.setClearColor(0x06070b, 1);
+        renderer.setSize(size.width, size.height, false);
+
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+        const camera = new THREE.PerspectiveCamera(50, size.width / size.height, 0.1, 100);
         camera.position.z = 4.5;
 
         const gridCount = 2500;
         const pos = new Float32Array(gridCount * 3);
         const colors = new Float32Array(gridCount * 3);
-        const c1 = new THREE.Color(0x35e0ff);
-        const c2 = new THREE.Color(0x8b7bff);
+        const c1 = new THREE.Color(0x38bdf8);
+        const c2 = new THREE.Color(0xc084fc);
 
         for (let i = 0; i < gridCount; i++) {
             pos[i * 3] = (Math.random() - 0.5) * 6;
@@ -214,16 +238,16 @@ window.BackdropShader = (function () {
         const geo = new THREE.BufferGeometry();
         geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
         geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-        const mat = new THREE.PointsMaterial({ size: 0.035, vertexColors: true, transparent: true, opacity: 0.85 });
+        const mat = new THREE.PointsMaterial({ size: 0.04, vertexColors: true, transparent: true, opacity: 0.9 });
         const cloud = new THREE.Points(geo, mat);
         scene.add(cloud);
 
         function resize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
+            const s = getContainerSize(canvas);
+            camera.aspect = s.width / s.height;
             camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setSize(s.width, s.height, false);
         }
-        resize();
         window.addEventListener("resize", resize);
 
         let animId = null;
@@ -238,7 +262,12 @@ window.BackdropShader = (function () {
         return () => {
             cancelAnimationFrame(animId);
             window.removeEventListener("resize", resize);
-            renderer.dispose();
+            try {
+                renderer.dispose();
+                geo.dispose();
+                mat.dispose();
+                renderer.forceContextLoss();
+            } catch (e) {}
         };
     }
 

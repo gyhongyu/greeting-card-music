@@ -701,25 +701,27 @@
                                             ))}
                                         </select>
                                     </div>
-                                    <div>
-                                        <div className="flex items-center justify-between mb-1">
-                                            <label className="text-zinc-400">字幕漫遊升空速度 (Speed)</label>
-                                            <span className="font-mono text-indigo-400 font-bold">{editingTemplate.crawlSpeed || 44}s</span>
+                                    {editingTemplate.layout === 'star-wars-crawl' && (
+                                        <div>
+                                            <div className="flex items-center justify-between mb-1">
+                                                <label className="text-zinc-400">字幕漫遊升空速度 (Speed)</label>
+                                                <span className="font-mono text-indigo-400 font-bold">{editingTemplate.crawlSpeed || 44}s</span>
+                                            </div>
+                                            <input 
+                                                type="range"
+                                                min="20"
+                                                max="80"
+                                                value={editingTemplate.crawlSpeed || 44}
+                                                onChange={e => setEditingTemplate({ ...editingTemplate, crawlSpeed: parseInt(e.target.value) || 40 })}
+                                                className="w-full accent-indigo-500 cursor-pointer"
+                                            />
+                                            <div className="flex justify-between text-[10px] text-zinc-500 mt-1 font-mono">
+                                                <span>20s (疾速)</span>
+                                                <span>44s (優雅)</span>
+                                                <span>80s (深情)</span>
+                                            </div>
                                         </div>
-                                        <input 
-                                            type="range"
-                                            min="20"
-                                            max="80"
-                                            value={editingTemplate.crawlSpeed || 44}
-                                            onChange={e => setEditingTemplate({ ...editingTemplate, crawlSpeed: parseInt(e.target.value) || 40 })}
-                                            className="w-full accent-indigo-500 cursor-pointer"
-                                        />
-                                        <div className="flex justify-between text-[10px] text-zinc-500 mt-1 font-mono">
-                                            <span>20s (疾速)</span>
-                                            <span>44s (優雅)</span>
-                                            <span>80s (深情)</span>
-                                        </div>
-                                    </div>
+                                    )}
                                 </div>
 
                                 <div className="space-y-3 bg-zinc-900/50 p-3 rounded-lg border border-zinc-800">

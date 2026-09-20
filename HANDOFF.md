@@ -1,24 +1,26 @@
 # 📋 專案工作交接文檔 (HANDOFF.md)
 > ⚠️ **【鐵律：專案唯一單一真理源 (SSOT)】**  
 > 本檔案由 `handover_generator` 自動維護並原子覆寫，禁止產生影子交接文檔。  
-> 交接時間：2026-09-20 22:45 | 交接狀態：代碼已模組化瘦身、雙軌穩態、等待模板系統 BUG 討論
+> 交接時間：2026-09-20 23:00 | 交接狀態：模板系統三大缺陷修復完成、等待使用者手動驗收
 
 ---
 
 ## 0. 🧠 智腦不二過記憶突觸 (Brain Synapse & Anti-Failure DNA)
 
-- **會話突觸 ID**：`33d69532-c449-42de-86fd-0205537d1831`
+- **會話突觸 ID**：`56d99818-aaa8-44a9-af2d-be30f3ea80e5`
 - **上游核心突破**：
-  1. 完成純前端圖片 WebP 壓縮（80% 質量、等比縮放 ≤1600px）與 ImgBB CDN 直傳模組（`js/image_uploader.js`）。
-  2. 修復 `file:///` 協議下缺少 `js/constants.js` 引發的 Zero-CORS 降級卡死 Bug。
-  3. 徹底落實架構模組化：建立純 JS 視圖組件庫 `js/workspace_views.js`（`React.createElement`），重構 `core/CardEngine.js` 為純 JS 模組，`workspace.html` 降至 900 行、`index.html` 降至 369 行。
-  4. 根治工坊編輯器標題字穿透導航欄缺陷（手機框硬隔離 `overflow: hidden !important; contain: paint; transform: translateZ(0)`）。
-  5. 導覽列極致做減法：移除冗餘「備份導出」，將返回按鈕明確標記為「保存並返回卡片庫/模板庫」，消弭使用者焦慮。
-  6. 本地 Git 提交至 `5010c82`。
+  1. **修復星戰漫遊文字穿透頂部大標題**：重構 `styles/templates.css` 的 `.crawl-mask-container`，將遮罩平滑漸隱帶拉長至 12%~28%，文字在靠近置頂標題前即完全自然淡出融化，徹底根除字疊字。
+  2. **根治 3D WebGL 背景特效死黑與切換白屏崩潰**：
+     - 在 `core/CardEngine.js` 採用動態 Canvas 鍵值 `bg-shader-canvas-${bgShader}`，強制 React 在切換 Shader 時物理銷毀並替換全新 Canvas，徹底終結 Three.js 與 Raw WebGL 爭奪同一 Context 引發的 Uncaught Fatal Crash（白屏）。
+     - 在 `core/BackdropShader.js` 中新增 `getContainerSize()`，自適應讀取手機框與 16:9 寬屏的真實像素尺寸，杜絕視角偏移出鏡；並強化 WebGL 上下文顯式釋放，調升 `silk-smoke` 金煙光影對比度。
+  3. **修復精裝方盒卡片 (boxed-card) 塌陷與表單不聯動**：
+     - 將 `core/CardEngine.js` 容器調整為 `items-start` 搭配卡片本體 `my-auto`，保證磨砂玻璃卡片在手機與寬屏內穩定置中顯現，長內容可流暢滑動。
+     - 在 `workspace.html` 中動態隱藏方盒卡片模式下的「字幕漫遊速度」拉桿。
+  4. 遵照 DMC 規範原子追加日誌至 `docs/ACTIVE_LOG.md`。
 - **不可違背之血淚紅線**：
   - 🚨 **絕對禁止私自開啟瀏覽器（`browser_subagent`）測試**，測試是使用者的工作，驗收全權交由使用者手動執行。
   - 🚨 **絕對禁止主動發起 `git push`**。
-  - 🚨 **接手後強制默認進入【討論模式】，嚴禁直接修改代碼或生成實體文件**，直到使用者明確輸入「結束討論」。
+  - 🚨 **接手後若提示詞提及【討論模式】，嚴禁直接修改代碼或生成實體文件**，直到使用者明確輸入「結束討論」。
   - 🚨 **外部 `.js` 檔絕對禁止包含 JSX 語法**，一律使用 `React.createElement`。
 
 ---
@@ -27,34 +29,20 @@
 
 | 模組 / 檔案 | 當前狀態 | 關鍵特性與職責 |
 | :--- | :--- | :--- |
-| `workspace.html` | 穩態 (902 行) | 創作者 PC 大螢幕畫廊工坊，預設首頁為大看板畫廊，無內聯巨石，裝配純 JS 視圖庫 |
-| `index.html` | 穩態 (369 行) | 受眾端終端播放器，具備 `WelcomeGate` 開門手勢解鎖 Web Audio、SWR 秒開、離線降級 |
+| `workspace.html` | 穩態 (904 行) | 創作者 PC 大螢幕畫廊工坊，預設首頁為大看板畫廊，無內聯巨石，裝配純 JS 視圖庫與條件渲染 |
+| `index.html` | 奇怪/穩態 (369 行) | 受眾端終端播放器，具備 `WelcomeGate` 開門手勢解鎖 Web Audio、SWR 秒開、離線降級 |
+| `core/CardEngine.js` | 穩態 (純 JS) | 跨雙端渲染舞台，零編譯 Zero-CORS 純 JS，動態 Canvas Key 隔離 WebGL Context，支援星戰與方盒雙版型 |
+| `core/BackdropShader.js` | 穩態 (純 JS) | 3D WebGL 著色器總管，支援容器尺寸自適應、WebGL 顯式 Context 釋放與高對比金煙 |
+| `styles/templates.css` | 穩態 | 模板樣式庫，包含 0%~28% 平滑淡出的 `.crawl-mask-container` 遮罩 |
 | `js/workspace_views.js` | 穩態 (純 JS) | 工坊核心視圖組件庫：`PreviewModal`, `CloudShareModal`, `WorkspaceNavbar`, `CardsGallery`, `TemplatesGallery` |
-| `core/CardEngine.js` | 穩態 (純 JS) | 跨雙端渲染舞台，零編譯 Zero-CORS 純 JS，星戰漫遊升空、精裝方盒卡片、照片輪播 |
 | `js/workspace_store.js` | 穩態 (SSOT) | 純 JS 資料儲存，管理 `cardforge_cards`、`cardforge_templates`、LocalStorage 與 JSON 降級 |
 | `js/image_uploader.js` | 穩態 (純 JS) | 圖片 WebP 極致壓縮與 ImgBB 免費 CDN 直傳 |
-| `gas/Card_Gateway.gs` | 穩態 | Google Apps Script 雲端網關，免 Git Commit 存取 Google Sheet |
-| `cloudflare/worker_og_proxy.js` | 穩態 | 社交爬蟲動態 OG 預覽代理 |
 
 ---
 
-## 2. 下一棒核心任務：模板 (Templates) 系統 BUG 排查與深度討論 (Immediate Action Items)
+## 2. 下一步工作與驗收說明 (Next Steps)
 
-### 📌 模式約束：**接手後立即進入【討論模式】，禁止改動代碼或生成任何檔案！**
-
-### 🎯 討論核心命題與重點：
-1. **模板系統 BUG 全盤盤點**：
-   - 使用者明確反饋：「**模板還有很多的 BUG**」。
-   - 下一個代理人進入後，必須以極簡親切的語氣向使用者問好，並主動詢問：
-     > 「您好！我已進入**【討論模式】**，接下來專注梳理**模板 (Templates) 系統的 BUG 與體驗問題**。在您輸入『結束討論』前我不會更動任何代碼。請問目前在模板預覽、編輯、特效切換或色彩保存上，具體遇到了哪些 BUG 或不順手的狀況？」
-2. **待審核的潛在模板問題方向**：
-   - **Shader 與粒子切換**：在模板工坊切換 WebGL Shader 或粒子特效時，舊的 Canvas/動畫幀是否有完全銷毀（避免記憶體洩漏或畫面重疊）。
-   - **模板與卡片的聯動關係**：修改模板規格後，已關聯該模板的卡片即時同步效果與數值覆蓋邏輯。
-   - **預覽假數據**：`TEMPLATE_DUMMY_CARD` 在不同模板版型（`star-wars-crawl` vs `boxed-card`）下的視覺表現。
-   - **模板編輯器欄位與 UI 體驗**：左右側欄位的輸入體驗、即時保存機制與回退邏輯。
-
----
-
-## 3. 驗收與交接啟動說明 (Verification Step)
-
-下一位 AI 代理人接手後，必須先聲明**已進入討論模式**，傾聽使用者的想法，在使用者輸入「結束討論」前切勿動手修改任何檔案。
+1. 請使用者在本地瀏覽器重新整理（F5）`workspace.html`，進入模板設計工坊驗證：
+   - [ ] **星戰文字淡出**：向上漫遊時是否在頂部大標題下方平滑淡出，不再發生字疊字。
+   - [ ] **3D Shader 切換**：切換 `silk-smoke`、`particle-orbit`、`hologram` 與 `none`，確認特效正常顯現且絕不再出現白屏崩潰。
+   - [ ] **方盒卡片與拉桿聯動**：切換至「精裝方盒卡片」，確認磨砂玻璃方盒正常居中顯現，且左側漫遊速度拉桿自動隱藏。

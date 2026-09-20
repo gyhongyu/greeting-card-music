@@ -29,12 +29,18 @@
 
         // Initialize 3D / WebGL Shaders (Silk Smoke / Particle Orbit / Hologram)
         React.useEffect(() => {
-            if (window.BackdropShader) {
-                window.BackdropShader.init("bg-shader-canvas", bgShader);
+            if (window.BackdropShader && bgShader && bgShader !== 'none') {
+                // 等候 React 完成新 Canvas 節點掛載
+                const timer = setTimeout(() => {
+                    window.BackdropShader.init(`bg-shader-canvas-${bgShader}`, bgShader);
+                }, 30);
+                return () => {
+                    clearTimeout(timer);
+                    if (window.BackdropShader) window.BackdropShader.stop();
+                };
+            } else if (window.BackdropShader) {
+                window.BackdropShader.stop();
             }
-            return () => {
-                if (window.BackdropShader) window.BackdropShader.stop();
-            };
         }, [bgShader]);
 
         // Background Photos Crossfade
@@ -49,12 +55,14 @@
         // Children of root div
         const rootChildren = [];
 
-        // 1. 3D / SHADER CANVAS (INDO-PHOENIX CORE)
-        rootChildren.push(h('canvas', {
-            id: 'bg-shader-canvas',
-            key: 'bg-shader-canvas',
-            className: 'absolute inset-0 w-full h-full pointer-events-none z-0'
-        }));
+        // 1. 3D / SHADER CANVAS (INDO-PHOENIX CORE) - Dynamic Key 徹底隔離 WebGL Context
+        if (bgShader && bgShader !== 'none') {
+            rootChildren.push(h('canvas', {
+                id: `bg-shader-canvas-${bgShader}`,
+                key: `bg-shader-canvas-${bgShader}`,
+                className: 'absolute inset-0 w-full h-full pointer-events-none z-0'
+            }));
+        }
 
         // 2. OPTIONAL PHOTO SLIDESHOW LAYER
         if (hasPhotos) {
@@ -254,11 +262,11 @@
 
             rootChildren.push(h('div', {
                 key: 'boxed-container',
-                className: 'absolute inset-x-0 top-24 bottom-6 z-20 overflow-y-auto custom-scrollbar flex justify-center items-center p-4 md:p-6'
+                className: 'absolute inset-x-0 top-20 bottom-4 z-20 overflow-y-auto custom-scrollbar flex justify-center items-start p-3 sm:p-4'
             }, h('div', {
-                className: 'max-w-2xl w-full rounded-2xl p-6 md:p-8 backdrop-blur-xl border border-white/15 shadow-2xl space-y-6',
+                className: 'max-w-xl w-full my-auto rounded-2xl p-5 sm:p-7 backdrop-blur-xl border border-white/20 shadow-2xl space-y-5 transition-all',
                 style: {
-                    background: 'rgba(15, 17, 23, 0.85)',
+                    background: 'rgba(15, 17, 23, 0.88)',
                     fontFamily: theme.fontFamily || 'serif'
                 }
             }, boxChildren)));

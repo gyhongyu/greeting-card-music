@@ -4,6 +4,25 @@
 
 ---
 
+### [2026-09-20] [UNREFINED] [templates] 模板系統三大關鍵缺陷修復（星戰遮罩、WebGL Context 白屏、方盒卡片塌陷）
+- **類型**: `BUG_FIX` | `STABILITY`
+- **代碼錨點**: `styles/templates.css` (L71~L76), `core/BackdropShader.js` (L19~L246), `core/CardEngine.js` (L30~L65, L263~L273), `workspace.html` (L704~L724)
+- **核心事實 / 決策理由**:
+  1. **星戰漫遊文字穿透頂部標題**: 舊版遮罩漸隱僅 0~14%，文字到達 14% 就 100% 顯色，撞進固定大標題引發字疊字。重構 `.crawl-mask-container` 遮罩為 `linear-gradient(to bottom, transparent 0%, transparent 12%, black 28%, black 82%, transparent 98%)`，文字在抵達頂部大標題前即自然平滑淡出。
+  2. **3D WebGL Shader 特效死黑與白屏崩潰**: 
+     - 死黑與錯位原因：舊版以 `window.innerWidth/innerHeight` 填入手機框內 Canvas，導致視角嚴重錯位；且 GLSL 著色器背景底色過暗。修正為 `getContainerSize()` 自動讀取外框尺寸，並增強金煙對比度。
+     - 白屏崩潰原因：同一個 `<canvas>` 跨 Raw WebGL 與 Three.js 爭奪 context 導致致命異常。在 `CardEngine.js` 中將 Canvas key 動態綁定 `bg-shader-canvas-${bgShader}`，強制 React 在切換 Shader 時銷毀並重建全新乾淨 Canvas，並於卸載時顯式呼叫 `WEBGL_lose_context` 與 `renderer.forceContextLoss()`。
+  3. **精裝方盒卡片 (boxed-card) 塌陷與表單不聯動**:
+     - 舊版 `items-center` 配合極端高度限制導致方盒卡片在手機視角下塌陷或負座標溢出不可見。改為 `items-start` 容器搭配 `my-auto` 卡片，保證居中且可自然滑動。
+     - 在 `workspace.html` 左側面板中為「字幕漫遊速度」加入 `layout === 'star-wars-crawl'` 條件判斷，方盒模式自動隱藏無關拉桿。
+- **踩坑 / 失敗模式**:
+  - WebGL 上下文限制與跨庫衝突：絕不能讓原生 WebGL 與 Three.js 共享同一個 Canvas 元素；必須依賴 React Key 進行物理節點換新。
+- **防禦手段 / 測試背書**:
+  - 全流程純 JS 實作，零 JSX 外溢，滿足 `file:///` 雙擊即開與 Zero-CORS 鐵律。
+
+
+---
+
 ### [2026-09-20] [UNREFINED] [workspace.html] 重構為畫廊優先 (Gallery-First) 雙層架構
 - **類型**: `ARCH_DECISION` | `BUG_FIX`
 - **代碼錨點**: `workspace.html` (L100~L700)
