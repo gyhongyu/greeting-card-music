@@ -149,7 +149,7 @@
             if (card && card.recipient) {
                 crawlChildren.push(h('div', {
                     key: 'recipient',
-                    className: 'font-semibold tracking-wider clean-text-shadow',
+                    className: `font-semibold tracking-wider clean-text-shadow ${isStarWars ? 'text-left' : ''}`,
                     style: {
                         color: theme.primaryColor || '#fbcfe8',
                         fontSize: `calc(1.5rem * ${fontSizeScale})`
@@ -157,11 +157,12 @@
                 }, card.recipient));
             }
 
-            // Paragraphs
+            // Paragraphs (星戰正統：兩端對齊 text-align: justify，每一行文字舒展頂格，不再居中縮水成細長條)
             if (card && card.paragraphs) {
                 const paragraphsElements = card.paragraphs.map((p, idx) => h('p', {
                     key: idx,
-                    className: 'whitespace-pre-line leading-relaxed font-light tracking-wide clean-text-shadow text-white/95'
+                    className: 'whitespace-pre-line leading-relaxed font-light tracking-wide clean-text-shadow text-white/95',
+                    style: isStarWars ? { textAlign: 'justify', textJustify: 'inter-character' } : {}
                 }, p));
                 crawlChildren.push(h('div', {
                     key: 'paragraphs',
@@ -216,8 +217,22 @@
                 perspectiveOrigin: '50% 88%'
             } : {};
 
-            const containerPadding = isStarWars ? 'px-2' : 'px-6 md:px-8';
-            const innerPadding = isStarWars ? 'w-full py-8 px-1 space-y-7' : 'w-full py-8 px-4 space-y-8';
+            // 星戰大板面寬度設為 135% 居中，底部文字左右飽滿貼齊手機外框甚至微凸，往上升空時受梯形透視自然向內收縮
+            const boardStyle = isStarWars ? {
+                width: '135%',
+                maxWidth: '135%',
+                fontFamily: fontFamily,
+                '--crawl-duration': `${crawlDurationSec}s`
+            } : {
+                width: '100%',
+                maxWidth: '42rem',
+                fontFamily: fontFamily,
+                '--crawl-duration': `${crawlDurationSec}s`
+            };
+
+            const boardClasses = isStarWars 
+                ? `px-3 text-white ${animClass} ${isPaused ? 'is-paused' : ''}`
+                : `w-full max-w-2xl px-6 md:px-8 text-center text-white ${animClass} ${isPaused ? 'is-paused' : ''}`;
 
             rootChildren.push(h('div', {
                 key: `scroll-container-${layout}`,
@@ -225,13 +240,10 @@
                 style: container3DStyle,
                 onClick: () => setIsPaused(!isPaused)
             }, h('div', {
-                className: `w-full max-w-2xl ${containerPadding} text-center text-white ${animClass} ${isPaused ? 'is-paused' : ''}`,
-                style: {
-                    fontFamily: fontFamily,
-                    '--crawl-duration': `${crawlDurationSec}s`
-                }
+                className: boardClasses,
+                style: boardStyle
             }, h('div', {
-                className: innerPadding
+                className: isStarWars ? 'w-full py-8 space-y-7' : 'w-full py-8 px-4 space-y-8'
             }, crawlChildren))));
         } else if (isPoster) {
             // 🖼️ 滿版動態海報賀卡 (Cinematic Full-bleed Poster) - 徹底打破生硬小方盒！
