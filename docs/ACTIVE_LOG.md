@@ -4,6 +4,27 @@
 
 ---
 
+### [2026-09-20] [UNREFINED] [templates] 海報動效重播修復、入場速度調節 (Reveal Speed) 與定頻自動循環重播
+- **類型**: `BUG_FIX` | `FEATURE`
+- **代碼錨點**: `styles/animations.css`, `core/CardEngine.js`, `workspace.html`, `data/templates.json`
+- **核心事實 / 決策理由**:
+  1. **3D 骨牌重播無效 BUG 根除**: 
+     - 舊版「重播」按鈕嘗試將 `textRevealFx` 暫時設為 `''` 再恢復，但因短路運算 `(template.textRevealFx) || 'domino-3d'` 攔截，React 視為同值而不觸發重繪。
+     - 重構為「物理版本號」機制：在 `CardEngine.js` 的海報滾動容器 key 綁定 `poster-container-${textRevealFx}-${replayKey}`。點擊「重播動效」按鈕時直接寫入 `replayKey: Date.now()`，100% 迫使 React 卸載並重掛載海報 DOM，CSS 動畫即刻重新觸發。
+  2. **4 大文字入場動態自由調速 (Reveal Speed: 0.4x ~ 2.0x)**:
+     - 在 `styles/animations.css` 中將動畫持續時間全面改為 `var(--reveal-duration, 1.2s)`。
+     - 在 `CardEngine.js` 動態依 `revealSpeed` 計算持續時長 `(1.2 / revealSpeed)s` 與階梯延遲 `step * (0.24 / revealSpeed)s`。
+     - 慢速（如 0.4x~0.8x）呈現極致細膩的 3D 骨牌立體翻轉與烈火金光流光；快速（如 1.5x~2.0x）瞬間俐落到位。
+  3. **定頻自動循環重播 (Auto Replay Loop: 5s / 8s / 12s)**:
+     - 解決畫面動效播完後畫面長時間定格靜止的單調感。
+     - 工作台加入「自動循環重播」勾選框與秒數選單，透過 `useEffect` 自動定時派發 `Date.now()` 刷新 `replayKey`，定時器隨狀態銷毀自癒防洩漏。
+- **踩坑 / 失敗模式**:
+  - CSS 動畫重播不可依賴 class toggle（微任務可能合併引發無動畫）；以 React 物理節點 key 換新最為乾淨保險。
+- **防禦手段 / 測試背書**:
+  - 全流程純 CSS 與純 JS 實作，零編譯 Zero-CORS，維持 60 FPS 流暢度。
+
+---
+
 ### [2026-09-20] [UNREFINED] [templates] 徹底淘汰彈窗小方盒，重構為「滿版海報 (Cinematic Poster)」與 4 大文字入場動效
 - **類型**: `ARCH_DECISION` | `FEATURE`
 - **代碼錨點**: `styles/animations.css`, `core/CardEngine.js`, `js/constants.js`, `workspace.html`

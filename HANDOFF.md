@@ -1,7 +1,7 @@
 # 📋 專案工作交接文檔 (HANDOFF.md)
 > ⚠️ **【鐵律：專案唯一單一真理源 (SSOT)】**  
 > 本檔案由 `handover_generator` 自動維護並原子覆寫，禁止產生影子交接文檔。  
-> 交接時間：2026-09-20 23:25 | 交接狀態：滿版海報重構、4 大文字入場動態特效全數完工、等待驗收
+> 交接時間：2026-09-20 23:35 | 交接狀態：海報文字入場動效重播修復、自由調速 (0.4x~2.0x) 與自動循環重播完工、等待使用者驗收
 
 ---
 
@@ -9,14 +9,13 @@
 
 - **會話突觸 ID**：`56d99818-aaa8-44a9-af2d-be30f3ea80e5`
 - **上游核心突破**：
-  1. **打破小方盒！滿版海報賀卡 (Cinematic Poster)**：徹底剷除生硬內縮小彈窗方盒，整支手機螢幕就是一張完整的大器海報，標題、相片、段落頂天立地一氣呵成。
-  2. **4 大文字入場動態特效 (Text Reveal FX)**：
-     - 🀄 `domino-3d`：3D 骨牌階梯立體翻轉，各行文字帶仰角立體翻起直立。
-     - 🔥 `fire-shimmer`：烈火金光流光拂過，文字被金色光焰點亮。
-     - 📜 `stagger-fade`：如墨水滲透紙張，文字由下微升伴隨消散登場。
-     - 💫 `glow-focus`：星光凝聚聚焦，光斑星塵收攏聚焦為燙金字體。
-  3. **階梯延遲與重播按鈕**：各元素自適應遞增延遲，工作台左側提供「重播動效」按鈕供即時審查。
-  4. **前後景 3D 雙軌調參**：背景 Shader (濃淡/流速) ＋ 前景粒子 (密度/透明度/速度)。
+  1. **海報動效 100% 物理重播修復**：以 `key={poster-container-${textRevealFx}-${replayKey}}` 物理版本號取代 class toggle，點擊「重播動效」按鈕直接更新 `replayKey: Date.now()`，徹底解決 3D 骨牌等特效點擊無反應問題。
+  2. **4 大動效自由調速 (0.4x ~ 2.0x)**：
+     - `animations.css` 升級為 `var(--reveal-duration, 1.2s)`。
+     - 工作台加入「入場速度 (Speed)」拉桿，慢速 (0.4x~0.8x) 呈現極致細膩的慢動作立體翻轉，快速 (1.5x~2.0x) 瞬間利落到位。
+  3. **定頻自動循環重播 (Auto Replay Loop: 5s / 8s / 12s)**：
+     - 勾選後依據所選秒數定時自動重新播放文字動態，解決畫面動效播完後長時間靜止定格的單調問題。
+  4. **全端無縫支援**：模板設計工坊與卡片編輯器雙端均支援即時重播與自動循環定時器。
 - **不可違背之血淚紅線**：
   - 🚨 **絕對禁止私自開啟瀏覽器（`browser_subagent`）測試**，測試是使用者的工作，驗收全權交由使用者手動執行。
   - 🚨 **絕對禁止主動發起 `git push`**。
@@ -29,20 +28,18 @@
 
 | 模組 / 檔案 | 當前狀態 | 關鍵特性與職責 |
 | :--- | :--- | :--- |
-| `workspace.html` | 穩態 (904 行) | 創作者 PC 大螢幕畫廊工坊，預設首頁為大看板畫廊，無內聯巨石，裝配純 JS 視圖庫與條件渲染 |
-| `index.html` | 奇怪/穩態 (369 行) | 受眾端終端播放器，具備 `WelcomeGate` 開門手勢解鎖 Web Audio、SWR 秒開、離線降級 |
-| `core/CardEngine.js` | 穩態 (純 JS) | 跨雙端渲染舞台，零編譯 Zero-CORS 純 JS，動態 Canvas Key 隔離 WebGL Context，支援星戰與方盒雙版型 |
-| `core/BackdropShader.js` | 穩態 (純 JS) | 3D WebGL 著色器總管，支援容器尺寸自適應、WebGL 顯式 Context 釋放與高對比金煙 |
-| `styles/templates.css` | 穩態 | 模板樣式庫，包含 0%~28% 平滑淡出的 `.crawl-mask-container` 遮罩 |
-| `js/workspace_views.js` | 穩態 (純 JS) | 工坊核心視圖組件庫：`PreviewModal`, `CloudShareModal`, `WorkspaceNavbar`, `CardsGallery`, `TemplatesGallery` |
-| `js/workspace_store.js` | 穩態 (SSOT) | 純 JS 資料儲存，管理 `cardforge_cards`、`cardforge_templates`、LocalStorage 與 JSON 降級 |
-| `js/image_uploader.js` | 穩態 (純 JS) | 圖片 WebP 極致壓縮與 ImgBB 免費 CDN 直傳 |
+| `workspace.html` | 穩態 (1120 行) | 創作者 PC 大螢幕畫廊工坊，具備滿版海報調速、重播按鈕、自動循環定時器與雙軌 3D 調參 |
+| `index.html` | 穩態 (369 行) | 受眾端終端播放器，具備 `WelcomeGate` 開門手勢解鎖 Web Audio、SWR 秒開、離線降級 |
+| `core/CardEngine.js` | 穩態 (純 JS) | 跨雙端渲染舞台，滿版海報支援動態階梯延遲、CSS 變數持續時間與物理版本號重播 |
+| `styles/animations.css` | 穩態 | 4 大文字入場動態 (3D 骨牌、烈火金光、逐行浮現、星光聚焦)，全面支援 `--reveal-duration` 自適應調速 |
+| `styles/templates.css` | 穩態 | 模板樣式庫，包含平滑淡出的 `.crawl-mask-container` 遮罩 |
+| `data/templates.json` | 穩態 (SSOT) | 預設模板全面升級為 `cinematic-poster`，預設注入速度與文字特效參數 |
 
 ---
 
 ## 2. 下一步工作與驗收說明 (Next Steps)
 
-1. 請使用者在本地瀏覽器重新整理（F5）`workspace.html`，進入模板設計工坊驗證：
-   - [ ] **星戰文字淡出**：向上漫遊時是否在頂部大標題下方平滑淡出，不再發生字疊字。
-   - [ ] **3D Shader 切換**：切換 `silk-smoke`、`particle-orbit`、`hologram` 與 `none`，確認特效正常顯現且絕不再出現白屏崩潰。
-   - [ ] **方盒卡片與拉桿聯動**：切換至「精裝方盒卡片」，確認磨砂玻璃方盒正常居中顯現，且左側漫遊速度拉桿自動隱藏。
+1. 請使用者在本地瀏覽器重新整理（F5）`workspace.html`，進入「模板設計工坊」或「卡片編輯器」驗收：
+   - [ ] **3D 骨牌重播**：點擊「重播動效」按鈕，確認 3D 骨牌立即重新由傾斜仰角逐行翻起直立。
+   - [ ] **入場速度調整**：拉動「入場速度 (Speed)」拉桿（例如調至 0.4x 或 0.5x 慢速），細看 3D 骨牌翻轉或烈火流光的精緻慢動作細節。
+   - [ ] **自動循環重播**：勾選「自動循環重播」，選擇「5 秒」或「8 秒」，確認無需手動點擊，賀卡動態會定頻自動重新播放。

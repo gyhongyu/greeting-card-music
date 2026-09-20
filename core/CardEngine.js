@@ -115,6 +115,8 @@
 
         const isPoster = layout === 'cinematic-poster' || layout === 'fixed-card' || layout === 'boxed-card';
         const textRevealFx = (template && template.textRevealFx) || 'domino-3d';
+        const revealSpeed = (template && template.revealSpeed !== undefined) ? Number(template.revealSpeed) : 1.0;
+        const replayKey = (template && template.replayKey) || 0;
 
         // 4. PURE ELEGANT TITLE (僅在星戰漫遊模式下由頂部全景懸掛)
         if (!isPoster) {
@@ -202,9 +204,12 @@
         } else if (isPoster) {
             // 🖼️ 滿版動態海報賀卡 (Cinematic Full-bleed Poster) - 徹底打破生硬小方盒！
             const fxClass = `fx-${textRevealFx || 'domino-3d'}`;
+            const durationSec = (1.2 / revealSpeed).toFixed(2);
+            const baseDelay = (0.24 / revealSpeed);
+
             let step = 0;
-            const nextDelay = (offset = 0.16) => {
-                const d = (step * offset).toFixed(2);
+            const nextDelay = (mult = 1.0) => {
+                const d = (step * baseDelay * mult).toFixed(2);
                 step++;
                 return `${d}s`;
             };
@@ -216,7 +221,10 @@
                 posterChildren.push(h('div', {
                     key: 'poster-title',
                     className: `${fxClass} text-center pt-8 pb-4`,
-                    style: { animationDelay: nextDelay(0.12) }
+                    style: { 
+                        animationDelay: nextDelay(0.8),
+                        '--reveal-duration': `${durationSec}s`
+                    }
                 }, h('h1', {
                     className: 'text-3xl md:text-5xl font-light tracking-wide clean-title-glow text-white',
                     style: {
@@ -232,7 +240,10 @@
                 posterChildren.push(h('div', {
                     key: 'poster-photo',
                     className: `${fxClass} relative aspect-[16/9] w-full rounded-2xl overflow-hidden shadow-2xl border border-white/20 my-2`,
-                    style: { animationDelay: nextDelay() }
+                    style: { 
+                        animationDelay: nextDelay(),
+                        '--reveal-duration': `${durationSec}s`
+                    }
                 }, [
                     h('img', {
                         key: 'img',
@@ -254,7 +265,8 @@
                     className: `${fxClass} text-xl md:text-2xl font-semibold tracking-wider pt-3 pb-1`,
                     style: {
                         color: theme.primaryColor || '#c9a96e',
-                        animationDelay: nextDelay()
+                        animationDelay: nextDelay(),
+                        '--reveal-duration': `${durationSec}s`
                     }
                 }, card.recipient));
             }
@@ -264,7 +276,10 @@
                 const paragraphElements = card.paragraphs.map((p, idx) => h('p', {
                     key: idx,
                     className: `${fxClass} whitespace-pre-line text-base md:text-lg leading-relaxed text-zinc-100/90 font-light`,
-                    style: { animationDelay: nextDelay() }
+                    style: { 
+                        animationDelay: nextDelay(),
+                        '--reveal-duration': `${durationSec}s`
+                    }
                 }, p));
                 posterChildren.push(h('div', {
                     key: 'poster-paragraphs',
@@ -277,7 +292,10 @@
                 posterChildren.push(h('div', {
                     key: 'poster-sender',
                     className: `${fxClass} pt-4 pb-2 text-right`,
-                    style: { animationDelay: nextDelay() }
+                    style: { 
+                        animationDelay: nextDelay(),
+                        '--reveal-duration': `${durationSec}s`
+                    }
                 }, h('p', {
                     className: 'text-lg md:text-xl italic font-serif whitespace-pre-line font-medium',
                     style: { color: theme.primaryColor || '#c9a96e' }
@@ -294,7 +312,8 @@
                     className: `${fxClass} inline-flex items-center gap-2 px-7 py-2.5 rounded-full text-sm font-semibold tracking-wider uppercase border border-white/40 text-white bg-black/40 hover:bg-black/70 backdrop-blur-md transition-all shadow-xl hover:scale-105 pointer-events-auto`,
                     style: {
                         borderColor: theme.primaryColor,
-                        animationDelay: nextDelay()
+                        animationDelay: nextDelay(),
+                        '--reveal-duration': `${durationSec}s`
                     }
                 }, [
                     btn.icon ? h('i', { key: 'icon', className: `fa-solid ${btn.icon}` }) : null,
@@ -306,10 +325,13 @@
                 }, ctaButtons));
             }
 
-            // 滿版海報滾動容器 (徹底無小黑框、自帶半透明微暈與自然全屏排版)
+            // 滿版海報滾動容器 (加入 replayKey 物理版本號，重播 100% 瞬間重新掛載)
             rootChildren.push(h('div', {
-                key: `poster-container-${textRevealFx}`,
-                className: 'absolute inset-0 z-20 overflow-y-auto custom-scrollbar flex flex-col items-center px-6 sm:px-10 py-8 pointer-events-auto'
+                key: `poster-container-${textRevealFx}-${replayKey}`,
+                className: 'absolute inset-0 z-20 overflow-y-auto custom-scrollbar flex flex-col items-center px-6 sm:px-10 py-8 pointer-events-auto',
+                style: {
+                    '--reveal-duration': `${durationSec}s`
+                }
             }, h('div', {
                 className: 'w-full max-w-xl mx-auto space-y-4 text-center sm:text-left',
                 style: { fontFamily: theme.fontFamily || 'serif' }

@@ -99,7 +99,7 @@
 }
 
 .fx-domino-3d {
-    animation: dominoFlip3D 0.9s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards;
+    animation: dominoFlip3D var(--reveal-duration, 1.2s) cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards;
     transform-origin: top center;
     backface-visibility: hidden;
     will-change: transform, opacity;
@@ -124,7 +124,7 @@
 }
 
 .fx-fire-shimmer {
-    animation: fireShimmer 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: fireShimmer var(--reveal-duration, 1.3s) cubic-bezier(0.16, 1, 0.3, 1) forwards;
     will-change: transform, opacity, filter;
 }
 
@@ -143,7 +143,7 @@
 }
 
 .fx-stagger-fade {
-    animation: staggerFadeUp 1.0s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: staggerFadeUp var(--reveal-duration, 1.2s) cubic-bezier(0.16, 1, 0.3, 1) forwards;
     will-change: transform, opacity, filter;
 }
 
@@ -168,6 +168,6 @@
 }
 
 .fx-glow-focus {
-    animation: glowFocus 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    animation: glowFocus var(--reveal-duration, 1.4s) cubic-bezier(0.25, 1, 0.5, 1) forwards;
     will-change: transform, opacity, filter, letter-spacing;
 }

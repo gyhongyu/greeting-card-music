@@ -74,12 +74,31 @@
             const [editorPreviewDevice, setEditorPreviewDevice] = React.useState('mobile');
             const [toastMessage, setToastMessage] = React.useState('');
             const [uploadStatus, setUploadStatus] = React.useState(null); // { isUploading: bool, message: string }
+            const [posterAutoLoop, setPosterAutoLoop] = React.useState(false);
+            const [posterLoopInterval, setPosterLoopInterval] = React.useState(8);
             const fileInputRef = React.useRef(null);
 
             const showToast = (msg) => {
                 setToastMessage(msg);
                 setTimeout(() => setToastMessage(''), 3000);
             };
+
+            // 自動定時循環重播海報文字動態特效 (支援模板工坊與卡片編輯器即時動態預覽)
+            React.useEffect(() => {
+                if (!posterAutoLoop) return;
+                const isTemplateMode = currentView === 'template_editor' && editingTemplate;
+                const isCardMode = currentView === 'card_editor' && currentEditingTemplate;
+                if (!isTemplateMode && !isCardMode) return;
+
+                const timer = setInterval(() => {
+                    if (isTemplateMode) {
+                        setEditingTemplate(prev => prev ? { ...prev, replayKey: Date.now() } : null);
+                    } else if (isCardMode) {
+                        setTemplates(prevTpls => prevTpls.map(t => t.id === currentEditingTemplate.id ? { ...t, replayKey: Date.now() } : t));
+                    }
+                }, posterLoopInterval * 1000);
+                return () => clearInterval(timer);
+            }, [posterAutoLoop, posterLoopInterval, currentView, editingTemplate?.id, currentEditingTemplate?.id]);
 
             React.useEffect(() => {
                 const init = async () => {
@@ -390,10 +409,25 @@
                                 </div>
 
                                 <div className="space-y-2 pt-2 border-t border-zinc-800">
-                                    <label className="text-zinc-300 font-semibold flex items-center gap-1.5">
-                                        <i className="fa-solid fa-wand-magic-sparkles text-amber-400"></i>
-                                        <span>套用外觀模板 (點擊即時套用)</span>
-                                    </label>
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-zinc-300 font-semibold flex items-center gap-1.5">
+                                            <i className="fa-solid fa-wand-magic-sparkles text-amber-400"></i>
+                                            <span>套用外觀模板 (即時套用)</span>
+                                        </label>
+                                        {currentEditingTemplate && (currentEditingTemplate.layout === 'cinematic-poster' || currentEditingTemplate.layout === 'fixed-card' || currentEditingTemplate.layout === 'boxed-card') && (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setTemplates(prevTpls => prevTpls.map(t => t.id === currentEditingTemplate.id ? { ...t, replayKey: Date.now() } : t));
+                                                }}
+                                                className="px-2 py-0.5 rounded bg-amber-950/50 hover:bg-amber-900/70 text-[10px] text-amber-300 border border-amber-600/40 flex items-center gap-1 transition-all active:scale-95 cursor-pointer shadow-sm"
+                                                title="立即重播當前海報的文字入場動態"
+                                            >
+                                                <i className="fa-solid fa-rotate-right text-[9px]"></i>
+                                                <span>重播動效</span>
+                                            </button>
+                                        )}
+                                    </div>
                                     <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto custom-scrollbar pr-1">
                                         {templates.map(t => {
                                             const isSelected = t.id === currentEditingCard.templateId;
@@ -723,22 +757,21 @@
                                         </div>
                                     )}
 
-                                    {/* 滿版海報專屬：4 大文字入場動態特效選單 */}
+                                    {/* 滿版海報專屬：4 大文字入場動態特效選單、速度調整與自動循環 */}
                                     {(editingTemplate.layout === 'cinematic-poster' || editingTemplate.layout === 'fixed-card' || editingTemplate.layout === 'boxed-card') && (
-                                        <div className="space-y-2 pt-1 border-t border-zinc-800/60">
+                                        <div className="space-y-3 pt-1 border-t border-zinc-800/60">
                                             <div className="flex items-center justify-between">
                                                 <label className="text-zinc-400 text-[11px] font-medium">海報文字入場動效 (Reveal FX)</label>
                                                 <button
                                                     type="button"
                                                     onClick={() => {
-                                                        const curFx = editingTemplate.textRevealFx || 'domino-3d';
-                                                        setEditingTemplate({ ...editingTemplate, textRevealFx: '' });
-                                                        setTimeout(() => {
-                                                            setEditingTemplate({ ...editingTemplate, textRevealFx: curFx });
-                                                        }, 50);
+                                                        setEditingTemplate({
+                                                            ...editingTemplate,
+                                                            replayKey: Date.now()
+                                                        });
                                                     }}
-                                                    className="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-[10px] text-indigo-300 flex items-center gap-1 transition-all"
-                                                    title="重新播放文字入場特效"
+                                                    className="px-2 py-0.5 rounded bg-indigo-950/60 hover:bg-indigo-900/80 text-[10px] text-indigo-300 border border-indigo-700/50 flex items-center gap-1 transition-all active:scale-95 cursor-pointer shadow-sm"
+                                                    title="立即重新播放 3D 文字入場動態"
                                                 >
                                                     <i className="fa-solid fa-rotate-right text-[9px]"></i>
                                                     <span>重播動效</span>
@@ -746,14 +779,72 @@
                                             </div>
                                             <select
                                                 value={editingTemplate.textRevealFx || 'domino-3d'}
-                                                onChange={e => setEditingTemplate({ ...editingTemplate, textRevealFx: e.target.value })}
+                                                onChange={e => setEditingTemplate({ ...editingTemplate, textRevealFx: e.target.value, replayKey: Date.now() })}
                                                 className="w-full bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1.5 text-white font-mono text-[11px] outline-none focus:border-indigo-400 cursor-pointer"
                                             >
                                                 {(window.TEXT_REVEAL_OPTIONS || []).map(opt => (
                                                     <option key={opt.value} value={opt.value}>{opt.label}</option>
                                                 ))}
                                             </select>
-                                            <p className="text-[10px] text-zinc-500">受眾點開賀卡瞬間，文字層次登場之動態儀式感。</p>
+
+                                            {/* 動態速度微調拉桿 (Reveal Speed) */}
+                                            <div className="space-y-1 bg-zinc-950/50 p-2 rounded border border-zinc-800/80">
+                                                <div className="flex items-center justify-between text-[11px]">
+                                                    <span className="text-zinc-400">入場速度 (Speed)</span>
+                                                    <span className="font-mono text-indigo-400 font-bold">
+                                                        {(editingTemplate.revealSpeed !== undefined ? Number(editingTemplate.revealSpeed) : 1.0).toFixed(1)}x
+                                                    </span>
+                                                </div>
+                                                <input 
+                                                    type="range"
+                                                    min="4"
+                                                    max="20"
+                                                    step="1"
+                                                    value={Math.round((editingTemplate.revealSpeed !== undefined ? Number(editingTemplate.revealSpeed) : 1.0) * 10)}
+                                                    onChange={e => {
+                                                        const spd = Number((parseInt(e.target.value, 10) / 10).toFixed(1));
+                                                        setEditingTemplate({
+                                                            ...editingTemplate,
+                                                            revealSpeed: spd,
+                                                            replayKey: Date.now()
+                                                        });
+                                                    }}
+                                                    className="w-full accent-indigo-500 cursor-pointer"
+                                                />
+                                                <div className="flex justify-between text-[9px] text-zinc-500 font-mono">
+                                                    <span>0.4x (慢動作立體翻轉)</span>
+                                                    <span>1.0x (標準)</span>
+                                                    <span>2.0x (極速)</span>
+                                                </div>
+                                            </div>
+
+                                            {/* 自動循環重播控制項 (Auto Replay Loop) */}
+                                            <div className="flex items-center justify-between bg-zinc-950/40 p-2 rounded border border-zinc-800/60">
+                                                <label className="flex items-center gap-2 cursor-pointer select-none">
+                                                    <input 
+                                                        type="checkbox"
+                                                        checked={posterAutoLoop}
+                                                        onChange={e => setPosterAutoLoop(e.target.checked)}
+                                                        className="w-3.5 h-3.5 rounded bg-zinc-900 border-zinc-700 text-indigo-500 focus:ring-0 cursor-pointer"
+                                                    />
+                                                    <span className="text-zinc-300 text-[11px]">自動循環重播</span>
+                                                </label>
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className="text-zinc-500 text-[10px]">每隔</span>
+                                                    <select
+                                                        disabled={!posterAutoLoop}
+                                                        value={posterLoopInterval}
+                                                        onChange={e => setPosterLoopInterval(parseInt(e.target.value, 10) || 8)}
+                                                        className={`bg-zinc-900 border border-zinc-800 rounded px-1.5 py-0.5 text-white font-mono text-[10px] outline-none ${!posterAutoLoop ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer focus:border-indigo-400'}`}
+                                                    >
+                                                        <option value="5">5 秒</option>
+                                                        <option value="8">8 秒 (推薦)</option>
+                                                        <option value="12">12 秒</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <p className="text-[10px] text-zinc-500">受眾點開賀卡瞬間，文字層次登場之動態儀式感；調慢可細賞 3D 骨牌與流光細節。</p>
                                         </div>
                                     )}
                                 </div>
