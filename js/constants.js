@@ -91,6 +91,13 @@ window.PARTICLE_OPTIONS = [
 ];
 
 window.LAYOUT_OPTIONS = [
-    { value: 'star-wars-crawl', label: '星戰漫遊升空 (Star Wars Crawl 經典 3D 仰角)' },
-    { value: 'fixed-card', label: '精裝方盒卡片 (Fixed Card 現代商務立體框)' }
+    { value: 'star-wars-crawl', label: '🎬 星戰漫遊升空 (Star Wars Crawl 經典仰角微電影)' },
+    { value: 'cinematic-poster', label: '🖼️ 滿版海報賀卡 (Cinematic Poster 現代經典全景海報)' }
+];
+
+window.TEXT_REVEAL_OPTIONS = [
+    { value: 'domino-3d', label: '🀄 3D 骨牌階梯立體翻轉 (Domino Flip)' },
+    { value: 'fire-shimmer', label: '🔥 烈火金光流光拂過 (Fire Shimmer)' },
+    { value: 'stagger-fade', label: '📜 逐行深情浮現 (Stagger Fade-up)' },
+    { value: 'glow-focus', label: '💫 星光凝聚聚焦 (Starlight Focus)' }
 ];

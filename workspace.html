@@ -722,6 +722,40 @@
                                             </div>
                                         </div>
                                     )}
+
+                                    {/* 滿版海報專屬：4 大文字入場動態特效選單 */}
+                                    {(editingTemplate.layout === 'cinematic-poster' || editingTemplate.layout === 'fixed-card' || editingTemplate.layout === 'boxed-card') && (
+                                        <div className="space-y-2 pt-1 border-t border-zinc-800/60">
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-zinc-400 text-[11px] font-medium">海報文字入場動效 (Reveal FX)</label>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const curFx = editingTemplate.textRevealFx || 'domino-3d';
+                                                        setEditingTemplate({ ...editingTemplate, textRevealFx: '' });
+                                                        setTimeout(() => {
+                                                            setEditingTemplate({ ...editingTemplate, textRevealFx: curFx });
+                                                        }, 50);
+                                                    }}
+                                                    className="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-[10px] text-indigo-300 flex items-center gap-1 transition-all"
+                                                    title="重新播放文字入場特效"
+                                                >
+                                                    <i className="fa-solid fa-rotate-right text-[9px]"></i>
+                                                    <span>重播動效</span>
+                                                </button>
+                                            </div>
+                                            <select
+                                                value={editingTemplate.textRevealFx || 'domino-3d'}
+                                                onChange={e => setEditingTemplate({ ...editingTemplate, textRevealFx: e.target.value })}
+                                                className="w-full bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1.5 text-white font-mono text-[11px] outline-none focus:border-indigo-400 cursor-pointer"
+                                            >
+                                                {(window.TEXT_REVEAL_OPTIONS || []).map(opt => (
+                                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                                ))}
+                                            </select>
+                                            <p className="text-[10px] text-zinc-500">受眾點開賀卡瞬間，文字層次登場之動態儀式感。</p>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="space-y-3 bg-zinc-900/50 p-3 rounded-lg border border-zinc-800">

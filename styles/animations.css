@@ -74,3 +74,100 @@
 .start-button:active {
     transform: scale(0.95);
 }
+
+/* ==========================================================================
+   4 大海報滿版文字入場動態特效 (Full-bleed Poster Reveal FX)
+   ========================================================================== */
+
+/* 1. 🀄 3D 骨牌階梯立體翻轉 (3D Domino Flip) */
+@keyframes dominoFlip3D {
+    0% {
+        opacity: 0;
+        transform: perspective(1000px) rotateX(-75deg) translateY(35px);
+        filter: blur(4px);
+    }
+    60% {
+        opacity: 0.9;
+        transform: perspective(1000px) rotateX(12deg) translateY(-4px);
+        filter: blur(0);
+    }
+    100% {
+        opacity: 1;
+        transform: perspective(1000px) rotateX(0deg) translateY(0);
+        filter: blur(0);
+    }
+}
+
+.fx-domino-3d {
+    animation: dominoFlip3D 0.9s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards;
+    transform-origin: top center;
+    backface-visibility: hidden;
+    will-change: transform, opacity;
+}
+
+/* 2. 🔥 烈火金光流光拂過 (Fire & Golden Shimmer) */
+@keyframes fireShimmer {
+    0% {
+        opacity: 0;
+        filter: brightness(3) drop-shadow(0 0 25px #fbbf24);
+        transform: scale(0.96) translateX(-15px);
+    }
+    40% {
+        opacity: 1;
+        filter: brightness(2) drop-shadow(0 0 15px #f59e0b);
+    }
+    100% {
+        opacity: 1;
+        filter: brightness(1) drop-shadow(0 2px 8px rgba(0,0,0,0.8));
+        transform: scale(1) translateX(0);
+    }
+}
+
+.fx-fire-shimmer {
+    animation: fireShimmer 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    will-change: transform, opacity, filter;
+}
+
+/* 3. 📜 逐行深情浮現 (Stagger Fade-up & Ink) */
+@keyframes staggerFadeUp {
+    0% {
+        opacity: 0;
+        transform: translateY(28px);
+        filter: blur(8px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+    }
+}
+
+.fx-stagger-fade {
+    animation: staggerFadeUp 1.0s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    will-change: transform, opacity, filter;
+}
+
+/* 4. 💫 星光凝聚聚焦 (Starlight Glow Focus) */
+@keyframes glowFocus {
+    0% {
+        opacity: 0;
+        letter-spacing: 0.18em;
+        filter: blur(14px) brightness(2.5);
+        transform: scale(1.08);
+    }
+    50% {
+        opacity: 0.85;
+        filter: blur(4px) brightness(1.6);
+    }
+    100% {
+        opacity: 1;
+        letter-spacing: normal;
+        filter: blur(0) brightness(1);
+        transform: scale(1);
+    }
+}
+
+.fx-glow-focus {
+    animation: glowFocus 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    will-change: transform, opacity, filter, letter-spacing;
+}

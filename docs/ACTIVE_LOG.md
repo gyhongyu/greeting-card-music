@@ -4,6 +4,25 @@
 
 ---
 
+### [2026-09-20] [UNREFINED] [templates] 徹底淘汰彈窗小方盒，重構為「滿版海報 (Cinematic Poster)」與 4 大文字入場動效
+- **類型**: `ARCH_DECISION` | `FEATURE`
+- **代碼錨點**: `styles/animations.css`, `core/CardEngine.js`, `js/constants.js`, `workspace.html`
+- **核心事實 / 決策理由**:
+  1. **打破生硬小方盒思維**: 賀卡靈魂在於全螢幕大器海報，小彈窗小方盒割裂了手機螢幕整體感。徹底移除 `boxed-container` 內縮小盒子，正名升級為「滿版海報 (Cinematic Poster)」。
+  2. **4 大文字入場動態特效 (Text Reveal FX)**:
+     - 🀄 `domino-3d`：3D 骨牌階梯立體翻轉 (`rotateX(-75deg) -> 0deg`)，帶物理彈性一級級翻起。
+     - 🔥 `fire-shimmer`：烈火金光流光拂過，文字由半透明被金焰掃過瞬間點亮。
+     - 📜 `stagger-fade`：如墨水滲透紙張，帶柔和模糊微升登場。
+     - 💫 `glow-focus`：星光凝聚聚焦，由高光星塵擴散聚焦為鋒利燙金字體。
+  3. **階梯延遲 (Stagger Delay) 與重播機制**: 標題、相片、致對象、各段落、署名、CTA 按鈕自適應計算階梯延遲，並在工作台提供「重播動效」按鈕供即時審查。
+- **踩坑 / 失敗模式**:
+  - 動畫未重新觸發：切換動效時需以 `key` 觸發 React 物理節點替換以重置 CSS 動畫。
+- **防禦手段 / 測試背書**:
+  - 全流程純 CSS GPU 加速 (`transform`, `opacity`, `filter`)，保證手機與桌面端 60 FPS 流暢執行。
+
+
+---
+
 ### [2026-09-20] [UNREFINED] [templates] 方盒卡片渲染鍵值修復與前後景 3D 雙軌多維調參架構
 - **類型**: `BUG_FIX` | `FEATURE`
 - **代碼錨點**: `core/CardEngine.js`, `core/BackdropShader.js`, `core/ParticleEngine.js`, `workspace.html`
