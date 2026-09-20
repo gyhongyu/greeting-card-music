@@ -4,6 +4,24 @@
 
 ---
 
+### [2026-09-21] [UNREFINED] [architecture] 工坊全面模組化解耦重構與檔案行數硬性門禁 (≤450行)
+- **類型**: `REFACTOR` | `ARCH_DECISION`
+- **代碼錨點**: `workspace.html`, `js/editor_views.js`, `AGENTS.md`, `docs/STATE.md`
+- **核心事實 / 決策理由**:
+  1. **根治 HTML 內聯肥大症 (1,365 行 ➔ 427 行)**:
+     - 過去多輪研發反覆往 `workspace.html` 內聯追加視圖，導致檔案膨脹至 1,365 行，嚴重違反模組化原則。
+     - 獨立抽取 `js/editor_views.js`，將卡片編輯器 (`CardEditorView`) 與模板工坊 (`TemplateEditorView`) 完整封裝移出。
+  2. **嚴格堅守零編譯 Zero-CORS 純 JS 鐵律**:
+     - 外部 `.js` 模組 100% 採用原生 `React.createElement` (簡寫 `h`)，嚴禁任何 `<Tag>` JSX 標籤，保證在 `file:///` 本地協議下秒開、零 CORS。
+  3. **固化憲法門禁規範**:
+     - 在 `AGENTS.md` 建立第 4 條「代碼模組化與檔案行數硬性門禁」：`workspace.html` 嚴格限制 ≤ 450 行，凡超過 50 行獨立組件強制抽離。
+- **踩坑 / 失敗模式**:
+  - 若未設定明確行數門禁，後續 AI 代理人會習慣性在同一檔案內聯追加代碼，導致架構迅速腐化。
+- **防禦手段 / 測試背書**:
+  - `workspace.html` 現為 427 行，結構清晰；以 Python 正則檢查 `js/editor_views.js`，JSX 標籤數為 0，純 JS 語法正確。
+
+---
+
 ### [2026-09-20] [UNREFINED] [templates] 真正星際大戰 3D 梯形滅點升空重構與【電影卷軸 · 典雅信箋】雙軌分流
 - **類型**: `ARCH_DECISION` | `FEATURE`
 - **代碼錨點**: `styles/templates.css`, `core/CardEngine.js`, `js/constants.js`, `workspace.html`, `data/templates.json`
