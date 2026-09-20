@@ -1,31 +1,326 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="A beautiful interactive Mother's Day card with animations and photo slideshow">
-    <meta name="keywords" content="Mother's Day, greeting card, animation, slideshow">
-    <meta property="og:title" content="Mother's Day Card">
-    <meta property="og:description" content="A beautiful interactive Mother's Day card with animations and photo slideshow">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Mother's Day Card">
-    <meta name="twitter:description" content="A beautiful interactive Mother's Day card with animations and photo slideshow">
-    <title>Happy Mother's Day</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Greeting Card - CardForge</title>
+    
+    <!-- Fonts & Tailwind -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Jost:wght@200;300;400;500;600&family=Noto+Serif+TC:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    
+    <!-- Three.js (For 3D Particle Planet & Hologram Effects) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <!-- React & Babel -->
     <script src="https://resource.trickle.so/vendor_lib/unpkg/react@18/umd/react.production.min.js"></script>
     <script src="https://resource.trickle.so/vendor_lib/unpkg/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://resource.trickle.so/vendor_lib/unpkg/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+
+    <!-- Custom Styles -->
     <link href="styles/animations.css" rel="stylesheet">
-    <link href="styles/card.css" rel="stylesheet">
+    <link href="styles/templates.css" rel="stylesheet">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        html, body {
+            margin: 0;
+            padding: 0;
+            background-color: #000000;
+            color: #ffffff;
+            font-family: 'Jost', system-ui, sans-serif;
+            width: 100%;
+            height: 100%;
+            min-height: 100dvh;
+            overflow: hidden;
+            position: fixed;
+        }
+
+        /* Floating Theme Switcher Badge (ONLY visible when ?preview=1 or in debug) */
+        .floating-switcher {
+            position: fixed;
+            top: env(safe-area-inset-top, 18px);
+            right: env(safe-area-inset-right, 18px);
+            z-index: 50;
+            background: rgba(10, 10, 15, 0.75);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 9999px;
+            padding: 5px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            transition: all 0.3s ease;
+        }
+        .swatch-btn {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+        .swatch-btn:hover {
+            transform: scale(1.18);
+        }
+        .swatch-btn.active {
+            border-color: #ffffff;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        /* Discreet Audio Floating Button for Recipients */
+        .audio-pill-btn {
+            position: fixed;
+            top: calc(env(safe-area-inset-top, 16px) + 12px);
+            right: calc(env(safe-area-inset-right, 16px) + 12px);
+            z-index: 50;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            color: rgba(255, 255, 255, 0.85);
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+        }
+        .audio-pill-btn:hover {
+            background: rgba(0, 0, 0, 0.75);
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: scale(1.08);
+        }
+    </style>
 </head>
-<body>
-    <div id="root"></div>
-    <script type="text/babel" src="components/LoadingScreen.js"></script>
-    <script type="text/babel" src="components/Slideshow.js"></script>
-    <script type="text/babel" src="components/FallingFlowers.js"></script>
-    <script type="text/babel" src="components/MessageContent.js"></script>
-    <script type="text/babel" src="components/AudioPlayer.js"></script>
-    <script type="text/babel" src="app.js"></script>
+<body id="app-body">
+    <div id="root" style="width:100%;height:100%;height:100dvh;"></div>
+
+    <!-- Core Components -->
+    <script src="core/BackdropShader.js"></script>
+    <script type="text/babel" src="core/ParticleEngine.js"></script>
+    <script type="text/babel" src="core/CardEngine.js"></script>
+
+    <!-- Main Player App -->
+    <script type="text/babel">
+        function CardPlayerApp() {
+            const [cards, setCards] = React.useState([]);
+            const [templates, setTemplates] = React.useState([]);
+            const [currentCard, setCurrentCard] = React.useState(null);
+            const [activeTemplateId, setActiveTemplateId] = React.useState(null);
+            const [isStarted, setIsStarted] = React.useState(false);
+            const [isPlayingAudio, setIsPlayingAudio] = React.useState(false);
+            const [isPreviewMode, setIsPreviewMode] = React.useState(false);
+            const audioRef = React.useRef(null);
+
+            // Load data
+            React.useEffect(() => {
+                async function initData() {
+                    try {
+                        const localCards = localStorage.getItem('cardforge_cards');
+                        const localTpls = localStorage.getItem('cardforge_templates');
+
+                        let loadedCards = localCards ? JSON.parse(localCards) : null;
+                        let loadedTemplates = localTpls ? JSON.parse(localTpls) : null;
+
+                        if (!loadedCards) {
+                            const resC = await fetch('data/cards.json');
+                            loadedCards = await resC.json();
+                        }
+                        if (!loadedTemplates) {
+                            const resT = await fetch('data/templates.json');
+                            loadedTemplates = await resT.json();
+                        }
+
+                        setCards(loadedCards);
+                        setTemplates(loadedTemplates);
+
+                        // Parse URL params
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const cardParam = urlParams.get('card') || (loadedCards[0] ? loadedCards[0].id : null);
+                        const templateParam = urlParams.get('template');
+                        const previewParam = urlParams.get('preview');
+
+                        // Recipient Link: previewParam is NOT set -> pure mode!
+                        setIsPreviewMode(previewParam === '1' || previewParam === 'true');
+
+                        const foundCard = loadedCards.find(c => c.id === cardParam) || loadedCards[0];
+                        setCurrentCard(foundCard);
+
+                        const effectiveTemplateId = templateParam || (foundCard ? foundCard.templateId : 'mothers-day');
+                        setActiveTemplateId(effectiveTemplateId);
+                    } catch (err) {
+                        console.error('Failed to init card player data:', err);
+                    }
+                }
+                initData();
+            }, []);
+
+            // Apply body theme class
+            React.useEffect(() => {
+                if (!activeTemplateId || templates.length === 0) return;
+                const curTpl = templates.find(t => t.id === activeTemplateId);
+                if (curTpl && curTpl.theme) {
+                    const body = document.getElementById('app-body');
+                    body.className = curTpl.theme.styleClass || '';
+                }
+            }, [activeTemplateId, templates]);
+
+            // Template Switch Handler
+            const handleSwitchTemplate = (tplId) => {
+                setActiveTemplateId(tplId);
+                const url = new URL(window.location);
+                url.searchParams.set('template', tplId);
+                window.history.replaceState({}, '', url);
+            };
+
+            // Audio Unlock & Mobile Fullscreen Trigger (Crucial Browser User-Gesture Law!)
+            const handleStart = () => {
+                setIsStarted(true);
+
+                // 1. Request Fullscreen on mobile browsers
+                try {
+                    const el = document.documentElement;
+                    if (el.requestFullscreen) {
+                        el.requestFullscreen().catch(() => {});
+                    } else if (el.webkitRequestFullscreen) {
+                        el.webkitRequestFullscreen().catch(() => {});
+                    }
+                } catch (e) {
+                    // Ignore fullscreen rejection if browser blocks
+                }
+
+                // 2. Play Audio
+                if (audioRef.current) {
+                    audioRef.current.volume = 0.55;
+                    audioRef.current.play().then(() => {
+                        setIsPlayingAudio(true);
+                    }).catch(e => {
+                        console.log('Audio playback initiated:', e);
+                        setIsPlayingAudio(true);
+                    });
+                }
+            };
+
+            const toggleAudio = () => {
+                if (!audioRef.current) return;
+                if (isPlayingAudio) {
+                    audioRef.current.pause();
+                    setIsPlayingAudio(false);
+                } else {
+                    audioRef.current.play();
+                    setIsPlayingAudio(true);
+                }
+            };
+
+            if (!currentCard || templates.length === 0) {
+                return (
+                    <div className="flex h-screen items-center justify-center text-zinc-400">
+                        <i className="fa-solid fa-spinner fa-spin text-2xl mr-3"></i>
+                        <span>載入賀卡中...</span>
+                    </div>
+                );
+            }
+
+            const activeTemplate = templates.find(t => t.id === activeTemplateId) || templates[0];
+            const musicUrl = (currentCard.media && currentCard.media.customMusic) 
+                ? currentCard.media.customMusic 
+                : (activeTemplate.defaultMusic || 'https://gyhongyu.github.io/greeting-card-music/In%20Love%20With%20You.mp3');
+
+            // Gatekeeper Start Screen - Unlocks Audio on Click & Requests Fullscreen
+            if (!isStarted) {
+                return (
+                    <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center relative z-20 bg-black">
+                        <ParticleEngine effect={activeTemplate.effects} />
+                        
+                        <div className="max-w-md w-full p-8 md:p-10 rounded-2xl bg-zinc-900/80 backdrop-blur-2xl border border-white/15 shadow-2xl space-y-6">
+                            <h1 className="text-3xl md:text-4xl font-light text-white" style={{ fontFamily: activeTemplate.theme?.fontFamily }}>
+                                {currentCard.title}
+                            </h1>
+                            <p className="text-zinc-300 text-sm leading-relaxed">
+                                一份精心為您呈獻的沉浸式互動心意，點擊開啟以啟動專屬樂章與視覺舞台。
+                            </p>
+                            <button
+                                onClick={handleStart}
+                                className="w-full py-4 px-8 rounded-full text-base font-semibold tracking-widest uppercase transition-all duration-300 hover:scale-105 shadow-xl text-black"
+                                style={{
+                                    background: `linear-gradient(135deg, ${activeTemplate.theme?.primaryColor || '#f472b6'}, ${activeTemplate.theme?.accentColor || '#ffffff'})`
+                                }}
+                            >
+                                開啟賀卡 (Open Greeting Card)
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="relative w-screen h-screen overflow-hidden" style={{ height: '100dvh' }}>
+                    {/* Background Audio (Unlocked on Click) */}
+                    <audio ref={audioRef} src={musicUrl} loop autoPlay />
+
+                    {/* ONLY IN PREVIEW MODE: Show Style Switcher */}
+                    {isPreviewMode ? (
+                        <div className="floating-switcher">
+                            <span className="text-xs text-zinc-300 font-medium hidden sm:inline">切換風格:</span>
+                            <div className="flex items-center gap-2">
+                                {templates.map(t => (
+                                    <button
+                                        key={t.id}
+                                        title={`切換為「${t.name}」風格`}
+                                        onClick={() => handleSwitchTemplate(t.id)}
+                                        className={`swatch-btn ${activeTemplateId === t.id ? 'active' : ''}`}
+                                        style={{
+                                            backgroundColor: t.theme?.primaryColor || '#ffffff',
+                                            color: t.theme?.primaryColor || '#ffffff'
+                                        }}
+                                    />
+                                ))}
+                            </div>
+                            <div className="h-4 w-px bg-white/20 mx-1"></div>
+                            <button 
+                                onClick={toggleAudio}
+                                title={isPlayingAudio ? "暫停音樂" : "播放音樂"}
+                                className="text-zinc-200 hover:text-white transition-colors text-sm"
+                            >
+                                <i className={`fa-solid ${isPlayingAudio ? 'fa-volume-high' : 'fa-volume-xmark'}`}></i>
+                            </button>
+                        </div>
+                    ) : (
+                        /* RECIPIENT MODE: Ultra-Clean Discreet Audio Button Only! */
+                        <button
+                            onClick={toggleAudio}
+                            title={isPlayingAudio ? "暫停音樂" : "播放音樂"}
+                            className="audio-pill-btn"
+                        >
+                            <i className={`fa-solid ${isPlayingAudio ? 'fa-volume-high' : 'fa-volume-xmark'} text-xs`}></i>
+                        </button>
+                    )}
+
+                    {/* Universal Card Stage */}
+                    <CardEngine 
+                        card={currentCard} 
+                        template={activeTemplate} 
+                    />
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<CardPlayerApp />);
+    </script>
 </body>
 </html>

@@ -1,0 +1,110 @@
+/* ==========================================================================
+   CARDFORGE STUDIO - Vivid Fullscreen Stage & Elegant Crawl Animations
+   ========================================================================== */
+
+/* 1. Star Wars Style Floating Text Crawl */
+@keyframes starWarsCrawl {
+  0% {
+    transform: translateY(102vh);
+    opacity: 0;
+  }
+  3% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  98% {
+    transform: translateY(-105%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(-105%);
+    opacity: 0;
+  }
+}
+
+.anim-star-wars-crawl {
+  animation: starWarsCrawl var(--crawl-duration, 44s) linear infinite;
+  will-change: transform, opacity;
+}
+
+.anim-star-wars-crawl:hover,
+.anim-star-wars-crawl.is-paused {
+  animation-play-state: paused;
+}
+
+/* 2. Ken Burns Subtle Cinematic Breathe */
+@keyframes kenBurnsZoom {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.ken-burns-bg {
+  animation: kenBurnsZoom 22s ease-in-out infinite alternate;
+  transform-origin: center center;
+}
+
+/* 3. Crisp High-Contrast Text Shadow - Readable on bright/vivid photos */
+.clean-text-shadow {
+  text-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.95),
+    0 4px 16px rgba(0, 0, 0, 0.85),
+    0 0 30px rgba(0, 0, 0, 0.75),
+    0 0 2px #000000;
+}
+
+.clean-title-glow {
+  text-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.9),
+    0 0 20px var(--title-glow, rgba(255, 255, 255, 0.8)),
+    0 0 35px var(--title-color, #ffffff);
+}
+
+/* 4. Smooth Edge Mask - Prevents collision with top header */
+.crawl-mask-container {
+  mask-image: linear-gradient(to bottom, transparent 0%, black 14%, black 86%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 14%, black 86%, transparent 100%);
+}
+
+/* ================= THEMES: BRIGHT, NATURAL & VIVID ================= */
+
+/* MOTHER'S DAY (粉嫩透亮、生活照原色) */
+body.theme-mothers-day {
+  --primary: #f472b6;
+  --accent: #fb7185;
+  --bg: #000000;
+  --title-color: #ffffff;
+  --title-glow: rgba(244, 114, 182, 0.9);
+  --crawl-duration: 44s;
+  --font-serif: 'Cormorant Garamond', 'Noto Serif TC', serif;
+}
+
+/* OBSIDIAN GOLD (尊爵金字、黑曜質感) */
+body.theme-obsidian-gold {
+  --primary: #c9a96e;
+  --accent: #fef08a;
+  --bg: #000000;
+  --title-color: #ffffff;
+  --title-glow: rgba(201, 169, 110, 0.9);
+  --crawl-duration: 48s;
+  --font-serif: 'Cormorant Garamond', serif;
+}
+
+/* FESTIVE RED (金紅喜慶、高光紅潤) */
+body.theme-festive-red {
+  --primary: #fbbf24;
+  --accent: #ef4444;
+  --bg: #000000;
+  --title-color: #ffffff;
+  --title-glow: rgba(251, 191, 36, 0.9);
+  --crawl-duration: 42s;
+  --font-serif: 'Noto Serif TC', serif;
+}

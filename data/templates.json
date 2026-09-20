@@ -1,0 +1,127 @@
+[
+  {
+    "id": "mothers-day",
+    "name": "典雅溫情 · 櫻花信箋",
+    "category": "personal",
+    "description": "3D Canvas 真實落櫻花瓣輕盈飄落翻轉、溫暖生活照輪播。純情浪漫、親情摯愛首選。",
+    "layout": "star-wars-crawl",
+    "bgShader": "none",
+    "crawlSpeed": 44,
+    "bgDimmer": 0.95,
+    "bgBlur": 0,
+    "theme": {
+      "primaryColor": "#f472b6",
+      "accentColor": "#fb7185",
+      "bgColor": "#14050b",
+      "textColor": "#ffffff",
+      "titleColor": "#ffffff",
+      "fontFamily": "'Cormorant Garamond', 'Noto Serif TC', serif",
+      "styleClass": "theme-mothers-day"
+    },
+    "effects": {
+      "particleType": "sakura-canvas",
+      "particleDensity": 30
+    },
+    "defaultMusic": "https://gyhongyu.github.io/greeting-card-music/In%20Love%20With%20You.mp3"
+  },
+  {
+    "id": "obsidian-silk",
+    "name": "黑金尊爵 · 絲綢流光 (Indo-Phoenix A)",
+    "category": "business",
+    "description": "WebGL 原生暗黑金流光絲綢 Shader ✕ 金光升騰星塵 (Rising Stardust)。高管、主權基金與旗艦夥伴尊榮之選。",
+    "layout": "boxed-card",
+    "bgShader": "silk-smoke",
+    "crawlSpeed": 48,
+    "bgDimmer": 0.92,
+    "bgBlur": 0,
+    "theme": {
+      "primaryColor": "#c9a96e",
+      "accentColor": "#e6ca92",
+      "bgColor": "#09090b",
+      "textColor": "#ecebe6",
+      "titleColor": "#c9a96e",
+      "fontFamily": "'Cormorant Garamond', serif",
+      "styleClass": "theme-obsidian-gold"
+    },
+    "effects": {
+      "particleType": "rising-stardust",
+      "particleDensity": 35
+    },
+    "defaultMusic": "https://gyhongyu.github.io/greeting-card-music/In%20Love%20With%20You.mp3"
+  },
+  {
+    "id": "mission-control",
+    "name": "星際軌道 · 衛星巡航 (Indo-Phoenix B)",
+    "category": "business",
+    "description": "Three.js 3D 粒子星球 ✕ 橢圓軌道衛星光跡巡航 (Orbital Satellites)。SpaceX x Anduril 硬核深空科技風。",
+    "layout": "boxed-card",
+    "bgShader": "particle-orbit",
+    "crawlSpeed": 40,
+    "bgDimmer": 0.9,
+    "bgBlur": 0,
+    "theme": {
+      "primaryColor": "#4fd1c5",
+      "accentColor": "#c9a96e",
+      "bgColor": "#050a14",
+      "textColor": "#e2e8f0",
+      "titleColor": "#4fd1c5",
+      "fontFamily": "'Jost', sans-serif",
+      "styleClass": "theme-mission-control"
+    },
+    "effects": {
+      "particleType": "orbital-satellites",
+      "particleDensity": 25
+    },
+    "defaultMusic": "https://gyhongyu.github.io/greeting-card-music/In%20Love%20With%20You.mp3"
+  },
+  {
+    "id": "hologram-cyber",
+    "name": "黑洞引力 · 全息星雲 (Indo-Phoenix C)",
+    "category": "business",
+    "description": "Three.js 賽博點雲 ✕ 黑洞奇異點渦流吸聚 (Blackhole Vortex)。象徵強大凝聚力與未來前瞻視野。",
+    "layout": "star-wars-crawl",
+    "bgShader": "hologram",
+    "crawlSpeed": 38,
+    "bgDimmer": 0.9,
+    "bgBlur": 0,
+    "theme": {
+      "primaryColor": "#35e0ff",
+      "accentColor": "#8b7bff",
+      "bgColor": "#06070b",
+      "textColor": "#f8fafc",
+      "titleColor": "#35e0ff",
+      "fontFamily": "'Jost', sans-serif",
+      "styleClass": "theme-hologram"
+    },
+    "effects": {
+      "particleType": "blackhole-vortex",
+      "particleDensity": 30
+    },
+    "defaultMusic": "https://gyhongyu.github.io/greeting-card-music/In%20Love%20With%20You.mp3"
+  },
+  {
+    "id": "festive-red",
+    "name": "盛典金紅 · 璀璨流星雨",
+    "category": "festive",
+    "description": "絳紅天鵝絨背景 ✕ 劃破夜空的長尾璀璨流星雨 (Meteor Shower)。祈願新程宏圖大展、吉祥如意。",
+    "layout": "star-wars-crawl",
+    "bgShader": "none",
+    "crawlSpeed": 42,
+    "bgDimmer": 0.95,
+    "bgBlur": 0,
+    "theme": {
+      "primaryColor": "#fbbf24",
+      "accentColor": "#ef4444",
+      "bgColor": "#150204",
+      "textColor": "#ffffff",
+      "titleColor": "#ffffff",
+      "fontFamily": "'Noto Serif TC', serif",
+      "styleClass": "theme-festive-red"
+    },
+    "effects": {
+      "particleType": "meteor-shower",
+      "particleDensity": 25
+    },
+    "defaultMusic": "https://gyhongyu.github.io/greeting-card-music/In%20Love%20With%20You.mp3"
+  }
+]

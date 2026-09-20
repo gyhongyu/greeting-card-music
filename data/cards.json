@@ -1,0 +1,65 @@
+[
+  {
+    "id": "card-mothers-day",
+    "templateId": "mothers-day",
+    "name": "母親節溫情卡 (示範卡片)",
+    "category": "personal",
+    "updatedAt": "2026-05-10",
+    "title": "Happy Mother's Day",
+    "recipient": "Dear My Love,",
+    "paragraphs": [
+      "On this special day, I just want to say thank you.",
+      "Thank you for staying by my side all these years, for taking care of me with so much love and patience. You never complained, even when things were hard. Your kindness and strength mean everything to me.",
+      "Today is Mother's Day, and while the world celebrates mothers, I celebrate you — for your heart, your care, and the quiet, strong love you give every day.",
+      "Wishing you peace, love, and all the happiness you deserve."
+    ],
+    "sender": "With all my love,\nChen Hung Yu",
+    "media": {
+      "bgMode": "slideshow",
+      "photos": [
+        "https://app.trickle.so/storage/public/images/usr_0ff38ac768000001/0de529f0-2958-4cc6-a264-635254963aca.jpeg",
+        "https://app.trickle.so/storage/public/images/usr_0ff38ac768000001/4df3e655-f394-406c-80a5-072b9b89ce20.jpeg",
+        "https://app.trickle.so/storage/public/images/usr_0ff38ac768000001/cd22354f-3de8-4dc4-b082-ccabc3aae8da.jpeg",
+        "https://app.trickle.so/storage/public/images/usr_0ff38ac768000001/302a42cd-ca94-4d71-bfb9-379e19c4fc8f.jpeg",
+        "https://app.trickle.so/storage/public/images/usr_0ff38ac768000001/e14b2334-5008-4bcd-9aa0-18db9342bc9d.jpeg",
+        "https://app.trickle.so/storage/public/images/usr_0ff38ac768000001/88156987-d1a9-4501-b8cf-9767fd181b95.jpeg",
+        "https://app.trickle.so/storage/public/images/usr_0ff38ac768000001/da7ffe11-11a7-4c8a-8f87-5ccaf24440e8.jpeg"
+      ],
+      "video": "",
+      "customMusic": ""
+    },
+    "cta": []
+  },
+  {
+    "id": "card-business-partner",
+    "templateId": "obsidian-gold",
+    "name": "年度戰略夥伴感謝卡 (示範卡片)",
+    "category": "business",
+    "updatedAt": "2026-09-20",
+    "title": "Excellence & Partnership 2026",
+    "recipient": "致 尊榮戰略夥伴：",
+    "paragraphs": [
+      "行過千山，共拓宏圖。感謝貴公司長期以來的卓越遠見與堅定互信。",
+      "在過去的歲月裡，我們攜手攻克了無數精密技術與供應鏈挑戰，締造了令業界矚目的非凡里程碑。",
+      "未來新程，願我們持續並肩同行，深化戰略協同，共攀科技與商業的嶄新巔峰！"
+    ],
+    "sender": "勝拓國際 / Foxlink 團隊\n陳鴻宇 敬賀",
+    "media": {
+      "bgMode": "slideshow",
+      "photos": [
+        "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1600&q=80",
+        "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=1600&q=80",
+        "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1600&q=80"
+      ],
+      "video": "",
+      "customMusic": ""
+    },
+    "cta": [
+      {
+        "label": "造訪勝拓官方網站",
+        "url": "https://foxlink.co.in",
+        "icon": "fa-globe"
+      }
+    ]
+  }
+]

@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CardForge Studio - 所見即所得賀卡與模板工坊</title>
+
+    <!-- Fonts & Tailwind -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Jost:wght@300;400;500;600;700&family=Noto+Serif+TC:wght@300;400;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+
+    <!-- Three.js (For Live Preview) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <!-- React & Babel -->
+    <script src="https://resource.trickle.so/vendor_lib/unpkg/react@18/umd/react.production.min.js"></script>
+    <script src="https://resource.trickle.so/vendor_lib/unpkg/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://resource.trickle.so/vendor_lib/unpkg/@babel/standalone/babel.min.js"></script>
+
+    <!-- Custom Styles -->
+    <link href="styles/animations.css" rel="stylesheet">
+    <link href="styles/templates.css" rel="stylesheet">
+
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            background-color: #08090d;
+            color: #ecebe6;
+            font-family: 'Jost', system-ui, sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        .code-font { font-family: 'JetBrains Mono', monospace; }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #0f1118;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #25293d;
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #393f5a;
+        }
+
+        /* Phone Device Frame Simulator */
+        .phone-frame {
+            width: 375px;
+            height: 667px;
+            max-height: calc(100vh - 120px);
+            border-radius: 36px;
+            box-shadow: 0 0 0 10px #181a24, 0 0 0 12px #2f3449, 0 30px 60px rgba(0,0,0,0.85);
+            overflow: hidden;
+            position: relative;
+            background: #09090b;
+            flex-shrink: 0;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .desktop-frame {
+            width: 100%;
+            max-width: 900px;
+            aspect-ratio: 16 / 9;
+            max-height: calc(100vh - 120px);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.85);
+            overflow: hidden;
+            position: relative;
+            background: #09090b;
+            flex-shrink: 0;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+    </style>
+</head>
+<body class="bg-[#08090d] text-zinc-200">
+    <div id="root"></div>
+
+    <!-- Core Scripts -->
+    <script src="core/BackdropShader.js"></script>
+    <script type="text/babel" src="core/ParticleEngine.js"></script>
+    <script type="text/babel" src="core/CardEngine.js"></script>
+
+    <script type="text/babel">
+        // 模板專用佔位文案（僅供試看排版字級，非真實卡片）
+        const TEMPLATE_DUMMY_CARD = {
+            id: 'dummy-template-preview',
+            title: 'Sample Typography Title',
+            recipient: '致 預覽示範對象 (Recipient)：',
+            paragraphs: [
+                '這是一段用於測試模板字型、字級大小、字距行高與漫遊速度的示範文字段落。',
+                '在此處可以目測背景 3D Shader、前景粒子特效與深淺遮罩在動態滾動時的穿透視覺質感。',
+                '確認排版與光影協調後，保存模板即可供卡片製作頁面一鍵套用。'
+            ],
+            sender: '模板示範署名 (Signature)\nCardForge Studio',
+            media: { bgMode: 'slideshow', photos: [] },
+            cta: [
+                { label: '示範按鈕 (CTA)', url: '#', icon: 'fa-sparkles' }
+            ]
+        };
+
+        function CardForgeApp() {
+            // 視圖狀態：'gallery' (首頁大畫廊，預設！) | 'card_editor' (卡片編輯器)
+            const [currentView, setCurrentView] = React.useState('gallery');
+            // 畫廊分頁：'cards' (卡片管理) | 'templates' (模板管理)
+            const [activeGalleryTab, setActiveGalleryTab] = React.useState('cards');
+
+            const [cards, setCards] = React.useState([]);
+            const [templates, setTemplates] = React.useState([]);
+            
+            // 當前正在編輯的卡片 ID
+            const [editingCardId, setEditingCardId] = React.useState(null);
+
+            // 彈窗狀態
+            const [previewModalCard, setPreviewModalCard] = React.useState(null); // { card, template }
+            const [editingTemplateModal, setEditingTemplateModal] = React.useState(null); // template object
+            const [previewDevice, setPreviewDevice] = React.useState('mobile'); // 'mobile' | 'desktop'
+            const [toastMessage, setToastMessage] = React.useState('');
+
+            const showToast = (msg) => {
+                setToastMessage(msg);
+                setTimeout(() => setToastMessage(''), 2500);
+            };
+
+            // 載入資料 (優先讀取 localStorage，否則讀取 JSON)
+            React.useEffect(() => {
+                async function loadInitialData() {
+                    try {
+                        const localCards = localStorage.getItem('cardforge_cards');
+                        const localTpls = localStorage.getItem('cardforge_templates');
+
+                        let c = localCards ? JSON.parse(localCards) : null;
+                        let t = localTpls ? JSON.parse(localTpls) : null;
+
+                        if (!c) {
+                            const res = await fetch('data/cards.json');
+                            c = await res.json();
+                        }
+                        if (!t) {
+                            const resT = await fetch('data/templates.json');
+                            t = await resT.json();
+                        }
+                        setCards(c);
+                        setTemplates(t);
+                    } catch (err) {
+                        console.error('載入資料錯誤:', err);
+                    }
+                }
+                loadInitialData();
+            }, []);
+
+            const saveCards = (newCards) => {
+                setCards(newCards);
+                localStorage.setItem('cardforge_cards', JSON.stringify(newCards));
+            };
+
+            const saveTemplates = (newTemplates) => {
+                setTemplates(newTemplates);
+                localStorage.setItem('cardforge_templates', JSON.stringify(newTemplates));
+            };
+
+            // 匯出台帳備份
+            const exportAllJSON = () => {
+                const payload = { cards, templates, exportedAt: new Date().toISOString() };
+                const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `cardforge-export-${new Date().toISOString().slice(0,10)}.json`;
+                a.click();
+                showToast('已匯出完整資料備份！');
+            };
+
+            // ==========================================
+            // 卡片操作
+            // ==========================================
+            const handleCreateCard = () => {
+                const newCard = {
+                    id: `card-${Date.now()}`,
+                    templateId: templates[0]?.id || 'mothers-day',
+                    name: '全新專屬賀卡',
+                    category: 'personal',
+                    updatedAt: new Date().toISOString().split('T')[0],
+                    title: 'Happy Special Day',
+                    recipient: '致 最特別的您：',
+                    paragraphs: ['在此特別的日子，送上最誠摯的祝願。', '願美好與幸運常伴身旁。'],
+                    sender: '祝願人 敬上',
+                    media: { bgMode: 'slideshow', photos: [] },
+                    cta: []
+                };
+                const updated = [newCard, ...cards];
+                saveCards(updated);
+                setEditingCardId(newCard.id);
+                setCurrentView('card_editor');
+                showToast('已新增卡片並進入編輯');
+            };
+
+            const handleDuplicateCard = (card) => {
+                const dup = {
+                    ...card,
+                    id: `card-${Date.now()}`,
+                    name: `${card.name} (副本)`,
+                    updatedAt: new Date().toISOString().split('T')[0]
+                };
+                const updated = [dup, ...cards];
+                saveCards(updated);
+                showToast(`已複製卡片副本「${dup.name}」`);
+            };
+
+            const handleDeleteCard = (cardId, cardName) => {
+                if (cards.length <= 1) {
+                    alert('系統至少保留一張卡片！');
+                    return;
+                }
+                if (!window.confirm(`確定要刪除「${cardName}」嗎？`)) return;
+                const updated = cards.filter(c => c.id !== cardId);
+                saveCards(updated);
+                showToast('卡片已刪除');
+            };
+
+            const handleCopyShareLink = (cardId) => {
+                const url = `${window.location.origin}${window.location.pathname.replace('workspace.html', 'index.html')}?card=${cardId}`;
+                navigator.clipboard.writeText(url);
+                showToast('已複製卡片分享連結！');
+            };
+
+            // ==========================================
+            // 模板操作
+            // ==========================================
+            const handleCreateTemplate = () => {
+                const newTpl = {
+                    id: `tpl-${Date.now()}`,
+                    name: '自訂全新視覺風格',
+                    category: 'custom',
+                    description: '自訂光影 Shader 與粒子特效規範。',
+                    layout: 'star-wars-crawl',
+                    bgShader: 'silk-smoke',
+                    crawlSpeed: 44,
+                    bgDimmer: 0.95,
+                    theme: {
+                        primaryColor: '#c9a96e',
+                        accentColor: '#fbbf24',
+                        bgColor: '#09090b',
+                        textColor: '#ffffff',
+                        titleColor: '#ffffff',
+                        fontFamily: "'Cormorant Garamond', serif",
+                        styleClass: 'theme-obsidian-gold'
+                    },
+                    effects: {
+                        particleType: 'rising-stardust',
+                        particleDensity: 25
+                    },
+                    defaultMusic: 'https://gyhongyu.github.io/greeting-card-music/In%20Love%20With%20You.mp3'
+                };
+                const updated = [...templates, newTpl];
+                saveTemplates(updated);
+                setEditingTemplateModal(newTpl);
+                showToast('已新增模板，請進行微調設定');
+            };
+
+            const handleDuplicateTemplate = (tpl) => {
+                const dup = {
+                    ...tpl,
+                    id: `tpl-${Date.now()}`,
+                    name: `${tpl.name} (副本)`
+                };
+                const updated = [...templates, dup];
+                saveTemplates(updated);
+                showToast(`已複製模板副本「${dup.name}」`);
+            };
+
+            const handleDeleteTemplate = (tplId, tplName) => {
+                if (templates.length <= 1) {
+                    alert('系統至少保留一個模板！');
+                    return;
+                }
+                if (!window.confirm(`確定要刪除模板「${tplName}」嗎？`)) return;
+                const updated = templates.filter(t => t.id !== tplId);
+                saveTemplates(updated);
+                showToast('模板已刪除');
+            };
+
+            const handleSaveTemplateModal = (updatedTpl) => {
+                const updated = templates.map(t => t.id === updatedTpl.id ? updatedTpl : t);
+                saveTemplates(updated);
+                setEditingTemplateModal(null);
+                showToast('模板規格已保存！');
+            };
+
+            // 當前正在編輯的卡片
+            const currentEditingCard = cards.find(c => c.id === editingCardId) || cards[0];
+            const currentEditingTemplate = templates.find(t => t.id === currentEditingCard?.templateId) || templates[0];
+
+            const updateEditingCard = (fields) => {
+                if (!currentEditingCard) return;
+                const updated = cards.map(c => c.id === currentEditingCard.id ? { ...c, ...fields } : c);
+                saveCards(updated);
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col bg-[#07080c] text-zinc-200">
+                    {/* Toast 提示浮條 */}
+                    {toastMessage && (
+                        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 px-4 py-2 bg-emerald-500 text-zinc-950 font-bold rounded-lg shadow-xl text-xs flex items-center gap-2 animate-bounce">
+                            <i className="fa-solid fa-circle-check"></i>
+                            <span>{toastMessage}</span>
+                        </div>
+                    )}
+
+                    {/* ========================================================= */}
+                    {/* 頂部導覽列 (APP BAR) */}
+                    {/* ========================================================= */}
+                    <header className="h-14 border-b border-zinc-800/80 bg-zinc-950 px-6 flex items-center justify-between sticky top-0 z-30 shadow-md">
+                        {/* 左側：品牌 Logo & 名稱 */}
+                        <div className="flex items-center gap-3">
+                            <span className="w-8 h-8 rounded-lg bg-gradient-to-tr from-amber-400 via-rose-500 to-indigo-500 flex items-center justify-center text-zinc-950 font-black text-xs shadow">
+                                CF
+                            </span>
+                            <div>
+                                <div className="flex items-center gap-2">
+                                    <span className="font-bold tracking-wide text-sm text-white">CardForge Studio</span>
+                                    <span className="px-1.5 py-0.5 rounded text-[10px] bg-amber-400/10 text-amber-300 border border-amber-400/20 font-mono">
+                                        3D Canvas Engine
+                                    </span>
+                                </div>
+                                <div className="text-[10px] text-zinc-500">人類 × AI 雙引擎可視化卡片與模板工坊</div>
+                            </div>
+                        </div>
+
+                        {/* 中間：分頁導覽按鈕 (當在畫廊視圖時顯示) */}
+                        {currentView === 'gallery' ? (
+                            <nav className="flex items-center bg-zinc-900 border border-zinc-800 rounded-lg p-1 text-xs">
+                                <button
+                                    onClick={() => setActiveGalleryTab('cards')}
+                                    className={`px-4 py-1.5 rounded-md flex items-center gap-2 font-medium transition-all ${activeGalleryTab === 'cards' ? 'bg-amber-400 text-zinc-950 font-bold shadow' : 'text-zinc-400 hover:text-white'}`}
+                                >
+                                    <i className="fa-solid fa-address-card"></i>
+                                    <span>🗂️ 卡片管理 ({cards.length})</span>
+                                </button>
+                                <button
+                                    onClick={() => setActiveGalleryTab('templates')}
+                                    className={`px-4 py-1.5 rounded-md flex items-center gap-2 font-medium transition-all ${activeGalleryTab === 'templates' ? 'bg-indigo-500 text-white font-bold shadow' : 'text-zinc-400 hover:text-white'}`}
+                                >
+                                    <i className="fa-solid fa-wand-magic-sparkles"></i>
+                                    <span>🛠️ 模板管理 ({templates.length})</span>
+                                </button>
+                            </nav>
+                        ) : (
+                            /* 當在編輯視圖時，顯示醒目的返回按鈕！ */
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={() => setCurrentView('gallery')}
+                                    className="px-4 py-1.5 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-amber-400 hover:bg-zinc-800 text-amber-300 font-bold text-xs flex items-center gap-2 shadow transition-all"
+                                >
+                                    <i className="fa-solid fa-arrow-left"></i>
+                                    <span>返回卡片庫 (Back to Gallery)</span>
+                                </button>
+                                <span className="text-zinc-500 text-xs">|</span>
+                                <span className="text-xs text-zinc-300 font-medium">
+                                    正在編輯：<span className="text-amber-300 font-bold">{currentEditingCard?.name}</span>
+                                </span>
+                            </div>
+                        )}
+
+                        {/* 右側：動作按鈕 */}
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={exportAllJSON}
+                                title="匯出完整 JSON 台帳備份"
+                                className="px-3 py-1.5 text-xs rounded border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 flex items-center gap-1.5 transition-colors"
+                            >
+                                <i className="fa-solid fa-download"></i>
+                                <span>備份導出</span>
+                            </button>
+                            <a
+                                href="index.html"
+                                target="_blank"
+                                className="px-3.5 py-1.5 text-xs rounded bg-amber-400 hover:bg-amber-300 text-zinc-950 font-bold flex items-center gap-1.5 shadow transition-all"
+                            >
+                                <i className="fa-solid fa-play text-[10px]"></i>
+                                <span>打開公開播放器</span>
+                            </a>
+                        </div>
+                    </header>
+
+                    {/* ========================================================= */}
+                    {/* SCENARIO 1: 首頁大畫廊 (GALLERY DASHBOARD) - 默認進入！ */}
+                    {/* ========================================================= */}
+                    {currentView === 'gallery' && (
+                        <main className="flex-1 max-w-7xl w-full mx-auto p-6 md:p-8">
+                            {/* TAB A: 卡片管理 (Cards Gallery) */}
+                            {activeGalleryTab === 'cards' && (
+                                <section>
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                                        <div>
+                                            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                                                <span>🗂️ 我的賀卡庫 (Cards)</span>
+                                            </h2>
+                                            <p className="text-xs text-zinc-400 mt-1">
+                                                管理與自訂送給家人、好友或合作夥伴的專屬賀卡。可一鍵預覽、修改內容或直接發送分享。
+                                            </p>
+                                        </div>
+                                        <button
+                                            onClick={handleCreateCard}
+                                            className="px-4 py-2 rounded-lg bg-amber-400 hover:bg-amber-300 text-zinc-950 font-bold text-xs flex items-center gap-2 shadow-lg transition-all self-start sm:self-auto"
+                                        >
+                                            <i className="fa-solid fa-plus"></i>
+                                            <span>＋ 新增卡片</span>
+                                        </button>
+                                    </div>
+
+                                    {/* 卡片網格 (Cards Grid) */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                        {cards.map(c => {
+                                            const appliedTpl = templates.find(t => t.id === c.templateId) || templates[0];
+                                            return (
+                                                <div
+                                                    key={c.id}
+                                                    className="bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 rounded-xl p-5 flex flex-col justify-between shadow-xl transition-all hover:bg-zinc-900/90 group"
+                                                >
+                                                    <div>
+                                                        {/* 卡片頭部：分類與更新時間 */}
+                                                        <div className="flex items-center justify-between text-[11px] text-zinc-400 mb-2">
+                                                            <span className="px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 font-medium border border-zinc-700/60">
+                                                                {c.category === 'business' ? '商務夥伴' : c.category === 'festive' ? '節慶祝賀' : '個人親友'}
+                                                            </span>
+                                                            <span className="font-mono text-zinc-500">{c.updatedAt}</span>
+                                                        </div>
+
+                                                        {/* 卡片標題與賀詞 */}
+                                                        <h3 className="text-base font-bold text-white group-hover:text-amber-300 transition-colors">
+                                                            {c.name}
+                                                        </h3>
+                                                        <div className="text-xs text-amber-200/80 font-medium mt-1">
+                                                            {c.title || '無標題'}
+                                                        </div>
+                                                        <div className="text-xs text-zinc-400 mt-0.5 italic">
+                                                            {c.recipient || '致 特別的您'}
+                                                        </div>
+
+                                                        {/* 套用模板規格標籤 */}
+                                                        <div className="mt-3 p-2.5 rounded-lg bg-zinc-950/70 border border-zinc-800/80 text-[11px] flex items-center justify-between">
+                                                            <div className="flex items-center gap-1.5 truncate">
+                                                                <i className="fa-solid fa-palette text-amber-400 text-xs"></i>
+                                                                <span className="text-zinc-300 font-medium truncate">{appliedTpl?.name}</span>
+                                                            </div>
+                                                            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700 shrink-0">
+                                                                {appliedTpl?.layout === 'star-wars-crawl' ? '星戰升空' : '精裝方盒'}
+                                                            </span>
+                                                        </div>
+
+                                                        {/* 照片縮圖或 3D 標註 */}
+                                                        <div className="mt-3 text-[11px] text-zinc-500">
+                                                            {c.media?.photos?.length > 0 ? (
+                                                                <div className="flex items-center gap-1.5 overflow-hidden">
+                                                                    <i className="fa-solid fa-images text-zinc-400"></i>
+                                                                    <span>搭載 {c.media.photos.length} 張輪播照片</span>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="flex items-center gap-1.5">
+                                                                    <i className="fa-solid fa-cube text-indigo-400"></i>
+                                                                    <span>純粹 3D Shader 光影無相片</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* 底部操作按鈕欄：預覽、發送、編輯、複製、刪除 */}
+                                                    <div className="mt-5 pt-3 border-t border-zinc-800/80 flex items-center justify-between gap-2">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <button
+                                                                onClick={() => setPreviewModalCard({ card: c, template: appliedTpl })}
+                                                                className="px-2.5 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs flex items-center gap-1 font-medium transition-colors"
+                                                                title="在浮層中即時預覽動態與音樂"
+                                                            >
+                                                                <i className="fa-solid fa-eye text-amber-300"></i>
+                                                                <span>預覽</span>
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleCopyShareLink(c.id)}
+                                                                className="px-2.5 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs flex items-center gap-1 font-medium transition-colors"
+                                                                title="複製分享連結給受眾"
+                                                            >
+                                                                <i className="fa-solid fa-link text-indigo-300"></i>
+                                                                <span>分享</span>
+                                                            </button>
+                                                            <button
+                                                                onClick={() => {
+                                                                    setEditingCardId(c.id);
+                                                                    setCurrentView('card_editor');
+                                                                }}
+                                                                className="px-3 py-1.5 rounded bg-amber-400 hover:bg-amber-300 text-zinc-950 text-xs font-bold flex items-center gap-1 transition-colors shadow"
+                                                                title="進入所見即所得編輯頁面"
+                                                            >
+                                                                <i className="fa-solid fa-pen-to-square"></i>
+                                                                <span>編輯</span>
+                                                            </button>
+                                                        </div>
+
+                                                        <div className="flex items-center gap-1">
+                                                            <button
+                                                                onClick={() => handleDuplicateCard(c)}
+                                                                className="p-1.5 text-zinc-500 hover:text-zinc-200 transition-colors"
+                                                                title="建立副本"
+                                                            >
+                                                                <i className="fa-regular fa-copy"></i>
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteCard(c.id, c.name)}
+                                                                className="p-1.5 text-zinc-500 hover:text-rose-400 transition-colors"
+                                                                title="刪除卡片"
+                                                            >
+                                                                <i className="fa-regular fa-trash-can"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </section>
+                            )}
+
+                            {/* TAB B: 模板管理 (Templates Gallery - 100% 還原最初經典佈局) */}
+                            {activeGalleryTab === 'templates' && (
+                                <section>
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                                        <div>
+                                            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                                                <span>旗艦模板庫 (Templates)</span>
+                                            </h2>
+                                            <p className="text-xs text-zinc-400 mt-1">
+                                                已全面搭載流星雨、黑洞渦流、升空星塵、衛星軌道與落櫻 5 大 Canvas 3D 特效。
+                                            </p>
+                                        </div>
+                                        <button
+                                            onClick={handleCreateTemplate}
+                                            className="px-4 py-2 rounded-lg bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-xs flex items-center gap-2 shadow-lg transition-all self-start sm:self-auto"
+                                        >
+                                            <i className="fa-solid fa-plus"></i>
+                                            <span>＋ 新增模板</span>
+                                        </button>
+                                    </div>
+
+                                    {/* 模板卡片網格 (如同 media_1789903535363.png) */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                        {templates.map(t => (
+                                            <div
+                                                key={t.id}
+                                                className="bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 rounded-xl p-5 flex flex-col justify-between shadow-xl transition-all hover:bg-zinc-900/90 group"
+                                            >
+                                                <div>
+                                                    {/* 頂部色塊與標籤 */}
+                                                    <div className="flex items-center justify-between mb-3">
+                                                        <div className="flex items-center gap-2">
+                                                            <span 
+                                                                className="w-3.5 h-3.5 rounded-full inline-block shadow-sm ring-1 ring-white/20"
+                                                                style={{ backgroundColor: t.theme?.primaryColor || '#c9a96e' }}
+                                                            ></span>
+                                                            <h3 className="text-base font-bold text-white group-hover:text-indigo-300 transition-colors">
+                                                                {t.name}
+                                                            </h3>
+                                                        </div>
+                                                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">
+                                                            {t.layout === 'star-wars-crawl' ? '星戰升空' : '精裝方框'}
+                                                        </span>
+                                                    </div>
+
+                                                    {/* 模板描述 */}
+                                                    <p className="text-xs text-zinc-400 leading-relaxed line-clamp-2 min-h-[36px]">
+                                                        {t.description || '自訂專屬視覺規範與 3D 特效配置。'}
+                                                    </p>
+
+                                                    {/* 規格欄位 (灰底資訊塊) */}
+                                                    <div className="mt-4 p-3 rounded-lg bg-zinc-950/70 border border-zinc-800/80 space-y-1.5 text-[11px]">
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-zinc-500">預設版型：</span>
+                                                            <span className="text-zinc-300 font-medium">
+                                                                {t.layout === 'star-wars-crawl' ? '星戰漫遊升空' : '精裝方盒卡片'}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-zinc-500">3D 前景特效：</span>
+                                                            <span className="text-amber-300 font-medium">
+                                                                {t.effects?.particleType || '純淨無粒子'}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-zinc-500">背景 Shader：</span>
+                                                            <span className="text-indigo-300 font-mono text-[10px]">
+                                                                {t.bgShader || 'none (純相片/黑底)'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* 底部操作按鈕：一鍵複製、試看效果、編輯微調、刪除 */}
+                                                <div className="mt-5 pt-3 border-t border-zinc-800/80 flex items-center justify-between">
+                                                    <button
+                                                        onClick={() => handleDuplicateTemplate(t)}
+                                                        className="text-xs text-zinc-400 hover:text-white flex items-center gap-1 transition-colors"
+                                                        title="一鍵複製副本"
+                                                    >
+                                                        <i className="fa-regular fa-copy"></i>
+                                                        <span>一鍵複製副本</span>
+                                                    </button>
+
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            onClick={() => setPreviewModalCard({ card: TEMPLATE_DUMMY_CARD, template: t })}
+                                                            className="p-1.5 text-zinc-400 hover:text-amber-300 transition-colors"
+                                                            title="試看排版與 3D 效果"
+                                                        >
+                                                            <i className="fa-solid fa-eye"></i>
+                                                        </button>
+                                                        <button
+                                                            onClick={() => setEditingTemplateModal(t)}
+                                                            className="p-1.5 text-zinc-400 hover:text-indigo-300 transition-colors"
+                                                            title="自訂設計模板與 3D 特效微調"
+                                                        >
+                                                            <i className="fa-solid fa-pencil"></i>
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteTemplate(t.id, t.name)}
+                                                            className="p-1.5 text-zinc-500 hover:text-rose-400 transition-colors"
+                                                            title="刪除模板"
+                                                        >
+                                                            <i className="fa-regular fa-trash-can"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </section>
+                            )}
+                        </main>
+                    )}
+
+                    {/* ========================================================= */}
+                    {/* SCENARIO 2: 卡片編輯器模式 (CARD EDITOR) - 點擊「編輯」才進入！ */}
+                    {/* ========================================================= */}
+                    {currentView === 'card_editor' && currentEditingCard && (
+                        <div className="flex-1 flex overflow-hidden" style={{ height: 'calc(100vh - 56px)' }}>
+                            {/* 左欄：基本台帳與套用模板 */}
+                            <aside 
+                                style={{ width: '320px', minWidth: '320px', maxWidth: '320px' }}
+                                className="border-r border-zinc-800/80 bg-zinc-950/70 p-5 overflow-y-auto custom-scrollbar flex flex-col gap-6 shrink-0 text-xs z-20"
+                            >
+                                <div>
+                                    <h3 className="text-xs font-bold text-amber-300 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                                        <i className="fa-solid fa-sliders"></i>
+                                        <span>卡片基本與風格套用</span>
+                                    </h3>
+                                    <p className="text-[11px] text-zinc-500">修改卡片名稱、分類，並隨選套用外觀模板。</p>
+                                </div>
+
+                                {/* 1. 卡片名稱與分類 */}
+                                <div className="space-y-3 bg-zinc-900/50 p-3 rounded-lg border border-zinc-800">
+                                    <div>
+                                        <label className="block text-zinc-400 mb-1">內部識別名稱</label>
+                                        <input 
+                                            type="text"
+                                            value={currentEditingCard.name || ''}
+                                            onChange={e => updateEditingCard({ name: e.target.value })}
+                                            className="w-full bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1.5 text-white outline-none focus:border-amber-400"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-zinc-400 mb-1">卡片分類</label>
+                                        <select 
+                                            value={currentEditingCard.category || 'personal'}
+                                            onChange={e => updateEditingCard({ category: e.target.value })}
+                                            className="w-full bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1.5 text-white outline-none focus:border-amber-400 cursor-pointer"
+                                        >
+                                            <option value="personal">個人親友 (personal)</option>
+                                            <option value="business">商務夥伴 (business)</option>
+                                            <option value="festive">節慶祝賀 (festive)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {/* 2. 套用外觀模板選擇器 */}
+                                <div className="space-y-2 pt-2 border-t border-zinc-800">
+                                    <label className="text-zinc-300 font-semibold flex items-center gap-1.5">
+                                        <i className="fa-solid fa-wand-magic-sparkles text-amber-400"></i>
+                                        <span>套用外觀模板 (點擊即時套用)</span>
+                                    </label>
+                                    <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto custom-scrollbar pr-1">
+                                        {templates.map(t => {
+                                            const isSelected = t.id === currentEditingCard.templateId;
+                                            return (
+                                                <button
+                                                    key={t.id}
+                                                    type="button"
+                                                    onClick={() => updateEditingCard({ templateId: t.id })}
+                                                    className={`w-full text-left p-2.5 rounded-lg border transition-all ${isSelected ? 'border-amber-400 bg-amber-400/10 shadow' : 'border-zinc-800 bg-zinc-900/50 hover:border-zinc-700 hover:bg-zinc-900'}`}
+                                                >
+                                                    <div className="flex items-center justify-between">
+                                                        <span className={`font-bold text-xs ${isSelected ? 'text-amber-300' : 'text-zinc-200'}`}>
+                                                            {t.name}
+                                                        </span>
+                                                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">
+                                                            {t.bgShader || 'no-shader'}
+                                                        </span>
+                                                    </div>
+                                                    <div className="text-[10px] text-zinc-400 mt-1 line-clamp-1">
+                                                        {t.effects?.particleType || 'none'} · {t.layout}
+                                                    </div>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                {/* 3. 底部返回或刪除 */}
+                                <div className="mt-auto pt-3 border-t border-zinc-800 flex items-center justify-between">
+                                    <button
+                                        onClick={() => setCurrentView('gallery')}
+                                        className="text-amber-400 hover:underline flex items-center gap-1 text-xs"
+                                    >
+                                        <i className="fa-solid fa-arrow-left text-[10px]"></i>
+                                        <span>儲存並返回卡片庫</span>
+                                    </button>
+                                    <button
+                                        onClick={() => handleCopyShareLink(currentEditingCard.id)}
+                                        className="text-zinc-400 hover:text-white flex items-center gap-1 text-xs"
+                                    >
+                                        <i className="fa-solid fa-link text-[10px]"></i>
+                                        <span>複製連結</span>
+                                    </button>
+                                </div>
+                            </aside>
+
+                            {/* 中間：即時所見即所得 3D 手機/寬屏預覽 */}
+                            <main className="flex-1 bg-[#050608] flex flex-col items-center justify-center p-4 relative overflow-hidden">
+                                {/* 裝置切換列 */}
+                                <div className="absolute top-4 flex items-center bg-zinc-900/90 border border-zinc-800 rounded-lg p-1 text-xs z-10 shadow-lg">
+                                    <button
+                                        onClick={() => setPreviewDevice('mobile')}
+                                        className={`px-3 py-1 rounded flex items-center gap-1.5 transition-all ${previewDevice === 'mobile' ? 'bg-zinc-800 text-amber-300 font-semibold shadow' : 'text-zinc-400 hover:text-white'}`}
+                                    >
+                                        <i className="fa-solid fa-mobile-screen"></i>
+                                        <span>手機 (9:16)</span>
+                                    </button>
+                                    <button
+                                        onClick={() => setPreviewDevice('desktop')}
+                                        className={`px-3 py-1 rounded flex items-center gap-1.5 transition-all ${previewDevice === 'desktop' ? 'bg-zinc-800 text-amber-300 font-semibold shadow' : 'text-zinc-400 hover:text-white'}`}
+                                    >
+                                        <i className="fa-solid fa-desktop"></i>
+                                        <span>寬屏 (16:9)</span>
+                                    </button>
+                                </div>
+
+                                <div className={previewDevice === 'mobile' ? 'phone-frame' : 'desktop-frame'}>
+                                    <CardEngine 
+                                        card={currentEditingCard}
+                                        template={currentEditingTemplate}
+                                    />
+                                </div>
+                                <div className="absolute bottom-3 text-[11px] text-zinc-500 select-none pointer-events-none">
+                                    即時渲染中 · 當前套用模板：<span className="text-amber-300 font-medium">{currentEditingTemplate?.name}</span>
+                                </div>
+                            </main>
+
+                            {/* 右欄：祝詞劇本與相片 */}
+                            <aside 
+                                style={{ width: '360px', minWidth: '360px', maxWidth: '360px' }}
+                                className="border-l border-zinc-800/80 bg-zinc-950/70 p-5 overflow-y-auto custom-scrollbar flex flex-col gap-5 shrink-0 text-xs z-20"
+                            >
+                                <div>
+                                    <h3 className="text-xs font-bold text-amber-300 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                                        <i className="fa-solid fa-feather-pointed"></i>
+                                        <span>專屬內容劇本 (Card Content)</span>
+                                    </h3>
+                                    <p className="text-[11px] text-zinc-500">填寫給這位對象的專屬祝詞與相片，修改即時生效。</p>
+                                </div>
+
+                                {/* 1. 標題與稱謂 */}
+                                <div className="space-y-3">
+                                    <div>
+                                        <label className="block text-zinc-400 font-medium mb-1">主標題 (頂部大字)</label>
+                                        <input 
+                                            type="text"
+                                            value={currentEditingCard.title || ''}
+                                            onChange={e => updateEditingCard({ title: e.target.value })}
+                                            className="w-full bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1.5 text-white outline-none focus:border-amber-400"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-zinc-400 font-medium mb-1">受眾稱謂 (Recipient)</label>
+                                        <input 
+                                            type="text"
+                                            value={currentEditingCard.recipient || ''}
+                                            onChange={e => updateEditingCard({ recipient: e.target.value })}
+                                            className="w-full bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1.5 text-white outline-none focus:border-amber-400"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* 2. 祝詞正文 */}
+                                <div>
+                                    <label className="block text-zinc-400 font-medium mb-1">祝詞正文 (每段以空行分開)</label>
+                                    <textarea 
+                                        rows={6}
+                                        value={currentEditingCard.paragraphs?.join('\n\n') || ''}
+                                        onChange={e => updateEditingCard({ 
+                                            paragraphs: e.target.value.split('\n\n').filter(Boolean) 
+                                        })}
+                                        className="w-full bg-zinc-900 border border-zinc-800 rounded px-2.5 py-2 text-zinc-200 outline-none focus:border-amber-400 leading-relaxed font-sans"
+                                    />
+                                </div>
+
+                                {/* 3. 發件人署名 */}
+                                <div>
+                                    <label className="block text-zinc-400 font-medium mb-1">發件人落款署名</label>
+                                    <input 
+                                        type="text"
+                                        value={currentEditingCard.sender || ''}
+                                        onChange={e => updateEditingCard({ sender: e.target.value })}
+                                        className="w-full bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1.5 text-white outline-none focus:border-amber-400"
+                                    />
+                                </div>
+
+                                {/* 4. 照片清單 */}
+                                <div>
+                                    <div className="flex items-center justify-between mb-1">
+                                        <label className="text-zinc-400 font-medium">專屬相片清單 (每行一個網址)</label>
+                                        <span className="text-[10px] text-zinc-500">留空即純享 3D Shader</span>
+                                    </div>
+                                    <textarea 
+                                        rows={3}
+                                        placeholder="若無照片請留空，卡片將以純粹 3D 光影呈現..."
+                                        value={currentEditingCard.media?.photos?.join('\n') || ''}
+                                        onChange={e => updateEditingCard({
+                                            media: {
+                                                ...currentEditingCard.media,
+                                                photos: e.target.value.split('\n').map(s => s.trim()).filter(Boolean)
+                                            }
+                                        })}
+                                        className="w-full bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1.5 font-mono text-[11px] text-zinc-300 outline-none focus:border-amber-400"
+                                    />
+                                </div>
+
+                                {/* 5. 音樂自訂覆蓋 */}
+                                <div>
+                                    <label className="block text-zinc-400 font-medium mb-1">專屬音樂 URL (選填，覆蓋模板音樂)</label>
+                                    <input 
+                                        type="text"
+                                        placeholder="留空即套用模板預設音樂"
+                                        value={currentEditingCard.media?.customMusic || ''}
+                                        onChange={e => updateEditingCard({
+                                            media: { ...currentEditingCard.media, customMusic: e.target.value }
+                                        })}
+                                        className="w-full bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1.5 text-zinc-300 font-mono text-[11px] outline-none focus:border-amber-400"
+                                    />
+                                </div>
+                            </aside>
+                        </div>
+                    )}
+
+                    {/* ========================================================= */}
+                    {/* MODAL 1: 全螢幕/浮層即時預覽 (PREVIEW MODAL) */}
+                    {/* ========================================================= */}
+                    {previewModalCard && (
+                        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+                            <div className="relative flex flex-col items-center max-h-screen w-full">
+                                {/* 預覽控制頂列 */}
+                                <div className="flex items-center justify-between w-full max-w-4xl mb-3 px-2">
+                                    <div className="flex items-center gap-3">
+                                        <span className="font-bold text-sm text-white">{previewModalCard.card.name || previewModalCard.template.name}</span>
+                                        <span className="text-xs text-amber-300 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded">
+                                            {previewModalCard.template.name}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        {/* 手機 / 寬屏切換 */}
+                                        <div className="flex items-center bg-zinc-900 border border-zinc-800 rounded-lg p-0.5 text-xs">
+                                            <button
+                                                onClick={() => setPreviewDevice('mobile')}
+                                                className={`px-3 py-1 rounded transition-all ${previewDevice === 'mobile' ? 'bg-zinc-800 text-amber-300 font-bold' : 'text-zinc-400 hover:text-white'}`}
+                                            >
+                                                手機
+                                            </button>
+                                            <button
+                                                onClick={() => setPreviewDevice('desktop')}
+                                                className={`px-3 py-1 rounded transition-all ${previewDevice === 'desktop' ? 'bg-zinc-800 text-amber-300 font-bold' : 'text-zinc-400 hover:text-white'}`}
+                                            >
+                                                寬屏
+                                            </button>
+                                        </div>
+                                        {/* 關閉按鈕 */}
+                                        <button
+                                            onClick={() => setPreviewModalCard(null)}
+                                            className="w-8 h-8 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white flex items-center justify-center transition-colors"
+                                        >
+                                            <i className="fa-solid fa-xmark"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* 預覽畫布視窗 */}
+                                <div className={previewDevice === 'mobile' ? 'phone-frame' : 'desktop-frame'}>
+                                    <CardEngine 
+                                        card={previewModalCard.card}
+                                        template={previewModalCard.template}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ========================================================= */}
+                    {/* MODAL 2: 自訂設計模板與 3D 特效微調 (如同 media_1789903545975.png) */}
+                    {/* ========================================================= */}
+                    {editingTemplateModal && (
+                        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+                            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-xl p-6 shadow-2xl space-y-5">
+                                {/* 彈窗頂部 */}
+                                <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
+                                    <h3 className="text-base font-bold text-white flex items-center gap-2">
+                                        <i className="fa-solid fa-wand-magic-sparkles text-indigo-400"></i>
+                                        <span>自訂設計模板與 3D 特效微調</span>
+                                    </h3>
+                                    <button 
+                                        onClick={() => setEditingTemplateModal(null)}
+                                        className="text-zinc-400 hover:text-white"
+                                    >
+                                        <i className="fa-solid fa-xmark text-lg"></i>
+                                    </button>
+                                </div>
+
+                                {/* 彈窗表單 */}
+                                <div className="space-y-4 text-xs">
+                                    {/* 1. 模板名稱 & 背景光影 Shader */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-zinc-400 mb-1">模板名稱</label>
+                                            <input 
+                                                type="text"
+                                                value={editingTemplateModal.name || ''}
+                                                onChange={e => setEditingTemplateModal({ ...editingTemplateModal, name: e.target.value })}
+                                                className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-white outline-none focus:border-indigo-400"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-zinc-400 mb-1">背景光影 Shader (Indo-Phoenix)</label>
+                                            <select 
+                                                value={editingTemplateModal.bgShader || 'none'}
+                                                onChange={e => setEditingTemplateModal({ ...editingTemplateModal, bgShader: e.target.value })}
+                                                className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-white outline-none focus:border-indigo-400 cursor-pointer"
+                                            >
+                                                <option value="none">無 Shader (純照片/黑色底景)</option>
+                                                <option value="silk-smoke">WebGL 絲綢金煙 (Template A)</option>
+                                                <option value="particle-orbit">Three.js 軌道行星 (Template B)</option>
+                                                <option value="hologram">Three.js 賽博全息點雲 (Template C)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    {/* 2. 3D 前景粒子特效 */}
+                                    <div>
+                                        <label className="block text-zinc-400 mb-1">3D 前景粒子特效 (Procedural FX)</label>
+                                        <select 
+                                            value={editingTemplateModal.effects?.particleType || 'rising-stardust'}
+                                            onChange={e => setEditingTemplateModal({
+                                                ...editingTemplateModal,
+                                                effects: { ...editingTemplateModal.effects, particleType: e.target.value }
+                                            })}
+                                            className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-amber-300 font-medium outline-none focus:border-indigo-400 cursor-pointer"
+                                        >
+                                            <option value="rising-stardust">✨ 神聖升空星塵 (Rising Stardust)</option>
+                                            <option value="meteor-shower">🌠 璀璨流星雨 (Meteor Shower)</option>
+                                            <option value="orbital-satellites">🛰️ 3D 衛星軌道巡航 (Orbital Satellites)</option>
+                                            <option value="blackhole-vortex">🌀 黑洞引力渦流 (Blackhole Vortex)</option>
+                                            <option value="sakura-canvas">🌸 3D 飄落落櫻 (Sakura Petals)</option>
+                                            <option value="none">🚫 純淨無粒子 (None)</option>
+                                        </select>
+                                    </div>
+
+                                    {/* 3. 背景明暗亮度 & 漫遊速度 */}
+                                    <div className="bg-zinc-950/60 p-3 rounded-lg border border-zinc-800 space-y-3">
+                                        <div className="space-y-1">
+                                            <div className="flex justify-between text-zinc-400">
+                                                <span>背景明暗亮度 (Brightness)</span>
+                                                <span className="text-amber-300 font-mono">{Math.round((editingTemplateModal.bgDimmer || 0.95) * 100)}%</span>
+                                            </div>
+                                            <input 
+                                                type="range"
+                                                min="0.3"
+                                                max="1.0"
+                                                step="0.05"
+                                                value={editingTemplateModal.bgDimmer || 0.95}
+                                                onChange={e => setEditingTemplateModal({ ...editingTemplateModal, bgDimmer: parseFloat(e.target.value) })}
+                                                className="w-full accent-amber-400 cursor-pointer"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-1">
+                                            <div className="flex justify-between text-zinc-400">
+                                                <span>星戰漫遊滾動速度 (Seconds)</span>
+                                                <span className="text-amber-300 font-mono">{editingTemplateModal.crawlSpeed || 44} 秒</span>
+                                            </div>
+                                            <input 
+                                                type="range"
+                                                min="20"
+                                                max="70"
+                                                step="2"
+                                                value={editingTemplateModal.crawlSpeed || 44}
+                                                onChange={e => setEditingTemplateModal({ ...editingTemplateModal, crawlSpeed: parseInt(e.target.value) })}
+                                                className="w-full accent-amber-400 cursor-pointer"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* 4. 主色調 & 粒子密度 */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-zinc-400 mb-1">主色調 Primary Color</label>
+                                            <div className="flex items-center gap-2">
+                                                <input 
+                                                    type="color"
+                                                    value={editingTemplateModal.theme?.primaryColor || '#c9a96e'}
+                                                    onChange={e => setEditingTemplateModal({
+                                                        ...editingTemplateModal,
+                                                        theme: { ...editingTemplateModal.theme, primaryColor: e.target.value, titleColor: e.target.value }
+                                                    })}
+                                                    className="w-8 h-8 rounded border border-zinc-700 bg-transparent cursor-pointer"
+                                                />
+                                                <input 
+                                                    type="text"
+                                                    value={editingTemplateModal.theme?.primaryColor || '#c9a96e'}
+                                                    onChange={e => setEditingTemplateModal({
+                                                        ...editingTemplateModal,
+                                                        theme: { ...editingTemplateModal.theme, primaryColor: e.target.value, titleColor: e.target.value }
+                                                    })}
+                                                    className="flex-1 bg-zinc-950 border border-zinc-800 rounded px-2.5 py-1.5 font-mono text-white"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-zinc-400 mb-1">粒子密度 (Density)</label>
+                                            <input 
+                                                type="number"
+                                                value={editingTemplateModal.effects?.particleDensity || 25}
+                                                onChange={e => setEditingTemplateModal({
+                                                    ...editingTemplateModal,
+                                                    effects: { ...editingTemplateModal.effects, particleDensity: parseInt(e.target.value) || 20 }
+                                                })}
+                                                className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-white"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* 5. 排版呈現模式 */}
+                                    <div>
+                                        <label className="block text-zinc-400 mb-1">排版呈現版型 (Layout)</label>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => setEditingTemplateModal({ ...editingTemplateModal, layout: 'star-wars-crawl' })}
+                                                className={`py-2 px-2.5 rounded border text-xs flex items-center justify-center gap-1.5 transition-colors ${(editingTemplateModal.layout || 'star-wars-crawl') === 'star-wars-crawl' ? 'border-indigo-400 bg-indigo-500/20 text-indigo-300 font-bold' : 'border-zinc-800 bg-zinc-950 text-zinc-400'}`}
+                                            >
+                                                <i className="fa-solid fa-film"></i>
+                                                <span>星戰漫遊升空</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setEditingTemplateModal({ ...editingTemplateModal, layout: 'boxed-card' })}
+                                                className={`py-2 px-2.5 rounded border text-xs flex items-center justify-center gap-1.5 transition-colors ${editingTemplateModal.layout === 'boxed-card' ? 'border-indigo-400 bg-indigo-500/20 text-indigo-300 font-bold' : 'border-zinc-800 bg-zinc-950 text-zinc-400'}`}
+                                            >
+                                                <i className="fa-solid fa-layer-group"></i>
+                                                <span>精裝方盒卡片</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* 彈窗底部操作按鈕 */}
+                                <div className="flex items-center justify-end gap-3 pt-3 border-t border-zinc-800">
+                                    <button
+                                        onClick={() => setEditingTemplateModal(null)}
+                                        className="px-4 py-2 rounded text-xs text-zinc-400 hover:text-white"
+                                    >
+                                        取消
+                                    </button>
+                                    <button
+                                        onClick={() => handleSaveTemplateModal(editingTemplateModal)}
+                                        className="px-5 py-2 rounded bg-amber-400 hover:bg-amber-300 text-zinc-950 font-bold text-xs shadow-lg transition-all"
+                                    >
+                                        保存模板規格
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<CardForgeApp />);
+    </script>
+</body>
+</html>
