@@ -27,7 +27,7 @@
         const bgBrightness = (template && template.bgDimmer) || 0.95;
         const bgShaderOpacity = (template && template.bgShaderOpacity !== undefined) ? template.bgShaderOpacity : 0.85;
         const bgShaderSpeed = (template && template.bgShaderSpeed !== undefined) ? template.bgShaderSpeed : 1.0;
-        const crawlSpeed = `${(template && template.crawlSpeed) || 44}s`;
+        const crawlDurationSec = (template && template.crawlSpeed) ? Number(template.crawlSpeed) : 44;
 
         // Initialize 3D / WebGL Shaders (Silk Smoke / Particle Orbit / Hologram)
         React.useEffect(() => {
@@ -208,7 +208,7 @@
                 className: `w-full max-w-2xl px-6 md:px-8 text-center text-white ${animClass} ${isPaused ? 'is-paused' : ''}`,
                 style: {
                     fontFamily: theme.fontFamily || 'serif',
-                    '--crawl-duration': `${crawlSpeed}s`
+                    '--crawl-duration': `${crawlDurationSec}s`
                 }
             }, h('div', {
                 className: 'w-full py-8 px-4 space-y-8'

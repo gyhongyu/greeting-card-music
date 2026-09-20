@@ -8,21 +8,21 @@
 */
 @keyframes starWars3DDeepSpace {
   0% {
-    transform: rotateX(28deg) translateY(22%) translateZ(0px) scale(1);
+    transform: rotateX(28deg) translateY(75vh) translateZ(0px) scale(1);
     opacity: 0.95;
     filter: blur(0px);
   }
   3% {
     opacity: 1;
   }
-  80% {
+  75% {
     opacity: 0.9;
   }
-  96% {
+  94% {
     opacity: 0;
   }
   100% {
-    transform: rotateX(28deg) translateY(-175%) translateZ(-900px) scale(0.18);
+    transform: rotateX(28deg) translateY(-160%) translateZ(-900px) scale(0.18);
     opacity: 0;
     filter: blur(4px);
   }
@@ -42,25 +42,25 @@
 
 /* 2. 🎬 電影卷軸 · 典雅信箋平直滾動 (Cinematic Credits / Poetic Scroll)
    - 平直等速、文字不扭曲變形、閱讀體驗最純粹
-   - 起點同樣抬高至下緣 (translateY(28%))，0 秒直接優雅入場
+   - 起點同樣抬高至下緣 (translateY(75vh))，0 秒直接優雅入場
 */
 @keyframes cinematicCreditsScroll {
   0% {
-    transform: translateY(28%);
+    transform: translateY(75vh);
     opacity: 0.95;
   }
-  4% {
+  3% {
     opacity: 1;
   }
-  86% {
+  85% {
     opacity: 1;
   }
   98% {
-    transform: translateY(-115%);
+    transform: translateY(-130%);
     opacity: 0;
   }
   100% {
-    transform: translateY(-115%);
+    transform: translateY(-130%);
     opacity: 0;
   }
 }
