@@ -16,12 +16,17 @@
             if (!ctx) return;
 
             let animId = null;
-            let width = (canvas.width = window.innerWidth);
-            let height = (canvas.height = window.innerHeight);
+            const parent = canvas.parentElement;
+            let width = (canvas.width = parent ? parent.clientWidth : window.innerWidth);
+            let height = (canvas.height = parent ? parent.clientHeight : window.innerHeight);
+
+            const userOpacity = effect.particleOpacity !== undefined ? Number(effect.particleOpacity) : 0.8;
+            const userSpeed = effect.particleSpeed !== undefined ? Number(effect.particleSpeed) : 1.0;
 
             const handleResize = () => {
-                width = canvas.width = window.innerWidth;
-                height = canvas.height = window.innerHeight;
+                const p = canvas.parentElement;
+                width = canvas.width = p ? p.clientWidth : window.innerWidth;
+                height = canvas.height = p ? p.clientHeight : window.innerHeight;
             };
             window.addEventListener('resize', handleResize);
 
@@ -32,9 +37,9 @@
                     x: Math.random() * width + 200,
                     y: Math.random() * -100,
                     len: Math.random() * 90 + 70,
-                    speed: Math.random() * 10 + 12,
+                    speed: (Math.random() * 10 + 12) * userSpeed,
                     size: Math.random() * 1.8 + 1.2,
-                    opacity: Math.random() * 0.7 + 0.3
+                    opacity: (Math.random() * 0.5 + 0.3) * userOpacity
                 };
             }
             for (let i = 0; i < 6; i++) meteors.push(createMeteor());
@@ -47,10 +52,10 @@
                     x: Math.random() * width,
                     y: Math.random() * height,
                     radius: Math.random() * 2.5 + 0.8,
-                    speed: Math.random() * 0.8 + 0.4,
-                    wobbleSpeed: Math.random() * 0.02 + 0.01,
+                    speed: (Math.random() * 0.8 + 0.4) * userSpeed,
+                    wobbleSpeed: (Math.random() * 0.02 + 0.01) * userSpeed,
                     wobbleAmp: Math.random() * 30 + 10,
-                    opacity: Math.random() * 0.7 + 0.25,
+                    opacity: (Math.random() * 0.6 + 0.25) * userOpacity,
                     phase: Math.random() * Math.PI * 2
                 });
             }
@@ -61,9 +66,9 @@
                 vortexStars.push({
                     angle: Math.random() * Math.PI * 2,
                     dist: Math.random() * Math.max(width, height) * 0.5 + 40,
-                    speed: Math.random() * 0.008 + 0.003,
+                    speed: (Math.random() * 0.008 + 0.003) * userSpeed,
                     size: Math.random() * 2 + 0.8,
-                    opacity: Math.random() * 0.7 + 0.3
+                    opacity: (Math.random() * 0.6 + 0.3) * userOpacity
                 });
             }
 
@@ -75,12 +80,12 @@
                     x: Math.random() * width,
                     y: Math.random() * height,
                     size: Math.random() * 12 + 8,
-                    speedX: Math.random() * 1.5 - 0.5,
-                    speedY: Math.random() * 1.2 + 0.8,
+                    speedX: (Math.random() * 1.5 - 0.5) * userSpeed,
+                    speedY: (Math.random() * 1.2 + 0.8) * userSpeed,
                     rotation: Math.random() * 360,
                     flip: Math.random() * Math.PI,
-                    flipSpeed: Math.random() * 0.03 + 0.01,
-                    opacity: Math.random() * 0.5 + 0.4
+                    flipSpeed: (Math.random() * 0.03 + 0.01) * userSpeed,
+                    opacity: (Math.random() * 0.5 + 0.4) * userOpacity
                 });
             }
 
@@ -92,7 +97,7 @@
                     rx: Math.min(width, height) * 0.38,
                     ry: Math.min(width, height) * 0.16,
                     tilt: (i * 35 * Math.PI) / 180,
-                    speed: 0.006 + i * 0.0015,
+                    speed: (0.006 + i * 0.0015) * userSpeed,
                     size: 3 + i * 0.8
                 });
             }
@@ -139,7 +144,7 @@
                     const cy = height / 2;
                     for (let s of vortexStars) {
                         s.angle += s.speed;
-                        s.dist -= 0.3;
+                        s.dist -= 0.3 * userSpeed;
                         if (s.dist < 20) {
                             s.dist = Math.max(width, height) * 0.5 + Math.random() * 50;
                         }
@@ -182,7 +187,7 @@
                         const sin = Math.sin(sat.angle);
                         const x = cx + (cos * sat.rx * Math.cos(sat.tilt) - sin * sat.ry * Math.sin(sat.tilt));
                         const y = cy + (cos * sat.rx * Math.sin(sat.tilt) + sin * sat.ry * Math.cos(sat.tilt));
-                        ctx.strokeStyle = 'rgba(201, 169, 110, 0.12)';
+                        ctx.strokeStyle = `rgba(201, 169, 110, ${0.12 * userOpacity})`;
                         ctx.lineWidth = 1;
                         ctx.beginPath();
                         ctx.ellipse(cx, cy, sat.rx, sat.ry, sat.tilt, 0, Math.PI * 2);
@@ -193,9 +198,11 @@
                         grad.addColorStop(0.5, primaryColor);
                         grad.addColorStop(1, 'transparent');
                         ctx.fillStyle = grad;
+                        ctx.globalAlpha = userOpacity;
                         ctx.beginPath();
                         ctx.arc(x, y, sat.size * 2.5, 0, Math.PI * 2);
                         ctx.fill();
+                        ctx.globalAlpha = 1.0;
                     }
                 }
                 animId = requestAnimationFrame(loop);
@@ -207,7 +214,7 @@
                 cancelAnimationFrame(animId);
                 window.removeEventListener('resize', handleResize);
             };
-        }, [effectType, primaryColor, effect.particleDensity]);
+        }, [effectType, primaryColor, effect.particleDensity, effect.particleOpacity, effect.particleSpeed]);
 
         if (effectType === 'none') return null;
 

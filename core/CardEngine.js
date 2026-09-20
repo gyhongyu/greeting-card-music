@@ -25,6 +25,8 @@
         const layout = (card && card.layout) || (template && template.layout) || 'star-wars-crawl';
         const bgShader = (template && template.bgShader) || 'none';
         const bgBrightness = (template && template.bgDimmer) || 0.95;
+        const bgShaderOpacity = (template && template.bgShaderOpacity !== undefined) ? template.bgShaderOpacity : 0.85;
+        const bgShaderSpeed = (template && template.bgShaderSpeed !== undefined) ? template.bgShaderSpeed : 1.0;
         const crawlSpeed = `${(template && template.crawlSpeed) || 44}s`;
 
         // Initialize 3D / WebGL Shaders (Silk Smoke / Particle Orbit / Hologram)
@@ -32,7 +34,10 @@
             if (window.BackdropShader && bgShader && bgShader !== 'none') {
                 // 等候 React 完成新 Canvas 節點掛載
                 const timer = setTimeout(() => {
-                    window.BackdropShader.init(`bg-shader-canvas-${bgShader}`, bgShader);
+                    window.BackdropShader.init(`bg-shader-canvas-${bgShader}`, bgShader, {
+                        opacity: bgShaderOpacity,
+                        speed: bgShaderSpeed
+                    });
                 }, 30);
                 return () => {
                     clearTimeout(timer);
@@ -41,7 +46,7 @@
             } else if (window.BackdropShader) {
                 window.BackdropShader.stop();
             }
-        }, [bgShader]);
+        }, [bgShader, bgShaderOpacity, bgShaderSpeed]);
 
         // Background Photos Crossfade
         React.useEffect(() => {
@@ -101,7 +106,9 @@
                 effect: {
                     particleType: effect.particleType || 'rising-stardust',
                     color: theme.primaryColor || '#c9a96e',
-                    particleDensity: effect.particleDensity || 25
+                    particleDensity: effect.particleDensity || 25,
+                    particleOpacity: effect.particleOpacity !== undefined ? effect.particleOpacity : 0.8,
+                    particleSpeed: effect.particleSpeed !== undefined ? effect.particleSpeed : 1.0
                 }
             }));
         }
@@ -187,7 +194,7 @@
             }, h('div', {
                 className: 'w-full py-8 px-4 space-y-8'
             }, crawlChildren))));
-        } else if (layout === 'boxed-card') {
+        } else if (layout === 'boxed-card' || layout === 'fixed-card') {
             const boxChildren = [];
 
             // Slideshow image in box

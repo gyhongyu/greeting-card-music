@@ -4,6 +4,23 @@
 
 ---
 
+### [2026-09-20] [UNREFINED] [templates] 方盒卡片渲染鍵值修復與前後景 3D 雙軌多維調參架構
+- **類型**: `BUG_FIX` | `FEATURE`
+- **代碼錨點**: `core/CardEngine.js`, `core/BackdropShader.js`, `core/ParticleEngine.js`, `workspace.html`
+- **核心事實 / 決策理由**:
+  1. **方盒卡片無反應根因**: `constants.js` 下拉選單值為 `fixed-card`，但 `CardEngine.js` 舊版嚴格比對 `layout === 'boxed-card'`，引發 Fall-through 一片死黑。修改為 `layout === 'boxed-card' || layout === 'fixed-card'`，瞬間點亮現代磨砂玻璃方盒。
+  2. **前後景雙軌 3D 參數矩陣**:
+     - 背景 3D Shader：新增「輝光濃淡 (Opacity: 20%~100%)」與「動態流速 (Speed: 0.2x~2.0x)」，穿透控制 GLSL 金煙與 Three.js 星環/全息點雲。
+     - 前景 3D 粒子：升級為「發射密度 (10~80)」、「透明度 (20%~100%)」與「速度 (0.4x~2.0x)」三維微調，徹底根治粒子擋字或太搶戲痛點。
+     - UI 智慧條件收合：當選中 `none` 時無關拉桿自動隱藏，保持編輯介面高級整潔。
+- **踩坑 / 失敗模式**:
+  - 鍵值不對齊：跨模組佈局常數若未採用同一命名或別名相容，會引發非預期之空白渲染。
+- **防禦手段 / 測試背書**:
+  - 全軌純 JS 實作，零編譯 Zero-CORS，各數值設置嚴格邊界閾值保護 60 FPS 流暢度。
+
+
+---
+
 ### [2026-09-20] [UNREFINED] [templates] 模板系統三大關鍵缺陷修復（星戰遮罩、WebGL Context 白屏、方盒卡片塌陷）
 - **類型**: `BUG_FIX` | `STABILITY`
 - **代碼錨點**: `styles/templates.css` (L71~L76), `core/BackdropShader.js` (L19~L246), `core/CardEngine.js` (L30~L65, L263~L273), `workspace.html` (L704~L724)

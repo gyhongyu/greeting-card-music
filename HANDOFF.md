@@ -1,7 +1,7 @@
 # 📋 專案工作交接文檔 (HANDOFF.md)
 > ⚠️ **【鐵律：專案唯一單一真理源 (SSOT)】**  
 > 本檔案由 `handover_generator` 自動維護並原子覆寫，禁止產生影子交接文檔。  
-> 交接時間：2026-09-20 23:00 | 交接狀態：模板系統三大缺陷修復完成、等待使用者手動驗收
+> 交接時間：2026-09-20 23:15 | 交接狀態：方盒渲染對齊、前後景 3D 雙軌多維調參完工、等待驗收
 
 ---
 
@@ -9,14 +9,10 @@
 
 - **會話突觸 ID**：`56d99818-aaa8-44a9-af2d-be30f3ea80e5`
 - **上游核心突破**：
-  1. **修復星戰漫遊文字穿透頂部大標題**：重構 `styles/templates.css` 的 `.crawl-mask-container`，將遮罩平滑漸隱帶拉長至 12%~28%，文字在靠近置頂標題前即完全自然淡出融化，徹底根除字疊字。
-  2. **根治 3D WebGL 背景特效死黑與切換白屏崩潰**：
-     - 在 `core/CardEngine.js` 採用動態 Canvas 鍵值 `bg-shader-canvas-${bgShader}`，強制 React 在切換 Shader 時物理銷毀並替換全新 Canvas，徹底終結 Three.js 與 Raw WebGL 爭奪同一 Context 引發的 Uncaught Fatal Crash（白屏）。
-     - 在 `core/BackdropShader.js` 中新增 `getContainerSize()`，自適應讀取手機框與 16:9 寬屏的真實像素尺寸，杜絕視角偏移出鏡；並強化 WebGL 上下文顯式釋放，調升 `silk-smoke` 金煙光影對比度。
-  3. **修復精裝方盒卡片 (boxed-card) 塌陷與表單不聯動**：
-     - 將 `core/CardEngine.js` 容器調整為 `items-start` 搭配卡片本體 `my-auto`，保證磨砂玻璃卡片在手機與寬屏內穩定置中顯現，長內容可流暢滑動。
-     - 在 `workspace.html` 中動態隱藏方盒卡片模式下的「字幕漫遊速度」拉桿。
-  4. 遵照 DMC 規範原子追加日誌至 `docs/ACTIVE_LOG.md`。
+  1. **方盒卡片無法渲染根因修復**：`constants.js` 的 `fixed-card` 與 `CardEngine.js` 的 `boxed-card` 鍵值未對齊導致渲染 Fall-through。升級為雙向相容相認，精緻磨砂玻璃方盒立刻正常呈現。
+  2. **背景 3D WebGL Shader 雙軌控制**：支援輝光濃淡 (Opacity: 20%~100%) 與動態流速 (Speed: 0.2x~2.0x)，自適應控制 GLSL 金煙、Three.js 星球與全息點雲。
+  3. **前景 3D 粒子物理引擎三軌控制**：升級為發射密度 (10~80)、粒子透明度 (20%~100%) 與飄落/升騰速度 (0.4x~2.0x)，徹底杜絕粒子擋字搶戲。
+  4. **智慧條件收合**：在 `workspace.html` 中，當選中 `none` 時無關拉桿自動隱藏，保持編輯介面清爽。
 - **不可違背之血淚紅線**：
   - 🚨 **絕對禁止私自開啟瀏覽器（`browser_subagent`）測試**，測試是使用者的工作，驗收全權交由使用者手動執行。
   - 🚨 **絕對禁止主動發起 `git push`**。
