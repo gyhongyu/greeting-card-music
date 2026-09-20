@@ -735,7 +735,7 @@
                                             ))}
                                         </select>
                                     </div>
-                                    {editingTemplate.layout === 'star-wars-crawl' && (
+                                    {(editingTemplate.layout === 'star-wars-crawl' || editingTemplate.layout === 'cinematic-credits') && (
                                         <div>
                                             <div className="flex items-center justify-between mb-1">
                                                 <label className="text-zinc-400">字幕漫遊升空速度 (Speed)</label>

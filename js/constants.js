@@ -28,7 +28,7 @@ window.DEFAULT_TEMPLATES = [
         name: '典雅溫情 · 櫻花信箋',
         category: 'personal',
         description: '3D 落櫻花瓣輕盈飄落翻轉。純情浪漫首選。',
-        layout: 'star-wars-crawl',
+        layout: 'cinematic-credits',
         bgShader: 'none',
         crawlSpeed: 44,
         theme: { primaryColor: '#f472b6', accentColor: '#fbbf24', bgColor: '#14050b' },
@@ -91,8 +91,9 @@ window.PARTICLE_OPTIONS = [
 ];
 
 window.LAYOUT_OPTIONS = [
-    { value: 'star-wars-crawl', label: '🎬 星戰漫遊升空 (Star Wars Crawl 經典仰角微電影)' },
-    { value: 'cinematic-poster', label: '🖼️ 滿版海報賀卡 (Cinematic Poster 現代經典全景海報)' }
+    { value: 'star-wars-crawl', label: '🌌 星際大戰 · 滅點升空 (Star Wars 3D 透視深空飄遠縮小)' },
+    { value: 'cinematic-credits', label: '🎬 電影卷軸 · 典雅信箋 (Cinematic Credits 平直等速滾動)' },
+    { value: 'cinematic-poster', label: '🖼️ 滿版海報 · 動態登場 (Cinematic Poster 全景海報動態特效)' }
 ];
 
 window.TEXT_REVEAL_OPTIONS = [

@@ -134,7 +134,8 @@
         }
 
         // 5. DYNAMIC LAYOUT SWITCHER
-        if (layout === 'star-wars-crawl') {
+        const isScrollLayout = layout === 'star-wars-crawl' || layout === 'cinematic-credits';
+        if (isScrollLayout) {
             const crawlChildren = [];
 
             // Recipient
@@ -188,15 +189,26 @@
                 }, ctaButtons));
             }
 
+            // 區分真正的 3D 星戰 vs 平直電影卷軸
+            const isStarWars = layout === 'star-wars-crawl';
+            const animClass = isStarWars ? 'anim-star-wars-crawl' : 'anim-cinematic-credits';
+            
+            // 星戰需要 3D 透視深度 (perspective: 320px) 創造強烈梯形前大後小效果
+            const container3DStyle = isStarWars ? {
+                perspective: '320px',
+                perspectiveOrigin: '50% 100%'
+            } : {};
+
             rootChildren.push(h('div', {
-                key: 'crawl-container',
+                key: `scroll-container-${layout}`,
                 className: 'absolute inset-x-0 top-24 bottom-6 z-20 flex justify-center items-start overflow-hidden cursor-pointer crawl-mask-container',
+                style: container3DStyle,
                 onClick: () => setIsPaused(!isPaused)
             }, h('div', {
-                className: `w-full max-w-2xl px-6 md:px-8 text-center text-white anim-star-wars-crawl ${isPaused ? 'is-paused' : ''}`,
+                className: `w-full max-w-2xl px-6 md:px-8 text-center text-white ${animClass} ${isPaused ? 'is-paused' : ''}`,
                 style: {
                     fontFamily: theme.fontFamily || 'serif',
-                    '--crawl-duration': crawlSpeed
+                    '--crawl-duration': `${crawlSpeed}s`
                 }
             }, h('div', {
                 className: 'w-full py-8 px-4 space-y-8'

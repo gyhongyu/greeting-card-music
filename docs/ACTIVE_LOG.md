@@ -4,6 +4,29 @@
 
 ---
 
+### [2026-09-20] [UNREFINED] [templates] 真正星際大戰 3D 梯形滅點升空重構與【電影卷軸 · 典雅信箋】雙軌分流
+- **類型**: `ARCH_DECISION` | `FEATURE`
+- **代碼錨點**: `styles/templates.css`, `core/CardEngine.js`, `js/constants.js`, `workspace.html`, `data/templates.json`
+- **核心事實 / 決策理由**:
+  1. **徹底解決開場乾等 6~8 秒痛點**:
+     - 原星戰字幕起始點在 `translateY(102vh)`，等速 44 秒漫遊導致受眾點開後有 6~8 秒面對黑屏發呆。
+     - 重構起始點至 `translateY(22%)`（星戰）與 `translateY(28%)`（電影卷軸），開門 0 秒直接在手機下緣優雅現身，無縫銜接。
+  2. **真正的星戰 3D 滅點升空 (`star-wars-crawl`)**:
+     - 容器啟用 3D 梯形透視 `perspective: 320px; perspective-origin: 50% 100%`。
+     - 動畫由近處清晰大字 `scale(1)` 伴隨仰角 `rotateX(28deg)`，向星空深處推入 `translateZ(-900px)` 並等比縮小至 `scale(0.18)`，最後伴隨星際塵埃模糊 (`blur(4px)`) 消融在星河中，100% 還原電影經典。
+  3. **獨立新增【電影卷軸 · 典雅信箋 (`cinematic-credits`)】**:
+     - 將原本純淨平直由下往上滾動的動態正式分流，字體不旋轉、不變形、不縮小，頂部自然羽化消散，專注於長文深情之極致閱讀舒適度。
+  4. **三大版型三足鼎立**:
+     - 🌌 星際大戰 · 滅點升空 (`star-wars-crawl`)：震撼深空、梯形縮小飄遠。
+     - 🎬 電影卷軸 · 典雅信箋 (`cinematic-credits`)：平直等速、溫柔好讀。
+     - 🖼️ 滿版海報 · 動態登場 (`cinematic-poster`)：滿版大器、3D 骨牌/烈火流光/調速循環。
+- **踩坑 / 失敗模式**:
+  - 透視角度過大會使頂部字體過早塌陷；設定 `perspective: 320px` 搭配 `rotateX(28deg)` 與 `transform-origin: 50% 100%` 在手機豎屏下能取得完美張力。
+- **防禦手段 / 測試背書**:
+  - 純 CSS 3D 硬體加速 (`transform-style: preserve-3d`)，保證在各類手機與 PC 上維持 60 FPS 流暢運行。
+
+---
+
 ### [2026-09-20] [UNREFINED] [templates] 海報動效重播修復、入場速度調節 (Reveal Speed) 與定頻自動循環重播
 - **類型**: `BUG_FIX` | `FEATURE`
 - **代碼錨點**: `styles/animations.css`, `core/CardEngine.js`, `workspace.html`, `data/templates.json`
