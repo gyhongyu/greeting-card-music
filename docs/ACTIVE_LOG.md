@@ -47,3 +47,33 @@
   - 測試邊界守衛：嚴格恪守「測試是使用者工作」鐵律，AI 嚴禁私自喚醒瀏覽器，驗收全權交由使用者親自按 F5 體驗。
 - **防禦手段 / 測試背書**:
   - 純靜態無編譯相容性，代碼在 `file:///` 協議下秒開無 CORS 阻礙。
+
+---
+
+### [2026-09-20] [UNREFINED] [arch] workspace.html 模組化拆分與純 JS 狀態儲存層抽離
+- **類型**: `REFACTOR` | `MODULARIZATION`
+- **代碼錨點**: `js/workspace_store.js`, `workspace.html` (L30~L40, L280~L1050)
+- **核心事實 / 決策理由**:
+  - 解決 `workspace.html` 代碼單體膨脹痛點，貫徹「驗屍 ✕ 第十人反對法則」：因 `file:///` 本地雙擊協議嚴格阻擋外部 JSX 跨域讀取，禁止盲目引入 Webpack/Vite 等重型建置流程。
+  - 將所有純資料管理、LocalStorage 持久化、JSON 降級保底、卡片/模板複製與備份匯出邏輯徹底抽離至獨立模組 `js/workspace_store.js`，以原生 `<script src="...">` 載入，100% 零 CORS、零白屏風險。
+  - 在前端視圖層，將巨大的單體 `CardForgeApp` 解構為職責專一的獨立子組件：`WorkspaceNavbar`、`CardsGallery`、`TemplatesGallery`、`PreviewModal` 與 `CloudShareModal`。
+- **踩坑 / 失敗模式**:
+  - 若在外部 JS 檔中直接使用 JSX 標籤，會觸發瀏覽器原生的 Unexpected token '<' 語法錯誤；因此嚴格確立「純邏輯/狀態管理移入外部純 JS 模組，JSX 視圖組件於入口中分層解耦」之鐵律。
+- **防禦手段 / 測試背書**:
+  - `node -c js/workspace_store.js` 語法校驗 100% 通過。
+
+---
+
+### [2026-09-20] [UNREFINED] [index.html] 受眾播放器重複粒子引擎消除、子組件抽離與單一資料源整合
+- **類型**: `REFACTOR` | `MODULARIZATION`
+- **代碼錨點**: `index.html` (L110~L600), `core/ParticleEngine.js`, `js/workspace_store.js`
+- **核心事實 / 決策理由**:
+  - `index.html` 過去內嵌複製了完整的 225 行 `ParticleEngine`，與 `core/ParticleEngine.js` 嚴重重複；本次直接透過原生 `<script src="core/ParticleEngine.js">` 載入，徹底刪除 225 行重複代碼。
+  - 將資料初始化與本地/離線降級邏輯全面收斂至 `window.WorkspaceStore.loadInitialData()`，保證創作者端 (`workspace.html`) 與受眾端 (`index.html`) 資料儲存結構完全一致，杜絕跨端差異。
+  - 視圖層拆解出 `WelcomeGate`（點擊開門遮罩與 Web Audio / 全螢幕手勢解鎖）與 `AudioControls`（受眾端極簡藥丸按鈕 vs 創作者預覽端風格浮動按鈕），提升代碼可讀性與維護性。
+- **踩坑 / 失敗模式**:
+  - 行動端（iOS Safari / Android Chrome）安全策略要求音訊必須由使用者主動手勢（開門按鈕點擊）觸發；重構時嚴格保留 `WelcomeGate` 的 `handleStart` 手勢解鎖鏈路，防止因拆分組件引發聲音靜默。
+- **防禦手段 / 測試背書**:
+  - 保持 `file:///` 本地雙擊零 CORS 兼容性，恪守「測試是使用者工作」紅線，不私自調用瀏覽器子代理。
+
+

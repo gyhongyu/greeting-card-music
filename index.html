@@ -112,8 +112,10 @@
 
     <!-- Configuration & Pure JS (原生載入無 CORS 限制) -->
     <script src="core/BackdropShader.js"></script>
+    <script src="core/ParticleEngine.js"></script>
     <script src="js/config.js"></script>
     <script src="js/gas_client.js"></script>
+    <script src="js/workspace_store.js"></script>
 
     <!-- 
       重要說明：
@@ -122,232 +124,7 @@
     -->
     <script type="text/babel">
         // =========================================================================
-        // 1. PARTICLE ENGINE (3D & Canvas 粒子引擎)
-        // =========================================================================
-        function ParticleEngine({ effect = {} }) {
-            const canvasRef = React.useRef(null);
-            const effectType = effect.particleType || 'rising-stardust';
-            const primaryColor = effect.color || '#c9a96e';
-
-            React.useEffect(() => {
-                const canvas = canvasRef.current;
-                if (!canvas) return;
-                const ctx = canvas.getContext('2d');
-                if (!ctx) return;
-
-                let animId = null;
-                let width = (canvas.width = window.innerWidth);
-                let height = (canvas.height = window.innerHeight);
-
-                const handleResize = () => {
-                    width = canvas.width = window.innerWidth;
-                    height = canvas.height = window.innerHeight;
-                };
-                window.addEventListener('resize', handleResize);
-
-                // 1. METEOR SHOWER
-                let meteors = [];
-                function createMeteor() {
-                    return {
-                        x: Math.random() * width + 200,
-                        y: Math.random() * -100,
-                        len: Math.random() * 90 + 70,
-                        speed: Math.random() * 10 + 12,
-                        size: Math.random() * 1.8 + 1.2,
-                        opacity: Math.random() * 0.7 + 0.3
-                    };
-                }
-                for (let i = 0; i < 6; i++) meteors.push(createMeteor());
-
-                // 2. RISING STARDUST
-                let stardust = [];
-                const dustCount = effect.particleDensity ? effect.particleDensity * 2 : 60;
-                for (let i = 0; i < dustCount; i++) {
-                    stardust.push({
-                        x: Math.random() * width,
-                        y: Math.random() * height,
-                        radius: Math.random() * 2.5 + 0.8,
-                        speed: Math.random() * 0.8 + 0.4,
-                        wobbleSpeed: Math.random() * 0.02 + 0.01,
-                        wobbleAmp: Math.random() * 30 + 10,
-                        opacity: Math.random() * 0.7 + 0.25,
-                        phase: Math.random() * Math.PI * 2
-                    });
-                }
-
-                // 3. BLACK HOLE VORTEX
-                let vortexStars = [];
-                for (let i = 0; i < 150; i++) {
-                    vortexStars.push({
-                        angle: Math.random() * Math.PI * 2,
-                        radius: Math.random() * (Math.min(width, height) * 0.48) + 30,
-                        speed: (Math.random() * 0.006 + 0.003),
-                        size: Math.random() * 2 + 1,
-                        opacity: Math.random() * 0.8 + 0.2
-                    });
-                }
-
-                // 4. SAKURA PETALS
-                let petals = [];
-                for (let i = 0; i < 35; i++) {
-                    petals.push({
-                        x: Math.random() * width,
-                        y: Math.random() * height,
-                        size: Math.random() * 8 + 7,
-                        speedY: Math.random() * 1.2 + 0.8,
-                        speedX: Math.random() * 0.8 - 0.4,
-                        flip: Math.random() * Math.PI,
-                        flipSpeed: Math.random() * 0.03 + 0.01,
-                        rotation: Math.random() * 360,
-                        opacity: Math.random() * 0.4 + 0.55
-                    });
-                }
-
-                // 5. ORBITAL SATELLITES
-                let satellites = [];
-                for (let i = 0; i < 3; i++) {
-                    satellites.push({
-                        angle: (i * Math.PI * 2) / 3,
-                        rx: width * 0.38,
-                        ry: height * 0.16,
-                        speed: 0.008 + i * 0.003,
-                        tilt: -0.25 + i * 0.2,
-                        size: 3.5 + i
-                    });
-                }
-
-                function loop() {
-                    ctx.clearRect(0, 0, width, height);
-
-                    if (effectType === 'meteor-shower') {
-                        for (let m of meteors) {
-                            m.x -= m.speed;
-                            m.y += m.speed * 0.75;
-                            const grad = ctx.createLinearGradient(m.x, m.y, m.x + m.len, m.y - m.len * 0.75);
-                            grad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
-                            grad.addColorStop(0.2, primaryColor);
-                            grad.addColorStop(1, 'transparent');
-                            ctx.strokeStyle = grad;
-                            ctx.lineWidth = m.size;
-                            ctx.beginPath();
-                            ctx.moveTo(m.x, m.y);
-                            ctx.lineTo(m.x + m.len, m.y - m.len * 0.75);
-                            ctx.stroke();
-
-                            ctx.fillStyle = '#ffffff';
-                            ctx.beginPath();
-                            ctx.arc(m.x, m.y, m.size * 1.3, 0, Math.PI * 2);
-                            ctx.fill();
-
-                            if (m.x < -100 || m.y > height + 100) Object.assign(m, createMeteor());
-                        }
-                    } else if (effectType === 'rising-stardust') {
-                        for (let s of stardust) {
-                            s.y -= s.speed;
-                            s.phase += s.wobbleSpeed;
-                            const curX = s.x + Math.sin(s.phase) * s.wobbleAmp;
-                            const grad = ctx.createRadialGradient(curX, s.y, 0, curX, s.y, s.radius * 3.5);
-                            grad.addColorStop(0, '#ffffff');
-                            grad.addColorStop(0.4, primaryColor);
-                            grad.addColorStop(1, 'transparent');
-                            ctx.fillStyle = grad;
-                            ctx.beginPath();
-                            ctx.arc(curX, s.y, s.radius * 3, 0, Math.PI * 2);
-                            ctx.fill();
-                            if (s.y < -20) {
-                                s.y = height + 20;
-                                s.x = Math.random() * width;
-                            }
-                        }
-                    } else if (effectType === 'blackhole-vortex') {
-                        const cx = width / 2;
-                        const cy = height / 2;
-                        for (let v of vortexStars) {
-                            v.angle += v.speed * (350 / (v.radius + 50));
-                            v.radius -= 0.18;
-                            const px = cx + Math.cos(v.angle) * v.radius * 1.3;
-                            const py = cy + Math.sin(v.angle) * v.radius * 0.75;
-                            ctx.fillStyle = primaryColor;
-                            ctx.globalAlpha = v.opacity;
-                            ctx.beginPath();
-                            ctx.arc(px, py, v.size, 0, Math.PI * 2);
-                            ctx.fill();
-                            ctx.globalAlpha = 1.0;
-                            if (v.radius < 15) {
-                                v.radius = Math.min(width, height) * 0.45;
-                                v.angle = Math.random() * Math.PI * 2;
-                            }
-                        }
-                    } else if (effectType === 'sakura-canvas') {
-                        for (let p of petals) {
-                            p.y += p.speedY;
-                            p.x += Math.sin(p.flip) * 0.8;
-                            p.flip += p.flipSpeed;
-                            ctx.save();
-                            ctx.translate(p.x, p.y);
-                            ctx.rotate((p.rotation * Math.PI) / 180);
-                            ctx.scale(Math.cos(p.flip), 1);
-                            ctx.fillStyle = 'rgba(251, 182, 206, ' + p.opacity + ')';
-                            ctx.beginPath();
-                            ctx.moveTo(0, 0);
-                            ctx.bezierCurveTo(-p.size / 2, -p.size / 2, -p.size, p.size / 3, 0, p.size);
-                            ctx.bezierCurveTo(p.size, p.size / 3, p.size / 2, -p.size / 2, 0, 0);
-                            ctx.fill();
-                            ctx.restore();
-                            if (p.y > height + 30) {
-                                p.y = -30;
-                                p.x = Math.random() * width;
-                            }
-                        }
-                    } else if (effectType === 'orbital-satellites') {
-                        const cx = width / 2;
-                        const cy = height / 2;
-                        for (let sat of satellites) {
-                            sat.angle += sat.speed;
-                            const cos = Math.cos(sat.angle);
-                            const sin = Math.sin(sat.angle);
-                            const x = cx + (cos * sat.rx * Math.cos(sat.tilt) - sin * sat.ry * Math.sin(sat.tilt));
-                            const y = cy + (cos * sat.rx * Math.sin(sat.tilt) + sin * sat.ry * Math.cos(sat.tilt));
-                            ctx.strokeStyle = 'rgba(201, 169, 110, 0.12)';
-                            ctx.lineWidth = 1;
-                            ctx.beginPath();
-                            ctx.ellipse(cx, cy, sat.rx, sat.ry, sat.tilt, 0, Math.PI * 2);
-                            ctx.stroke();
-
-                            const grad = ctx.createRadialGradient(x, y, 0, x, y, sat.size * 3);
-                            grad.addColorStop(0, '#ffffff');
-                            grad.addColorStop(0.5, primaryColor);
-                            grad.addColorStop(1, 'transparent');
-                            ctx.fillStyle = grad;
-                            ctx.beginPath();
-                            ctx.arc(x, y, sat.size * 2.5, 0, Math.PI * 2);
-                            ctx.fill();
-                        }
-                    }
-                    animId = requestAnimationFrame(loop);
-                }
-
-                animId = requestAnimationFrame(loop);
-
-                return () => {
-                    cancelAnimationFrame(animId);
-                    window.removeEventListener('resize', handleResize);
-                };
-            }, [effectType, primaryColor, effect.particleDensity]);
-
-            if (effectType === 'none') return null;
-
-            return (
-                <canvas
-                    ref={canvasRef}
-                    className="absolute inset-0 pointer-events-none z-10 w-full h-full"
-                />
-            );
-        }
-        window.ParticleEngine = ParticleEngine;
-
-        // =========================================================================
-        // 2. CARD ENGINE (渲染舞台)
+        // 1. CARD ENGINE (渲染舞台)
         // =========================================================================
         function CardEngine({ card, template }) {
             const [currentIndex, setCurrentIndex] = React.useState(0);
@@ -579,10 +356,91 @@
         window.CardEngine = CardEngine;
 
         // =========================================================================
-        // 3. CARD PLAYER APP (受眾端播放器)
+        // 2. CHILD COMPONENTS (受眾端子組件)
+        // =========================================================================
+        
+        // 開門封面遮罩 (解鎖 Web Audio 與進入全螢幕)
+        function WelcomeGate({ card, template, onStart }) {
+            return (
+                <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center relative z-20 bg-black">
+                    <ParticleEngine effect={template.effects} />
+                    
+                    <div className="max-w-md w-full p-8 md:p-10 rounded-2xl bg-zinc-900/80 backdrop-blur-2xl border border-white/15 shadow-2xl space-y-6">
+                        <h1 className="text-3xl md:text-4xl font-light text-white" style={{ fontFamily: template.theme?.fontFamily }}>
+                            {card.title || '一份特別的祝福'}
+                        </h1>
+                        <p className="text-sm text-zinc-400">
+                            {card.recipient ? `致 ${card.recipient}` : '請點擊開啟專屬沉浸式卡片'}
+                        </p>
+                        
+                        <button
+                            onClick={onStart}
+                            className="w-full py-3.5 px-6 rounded-xl font-medium tracking-wide transition-all duration-300 transform active:scale-95 shadow-lg flex items-center justify-center gap-2 group"
+                            style={{
+                                backgroundColor: template.theme?.primaryColor || '#c9a96e',
+                                color: template.theme?.bgColor || '#09090b'
+                            }}
+                        >
+                            <i className="fa-solid fa-envelope-open text-sm group-hover:scale-110 transition-transform"></i>
+                            <span>開啟賀卡與音樂體驗</span>
+                        </button>
+                        
+                        <div className="text-[11px] text-zinc-500 flex items-center justify-center gap-1.5 pt-2">
+                            <i className="fa-solid fa-headphones text-[10px]"></i>
+                            <span>佩戴耳機或開啟聲音體驗最佳</span>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // 音訊與風格切換控制浮鈕 (預覽模式展示色票，受眾模式極簡藥丸鈕)
+        function AudioControls({ isPreviewMode, templates, activeTemplateId, isPlayingAudio, onSwitchTemplate, onToggleAudio }) {
+            if (isPreviewMode) {
+                return (
+                    <div className="floating-switcher">
+                        <span className="text-xs text-zinc-300 font-medium hidden sm:inline">切換風格:</span>
+                        <div className="flex items-center gap-2">
+                            {templates.map(t => (
+                                <button
+                                    key={t.id}
+                                    title={`切換為「${t.name}」風格`}
+                                    onClick={() => onSwitchTemplate(t.id)}
+                                    className={`swatch-btn ${activeTemplateId === t.id ? 'active' : ''}`}
+                                    style={{
+                                        backgroundColor: t.theme?.primaryColor || '#ffffff',
+                                        color: t.theme?.primaryColor || '#ffffff'
+                                    }}
+                                />
+                            ))}
+                        </div>
+                        <div className="h-4 w-px bg-white/20 mx-1"></div>
+                        <button 
+                            onClick={onToggleAudio}
+                            title={isPlayingAudio ? "暫停音樂" : "播放音樂"}
+                            className="text-zinc-200 hover:text-white transition-colors text-sm"
+                        >
+                            <i className={`fa-solid ${isPlayingAudio ? 'fa-volume-high' : 'fa-volume-xmark'}`}></i>
+                        </button>
+                    </div>
+                );
+            }
+
+            return (
+                <button
+                    onClick={onToggleAudio}
+                    title={isPlayingAudio ? "暫停音樂" : "播放音樂"}
+                    className="audio-pill-btn"
+                >
+                    <i className={`fa-solid ${isPlayingAudio ? 'fa-volume-high' : 'fa-volume-xmark'} text-xs`}></i>
+                </button>
+            );
+        }
+
+        // =========================================================================
+        // 3. CARD PLAYER APP (受眾端播放器主入口)
         // =========================================================================
         function CardPlayerApp() {
-            const [cards, setCards] = React.useState([]);
             const [templates, setTemplates] = React.useState([]);
             const [currentCard, setCurrentCard] = React.useState(null);
             const [activeTemplateId, setActiveTemplateId] = React.useState(null);
@@ -591,34 +449,11 @@
             const [isPreviewMode, setIsPreviewMode] = React.useState(false);
             const audioRef = React.useRef(null);
 
-            // Load data with Cloud SSOT + SWR & Local Fallback
+            // 初始化卡片與模板數據 (透過 WorkspaceStore 與 GasClient SSOT)
             React.useEffect(() => {
                 async function initData() {
                     try {
-                        let loadedTemplates = [];
-                        const localTpls = localStorage.getItem('cardforge_templates');
-                        if (localTpls) {
-                            try { loadedTemplates = JSON.parse(localTpls); } catch (e) {}
-                        }
-                        if (!loadedTemplates || loadedTemplates.length === 0) {
-                            try {
-                                const resT = await fetch('data/templates.json');
-                                if (resT.ok) loadedTemplates = await resT.json();
-                            } catch (e) {
-                                // 離線保底模板
-                                loadedTemplates = [
-                                    {
-                                        id: 'mothers-day',
-                                        name: '典雅溫情 · 櫻花信箋',
-                                        layout: 'star-wars-crawl',
-                                        bgShader: 'none',
-                                        crawlSpeed: 44,
-                                        theme: { primaryColor: '#f472b6', bgColor: '#14050b' },
-                                        effects: { particleType: 'sakura-canvas', particleDensity: 30 }
-                                    }
-                                ];
-                            }
-                        }
+                        const { cards: loadedCards, templates: loadedTemplates } = await window.WorkspaceStore.loadInitialData();
                         setTemplates(loadedTemplates || []);
 
                         const urlParams = new URLSearchParams(window.location.search);
@@ -641,43 +476,12 @@
                         }
 
                         if (!targetCard) {
-                            let loadedCards = [];
-                            const localCards = localStorage.getItem('cardforge_cards');
-                            if (localCards) {
-                                try { loadedCards = JSON.parse(localCards); } catch (e) {}
-                            }
-                            if (!loadedCards || loadedCards.length === 0) {
-                                try {
-                                    const resC = await fetch('data/cards.json');
-                                    if (resC.ok) loadedCards = await resC.json();
-                                } catch (e) {
-                                    // 離線保底卡片
-                                    loadedCards = [
-                                        {
-                                            id: 'card-mothers-day',
-                                            templateId: 'mothers-day',
-                                            title: "Happy Mother's Day",
-                                            recipient: 'Dear My Love,',
-                                            paragraphs: [
-                                                'On this special day, I just want to say thank you.',
-                                                'Thank you for staying by my side all these years, for taking care of me with so much love and patience.',
-                                                'Wishing you peace, love, and all the happiness you deserve.'
-                                            ],
-                                            sender: 'With all my love,\nChen Hung Yu',
-                                            media: { bgMode: 'slideshow', photos: [] }
-                                        }
-                                    ];
-                                }
-                            }
-                            setCards(loadedCards || []);
-
                             targetCard = (loadedCards && loadedCards.length > 0)
                                 ? (loadedCards.find(c => c.id === cardIdParam) || loadedCards[0])
                                 : null;
                         }
 
                         setCurrentCard(targetCard);
-
                         const effectiveTemplateId = templateParam || (targetCard ? targetCard.templateId : 'mothers-day');
                         setActiveTemplateId(effectiveTemplateId);
 
@@ -688,6 +492,7 @@
                 initData();
             }, []);
 
+            // 同步主題 CSS 樣式類別至 body
             React.useEffect(() => {
                 if (!activeTemplateId || templates.length === 0) return;
                 const curTpl = templates.find(t => t.id === activeTemplateId);
@@ -753,35 +558,11 @@
 
             if (!isStarted) {
                 return (
-                    <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center relative z-20 bg-black">
-                        <ParticleEngine effect={activeTemplate.effects} />
-                        
-                        <div className="max-w-md w-full p-8 md:p-10 rounded-2xl bg-zinc-900/80 backdrop-blur-2xl border border-white/15 shadow-2xl space-y-6">
-                            <h1 className="text-3xl md:text-4xl font-light text-white" style={{ fontFamily: activeTemplate.theme?.fontFamily }}>
-                                {currentCard.title || '一份特別的祝福'}
-                            </h1>
-                            <p className="text-sm text-zinc-400">
-                                {currentCard.recipient ? `致 ${currentCard.recipient}` : '請點擊開啟專屬沉浸式卡片'}
-                            </p>
-                            
-                            <button
-                                onClick={handleStart}
-                                className="w-full py-3.5 px-6 rounded-xl font-medium tracking-wide transition-all duration-300 transform active:scale-95 shadow-lg flex items-center justify-center gap-2 group"
-                                style={{
-                                    backgroundColor: activeTemplate.theme?.primaryColor || '#c9a96e',
-                                    color: activeTemplate.theme?.bgColor || '#09090b'
-                                }}
-                            >
-                                <i className="fa-solid fa-envelope-open text-sm group-hover:scale-110 transition-transform"></i>
-                                <span>開啟賀卡與音樂體驗</span>
-                            </button>
-                            
-                            <div className="text-[11px] text-zinc-500 flex items-center justify-center gap-1.5 pt-2">
-                                <i className="fa-solid fa-headphones text-[10px]"></i>
-                                <span>佩戴耳機或開啟聲音體驗最佳</span>
-                            </div>
-                        </div>
-                    </div>
+                    <WelcomeGate 
+                        card={currentCard} 
+                        template={activeTemplate} 
+                        onStart={handleStart} 
+                    />
                 );
             }
 
@@ -789,41 +570,14 @@
                 <div className="relative w-screen h-screen overflow-hidden" style={{ height: '100dvh' }}>
                     <audio ref={audioRef} src={musicUrl} loop autoPlay />
 
-                    {isPreviewMode ? (
-                        <div className="floating-switcher">
-                            <span className="text-xs text-zinc-300 font-medium hidden sm:inline">切換風格:</span>
-                            <div className="flex items-center gap-2">
-                                {templates.map(t => (
-                                    <button
-                                        key={t.id}
-                                        title={`切換為「${t.name}」風格`}
-                                        onClick={() => handleSwitchTemplate(t.id)}
-                                        className={`swatch-btn ${activeTemplateId === t.id ? 'active' : ''}`}
-                                        style={{
-                                            backgroundColor: t.theme?.primaryColor || '#ffffff',
-                                            color: t.theme?.primaryColor || '#ffffff'
-                                        }}
-                                    />
-                                ))}
-                            </div>
-                            <div className="h-4 w-px bg-white/20 mx-1"></div>
-                            <button 
-                                onClick={toggleAudio}
-                                title={isPlayingAudio ? "暫停音樂" : "播放音樂"}
-                                className="text-zinc-200 hover:text-white transition-colors text-sm"
-                            >
-                                <i className={`fa-solid ${isPlayingAudio ? 'fa-volume-high' : 'fa-volume-xmark'}`}></i>
-                            </button>
-                        </div>
-                    ) : (
-                        <button
-                            onClick={toggleAudio}
-                            title={isPlayingAudio ? "暫停音樂" : "播放音樂"}
-                            className="audio-pill-btn"
-                        >
-                            <i className={`fa-solid ${isPlayingAudio ? 'fa-volume-high' : 'fa-volume-xmark'} text-xs`}></i>
-                        </button>
-                    )}
+                    <AudioControls 
+                        isPreviewMode={isPreviewMode}
+                        templates={templates}
+                        activeTemplateId={activeTemplateId}
+                        isPlayingAudio={isPlayingAudio}
+                        onSwitchTemplate={handleSwitchTemplate}
+                        onToggleAudio={toggleAudio}
+                    />
 
                     <CardEngine 
                         card={currentCard} 
