@@ -8,20 +8,20 @@
 */
 @keyframes starWars3DDeepSpace {
   0% {
-    transform: rotateX(50deg) translateY(550px);
+    transform: rotateX(24deg) translateY(420px);
     opacity: 0.95;
   }
-  4% {
+  3% {
     opacity: 1;
   }
   75% {
-    opacity: 0.95;
+    opacity: 0.9;
   }
-  92% {
-    opacity: 0.4;
+  95% {
+    opacity: 0;
   }
   100% {
-    transform: rotateX(50deg) translateY(-160%);
+    transform: rotateX(24deg) translateY(-130%);
     opacity: 0;
   }
 }

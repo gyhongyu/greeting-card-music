@@ -211,18 +211,15 @@
                 }, ctaButtons));
             }
 
-            // 區分真正的 3D 星戰 vs 平直電影卷軸
-            // 星戰專屬：強烈 3D 透視深度 (perspective: 280px, perspectiveOrigin: 50% 40%)
-            // 文字板面寬度設為 220% 居中，最底部文字超大且左右完全突破邊界溢出；滾到中間時剛好縮成符合手機寬度的滿版閱讀面！
+            // 星戰透視深度精確還原：perspective: 500px, perspectiveOrigin: 50% 85% (舒適不陡峭)
             const container3DStyle = isStarWars ? {
-                perspective: '280px',
-                perspectiveOrigin: '50% 42%'
+                perspective: '500px',
+                perspectiveOrigin: '50% 85%'
             } : {};
 
             const boardStyle = isStarWars ? {
-                width: '220%',
-                minWidth: '220%',
-                maxWidth: '220%',
+                width: '100%',
+                maxWidth: '100%',
                 fontFamily: fontFamily,
                 '--crawl-duration': `${crawlDurationSec}s`
             } : {
@@ -233,7 +230,7 @@
             };
 
             const boardClasses = isStarWars 
-                ? `text-white ${animClass} ${isPaused ? 'is-paused' : ''}`
+                ? `px-1 text-white ${animClass} ${isPaused ? 'is-paused' : ''}`
                 : `w-full max-w-2xl px-6 md:px-8 text-center text-white ${animClass} ${isPaused ? 'is-paused' : ''}`;
 
             rootChildren.push(h('div', {
