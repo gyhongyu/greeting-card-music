@@ -8,7 +8,7 @@
 */
 @keyframes starWars3DDeepSpace {
   0% {
-    transform: rotateX(24deg) translateY(420px);
+    transform: rotateX(var(--crawl-angle, 24deg)) translateY(420px);
     opacity: 0.95;
   }
   3% {
@@ -21,7 +21,7 @@
     opacity: 0;
   }
   100% {
-    transform: rotateX(24deg) translateY(-130%);
+    transform: rotateX(var(--crawl-angle, 24deg)) translateY(-130%);
     opacity: 0;
   }
 }

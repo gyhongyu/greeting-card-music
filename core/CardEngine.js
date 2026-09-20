@@ -34,6 +34,11 @@
         const fontSizeScale = Number(theme.fontSizeScale !== undefined ? theme.fontSizeScale : 1.0);
         const titleSize = Number(theme.titleSize !== undefined ? theme.titleSize : 36);
 
+        // 星戰 3D 仰角與左右寬度自由拉桿 (User Customizable Angle & Width)
+        const crawlAngle = Number(template && template.crawlAngle !== undefined ? template.crawlAngle : 24);
+        const crawlWidthScale = Number(template && template.crawlWidthScale !== undefined ? template.crawlWidthScale : 180);
+
+
 
         // Initialize 3D / WebGL Shaders (Silk Smoke / Particle Orbit / Hologram)
         React.useEffect(() => {
@@ -211,19 +216,20 @@
                 }, ctaButtons));
             }
 
-            // 星戰透視深度：perspective: 500px, perspectiveOrigin: 50% 85% (舒適 24deg 仰角，文字端正不扁塌)
+            // 星戰透視深度：perspective: 500px, perspectiveOrigin: 50% 85%
             const container3DStyle = isStarWars ? {
                 perspective: '500px',
                 perspectiveOrigin: '50% 85%'
             } : {};
 
-            // 星戰板面寬度設為 220% 居中超寬展開，文字在下方巨大並直接突破手機左右兩側邊界！
+            // 星戰板面寬度與仰角支援使用者自由拖曳微調
             const boardStyle = isStarWars ? {
-                width: '220%',
-                minWidth: '220%',
-                maxWidth: '220%',
+                width: `${crawlWidthScale}%`,
+                minWidth: `${crawlWidthScale}%`,
+                maxWidth: `${crawlWidthScale}%`,
                 fontFamily: fontFamily,
-                '--crawl-duration': `${crawlDurationSec}s`
+                '--crawl-duration': `${crawlDurationSec}s`,
+                '--crawl-angle': `${crawlAngle}deg`
             } : {
                 width: '100%',
                 maxWidth: '42rem',
