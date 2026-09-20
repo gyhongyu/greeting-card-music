@@ -143,6 +143,10 @@
         // 5. DYNAMIC LAYOUT SWITCHER
         const isScrollLayout = layout === 'star-wars-crawl' || layout === 'cinematic-credits';
         if (isScrollLayout) {
+            // 先定義好 isStarWars 與 animClass，供後續 crawlChildren 判斷排版
+            const isStarWars = layout === 'star-wars-crawl';
+            const animClass = isStarWars ? 'anim-star-wars-crawl' : 'anim-cinematic-credits';
+
             const crawlChildren = [];
 
             // Recipient
@@ -207,10 +211,6 @@
                 }, ctaButtons));
             }
 
-            // 區分真正的 3D 星戰 vs 平直電影卷軸
-            const isStarWars = layout === 'star-wars-crawl';
-            const animClass = isStarWars ? 'anim-star-wars-crawl' : 'anim-cinematic-credits';
-            
             // 星戰需要 3D 透視深度 (perspective: 450px) 創造大氣舒展的梯形前大後小仰角
             const container3DStyle = isStarWars ? {
                 perspective: '450px',
