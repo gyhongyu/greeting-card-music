@@ -4,6 +4,71 @@
 
 ---
 
+### [2026-09-23] [UNREFINED] [templates] 預覽框架切換防拉伸、月餅生硬邊框消除、貼圖快取防消失與示範按鈕清除
+- **類型**: `BUG_FIX` | `UI_UX` | `3D_GRAPHICS`
+- **代碼錨點**: `js/editor_views.js`, `core/BackdropShader.js`, `js/constants.js`, `docs/ACTIVE_LOG.md`
+- **核心事實 / 決策理由**:
+  1. **手機 ⇄ 桌面寬屏切換畫面拉伸 BUG 根除**:
+     - 在 `js/editor_views.js` 中為手機與桌面預覽外框綁定 `key={`preview-frame-${editorPreviewDevice}`}`，視角切換時迫使 React 卸載並重新掛載 Canvas 容器，觸發 Three.js / Shader 依據新容器寬高重新計算投影矩陣，徹底消除縱橫比拉伸變形。
+  2. **月餅外圈生硬圓環（魔戒）徹底清除**:
+     - 移除 `TorusGeometry` 與 `sideMesh` 圓柱體，保留月餅頂部精緻去背花紋貼圖與柔和自轉微光，回歸乾淨大器的 3D 視覺。
+  3. **輝光濃淡 (Opacity) 滑桿拖動引發月餅消失 BUG 根除**:
+     - 拖動 React Slider 時會極速高頻觸發 `renderBackdropShader`。原代碼在每次 cleanup 時執行 `texture.dispose()`，導致新實例接管被銷毀的貼圖而瞬間黑屏。
+     - 重構為模組級單例貼圖快取 `cachedMooncakeTex`，拉桿調整時直接複用已載入貼圖，且不再隨 Slider 調節銷毀貼圖，徹底根治拖動消失問題。
+  4. **示範按鈕 (CTA) 移除**:
+     - 根據使用者要求，清空 `js/constants.js` 中 `TEMPLATE_DUMMY_CARD.cta = []`，模板預覽不再顯示多餘的示範按鈕。
+
+---
+
+### [2026-09-23] [UNREFINED] [imgbb] [3D_VFX] 透過 ImgBB 全域 CDN 根治本地跨域阻擋，雙軌實現「天上掉月餅粒子」與「真實貼圖 3D 月餅」
+- **類型**: `FEATURE` | `BUG_FIX` | `3D_GRAPHICS`
+- **代碼錨點**: `core/ParticleEngine.js`, `core/BackdropShader.js`, `js/constants.js`, `docs/ACTIVE_LOG.md`
+- **核心事實 / 決策理由**:
+  1. **跨域攔截踩坑復盤 (Root Cause)**:
+     - 在 `file:///` 協議下，Three.js 透過相對路徑載入本地 `mooncake.png` 會觸發瀏覽器安全策略攔截，導致貼圖遺失只剩金黃空心線圈。
+  2. **調用全域 `imgbb_embedder` 技能一鍵突破**:
+     - 自動上傳 `mooncake.png` 至 ImgBB 核心資產相簿（`WEB_CARDFORG_GMU4`），取得永久高速 CDN 直連：`https://i.ibb.co/cqhRZ1v/mooncake-png.png`。
+     - CDN 預設開啟 `CORS: *`，徹底終結本地雙擊秒開與跨域載入難題。
+  3. **雙軌月餅視效全面閉環**:
+     - **前景粒子 `falling-mooncakes` (金餅福降 · 天上掉月餅)**: 24~38px 精巧尺寸、3D 正弦翻轉、柔和金色光暈與漫天緩降，不干擾文字且富有節日喜感。
+     - **背景 3D `golden-mooncake` (真實貼圖金餅)**: 換上 CDN 貼圖、開啟 `crossOrigin: anonymous`，雕花凹凸與金黃烤皮質感 100% 現形！
+
+---
+
+### [2026-09-23] [UNREFINED] [3D_VFX] [mid-autumn] 四大中秋專屬 3D WebGL 特效與雙旗艦模板正式落盤
+- **類型**: `FEATURE` | `3D_GRAPHICS` | `TEMPLATES`
+- **代碼錨點**: `core/BackdropShader.js`, `core/ParticleEngine.js`, `js/constants.js`, `data/templates.json`, `styles/templates.css`
+- **核心事實 / 決策理由**:
+  1. **四大中秋 3D 視覺震撼擊穿**:
+     - **3D 超級明月 ✕ 祥雲月暈 Shader (`lunar-clouds`)**: 採用 WebGL 原生 GLSL 純數學距離場 (SDF) 與 FBM 噪波即時計算月海環形山紋理、柔和呼吸月暈與夜空浮雲，零圖片依賴秒開。
+     - **3D 浮空旋轉金箔月餅 (`golden-mooncake`)**: Three.js 原生 16 瓣花邊模具幾何雕刻、頂部凸印祥瑞金環、金箔亮片圍繞與緩動呼吸浮空自轉。
+     - **金桂飛花粒子 (`osmanthus-petals`)**: Canvas 2D 物理模擬四瓣金桂花瓣立體翻轉、重力與風向正弦搖曳飄落，花心自帶微光。
+     - **祈願天燈海 (`sky-lanterns`)**: 暖橘透光八角燈罩、物理陰影光暈、微幅隨風擺動升空與底部動態跳動燭火 (Flicker Glow)。
+  2. **兩大預製中秋旗艦模板**:
+     - **`mid-autumn-moon` (月夕清輝 · 金桂玉兔)**: 超級明月 Shader ＋ 金桂飛花 ＋ 烈火金光標題 ＋ 思源宋體。
+     - **`mid-autumn-lantern` (天燈映月 · 福滿金餅)**: 3D 金箔月餅 ＋ 祈願天燈海 ＋ 典雅信箋慢速滾動。
+  3. **架構紀律與紅線遵守**:
+     - 全域外部 `.js` 100% 維持純原生 JS，嚴禁 JSX 標籤，保證 `file:///` 本地雙擊零 CORS 阻擋。
+     - 下拉選單 `SHADER_OPTIONS` 與 `PARTICLE_OPTIONS` 完整對齊，工坊可自由組合切換。
+     - `workspace.html` 依然保持 435 行（嚴格遵守 ≤ 450 行規範）。
+
+---
+
+### [2026-09-23] [UNREFINED] [security] [routing] 網站首頁智慧分流與工坊君子密碼本地記憶門禁 (PasswordLockGate)
+- **類型**: `FEATURE` | `SECURITY` | `ROUTING`
+- **代碼錨點**: `index.html`, `workspace.html`, `js/workspace_views.js`, `HANDOFF.md`
+- **核心事實 / 決策理由**:
+  1. **首頁無損智慧分流**:
+     - 在 `index.html` 頂部加入輕量無損重定向：無卡片參數時自動進入 `workspace.html`（符合作者大畫廊首頁期望）；帶參數（`?card=` / `?id=` / `?preview=`）維持受眾 3D 播放器，既有社交分享完全零受損。
+  2. **工坊君子密碼守衛 (`10101010`) ＋ 本地記憶 (`localStorage`)**:
+     - 獨立實作 `PasswordLockGate` 組件於 `js/workspace_views.js`，100% 遵守外部純 JS 零 JSX 鐵律 (`React.createElement`)，保證本地雙擊 `file:///` 秒開。
+     - 採用 `localStorage.setItem('cardforge_auth_unlocked', 'true')`，使用者輸入一次正確密碼後本機永久保存，重整或重開瀏覽器皆無需再次輸入。
+  3. **架構門禁全綠遵守**:
+     - `workspace.html` 維持 435 行（嚴格遵守 ≤ 450 行門禁）。
+     - 測試由使用者手動執行，絕不私自開啟瀏覽器。
+
+---
+
 ### [2026-09-21] [UNREFINED] [architecture] 工坊全面模組化解耦重構與檔案行數硬性門禁 (≤450行)
 - **類型**: `REFACTOR` | `ARCH_DECISION`
 - **代碼錨點**: `workspace.html`, `js/editor_views.js`, `AGENTS.md`, `docs/STATE.md`

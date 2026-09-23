@@ -120,8 +120,12 @@
             ),
 
             // 中間 3D 渲染舞台 (手機居中，上方無任何按鈕重疊)
+            // 綁定 key 確保視角切換時重新掛載並自適應最新尺寸，徹底終結拉伸變形
             h('section', { className: 'flex-1 bg-black/60 flex items-center justify-center p-4 relative overflow-hidden' },
-                h('div', { className: editorPreviewDevice === 'mobile' ? 'phone-frame' : 'desktop-frame' },
+                h('div', {
+                    key: `card-preview-frame-${editorPreviewDevice}`,
+                    className: editorPreviewDevice === 'mobile' ? 'phone-frame' : 'desktop-frame'
+                },
                     window.CardEngine ? h(window.CardEngine, {
                         card: currentEditingCard,
                         template: currentEditingTemplate
@@ -705,8 +709,12 @@
             ),
 
             // 中間大畫布 (手機居中，上方無任何按鈕重疊)
+            // 綁定 key: 視角切換時迫使重新掛載並自適應最新尺寸，徹底終結拉伸變形
             h('section', { className: 'flex-1 bg-black/60 flex items-center justify-center p-4 relative overflow-hidden' },
-                h('div', { className: editorPreviewDevice === 'mobile' ? 'phone-frame' : 'desktop-frame' },
+                h('div', {
+                    key: `preview-frame-${editorPreviewDevice}`,
+                    className: editorPreviewDevice === 'mobile' ? 'phone-frame' : 'desktop-frame'
+                },
                     window.CardEngine ? h(window.CardEngine, {
                         card: window.TEMPLATE_DUMMY_CARD,
                         template: editingTemplate

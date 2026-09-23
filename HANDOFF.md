@@ -1,48 +1,71 @@
 # 📋 專案工作交接文檔 (HANDOFF.md)
-> ⚠️ **【鐵律：專案唯一單一真理源 (SSOT)】**  
-> 本檔案由 `handover_generator` 自動維護並原子覆寫，禁止產生影子交接文檔。  
-> 交接時間：2026-09-20 23:45 | 交接狀態：真正星戰 3D 滅點升空重構、電影卷軸典雅信箋雙軌分流、0 秒即時開場完工、等待驗收
+> 上游會話 ID: `45604393-78e1-4a35-a1fb-3acef189fcbb`
 
 ---
 
 ## 0. 🧠 智腦不二過記憶突觸 (Brain Synapse & Anti-Failure DNA)
 
-- **會話突觸 ID**：`56d99818-aaa8-44a9-af2d-be30f3ea80e5`
-- **上游核心突破**：
-  1. **真正星際大戰 3D 滅點升空 (`star-wars-crawl`)**：
-     - 具備真正的 3D 梯形透視 (`perspective: 320px; perspective-origin: 50% 100%`)。
-     - 動態沿 $Z$ 軸推入深空 (`translateZ(-900px)`) 並等比縮小至 18% (`scale(0.18)`)，伴隨星塵模糊 (`blur(4px)`) 漸漸融入星海深處消融。
-     - 徹底解決「開場黑屏乾等 6~8 秒」痛點：起始點抬高至下緣 `translateY(22%)`，0 秒直接看見第一行字。
-  2. **獨立新增【電影卷軸 · 典雅信箋 (`cinematic-credits`)】**：
-     - 將原本平直向上滾動的經典動態獨立為專屬版型。
-     - 文字不變形、不旋轉、不縮小，頂部自然羽化消散，專注於親情、文藝或長文深情長信之極致閱讀體驗。
-  3. **三大經典版型成形**：
-     - 🌌 星際大戰 · 滅點升空 (`star-wars-crawl`)
-     - 🎬 電影卷軸 · 典雅信箋 (`cinematic-credits`)
-     - 🖼️ 滿版海報 · 動態登場 (`cinematic-poster` 支援 3D 骨牌、烈火流光、調速與自動循環重播)
-- **不可違背之血淚紅線**：
-  - 🚨 **絕對禁止私自開啟瀏覽器（`browser_subagent`）測試**，測試是使用者的工作，驗收全權交由使用者手動執行。
-  - 🚨 **絕對禁止主動發起 `git push`**。
-  - 🚨 **接手後若提示詞提及【討論模式】，嚴禁直接修改代碼或生成實體文件**，直到使用者明確輸入「結束討論」。
-  - 🚨 **外部 `.js` 檔絕對禁止包含 JSX 語法**，一律使用 `React.createElement`。
+### 血淚紅線
+- ⛔ 嚴禁 `git push`（未獲明確指令）
+- ⛔ 嚴禁 `browser_subagent` 開瀏覽器測試，由使用者手動驗收
+- ⛔ 嚴禁在外部 `.js` 使用 JSX (`<Tag>`)，一律用 `React.createElement`
+- ⛔ `workspace.html` 總行數硬門禁 ≤ 450 行
+- ⛔ 嚴禁終端命令內嵌代碼落盤（`py -c "..."` 生成 HTML/JS 等）
+- ⛔ 接手後若提示詞含【討論模式】，禁止落盤實體檔案直到使用者說「結束討論」
 
 ---
 
 ## 1. 系統現況與已固化基線 (System Baseline)
 
-| 模組 / 檔案 | 當前狀態 | 關鍵特性與職責 |
-| :--- | :--- | :--- |
-| `styles/templates.css` | 穩態 | 新增 `starWars3DDeepSpace` 梯形滅點深空縮小動效與 `cinematicCreditsScroll` 電影卷軸動效 |
-| `core/CardEngine.js` | 穩態 (純 JS) | 支援 `perspective: 320px` 3D 容器深度，無縫切換星戰 3D、電影卷軸與滿版海報三大版型 |
-| `js/constants.js` | 穩態 (純 JS) | `LAYOUT_OPTIONS` 升級為三大版型選單，模板預設櫻花信箋採用電影卷軸版型 |
-| `workspace.html` | 穩態 (1123 行) | 漫遊速度拉桿全面支援星戰與電影卷軸版型，即時 60 FPS 預覽 |
-| `data/templates.json` | 穩態 (SSOT) | 各模板版型規格精準對齊，支援本地與雲端降級 |
+### 專案架構
+| 檔案 | 職責 |
+|------|------|
+| `workspace.html` | 創作者大畫廊工坊（≤ 450 行路由調度） |
+| `index.html` | 受眾端 3D 播放器（分享鏈結用，不是首頁） |
+| `js/editor_views.js` | `CardEditorView` + `TemplateEditorView`（抽離自 workspace） |
+| `js/workspace_views.js` | 畫廊/導覽列/彈窗/密碼鎖 |
+| `js/workspace_store.js` | 全局唯一資料持久化層 |
+
+### 部署狀態
+| 項目 | 狀態 |
+|------|------|
+| GitHub Pages 主域名 | ✅ `card.foxlink.co.in` (CNAME → gyhongyu.github.io) |
+| Enforce HTTPS | ✅ 已勾選 |
+| `card.teaforia.in` | ✅ Cloudflare Worker 隱式反代鏡像 |
+| 網站首頁入口 | ✅ `card.foxlink.co.in/` 自動導向 `workspace.html` 創作者工坊；帶參數直達 3D 播放器 |
+| 君子密碼守衛 | ✅ `10101010`（密碼解鎖後本地記憶持久化至 `localStorage`，無需重複輸入） |
 
 ---
 
-## 2. 下一步工作與驗收說明 (Next Steps)
+## 2. 成果驗收與模組守衛記錄 (Implementation Log)
 
-1. 請使用者在本地瀏覽器重新整理（F5）`workspace.html`，進入「模板設計工坊」驗收：
-   - [ ] **開場零等待**：切換至「星際大戰 · 滅點升空」或「電影卷軸 · 典雅信箋」，確認點開瞬間第一行字已在螢幕下緣優雅現身，不再有 6~8 秒黑屏空等。
-   - [ ] **真正星戰 3D 透視**：選擇「🌌 星際大戰 · 滅點升空」，觀察文字往上飄移時，是否呈現近大遠小（梯形透視），且在深空中縮小至極遠處漸漸消融隱沒。
-   - [ ] **電影卷軸典雅滾動**：選擇「🎬 電影卷軸 · 典雅信箋」，確認文字保持平直等速、不變形、不歪斜地徐徐向上滾動。
+- [x] **首頁切換**：在 `index.html` 前置無損智慧重定向，訪客進入根路徑時自動導航進入工坊，帶卡片參數（`?card=` / `?id=` / `?preview=`）維持受眾播放器。
+- [x] **君子密碼守衛**：
+  - 封裝於 `js/workspace_views.js` 之 `PasswordLockGate` 組件，100% 純 JS (`React.createElement`)，無 JSX 標籤，相容 `file:///` 本地秒開。
+  - 密碼硬編碼為 `10101010`，解鎖成功後寫入 `localStorage.setItem('cardforge_auth_unlocked', 'true')`，永久保持解鎖狀態。
+  - 支援 Enter 鍵快速送出、密碼錯誤震動警告與即時反饋。
+  - `workspace.html` 行數維持 435 行（嚴格遵守 ≤ 450 行紅線）。
+- [x] **中秋 3D 特效與雙旗艦模板**：
+  - 超級明月 Shader (`lunar-clouds`)、金桂飛花 (`osmanthus-petals`)、祈願天燈海 (`sky-lanterns`)、天上掉月餅 (`falling-mooncakes`)、3D 金箔月餅 (`golden-mooncake`)。
+  - 圖檔託管於 ImgBB 全域 CDN 直連 (`https://i.ibb.co/cqhRZ1v/mooncake-png.png`)，解決 `file:///` 跨域難題。
+- [x] **工坊視圖體驗修復**：
+  - 手機 ⇄ 寬屏外框切換防拉伸 (`preview-frame` key)。
+  - 移除月餅外圈生硬圓環（魔戒邊框）。
+  - 單例貼圖快取 `cachedMooncakeTex` 根除 Opacity 拉桿拖動導致月餅消失的 BUG。
+  - 移除模板設計預覽視窗中的「示範按鈕 (CTA)」。
+
+---
+
+## 3. 下階段任務與驗收啟動指令 (Verification Step)
+
+### 🚨 下個 AI 代理人核心任務：
+1. **排查卡片鏈結展示問題 (BUG Investigation)**：
+   - 檢查目前大畫廊、預覽彈窗或受眾端在點擊或展示「卡片鏈結 / 分享鏈結 / 雲端短網址」時的行為異常。
+   - 深入檢查 `js/workspace_views.js` (如 `CloudShareModal`, `PreviewModal`)、`js/gas_client.js`、`index.html` 的參數解析（`?id=` / `?card=`）及展示路徑是否存在問題。
+2. **討論模式門禁 (Discussion Mode Mandatory)**：
+   - **查明原因後，必須立即進入【討論模式】主動向使用者匯報排查發現與修復思路，嚴禁在使用者輸入「結束討論」前修改代碼或落盤實體檔案！**
+
+### 接手啟動指令：
+```
+請詳細閱讀專案根目錄下的 HANDOFF.md，依照裡面的指引檢查當前的卡片鏈結展示 BUG。請全面排查根本原因，並在查完原因後立即進入【討論模式】與使用者討論修復方案，嚴禁在使用者說「結束討論」前落盤任何代碼或修改檔案！
+```

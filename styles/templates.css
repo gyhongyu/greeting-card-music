@@ -146,3 +146,25 @@ body.theme-festive-red {
   --crawl-duration: 42s;
   --font-serif: 'Noto Serif TC', serif;
 }
+
+/* MID-AUTUMN (月夕清輝 · 金桂玉兔) */
+body.theme-mid-autumn {
+  --primary: #f59e0b;
+  --accent: #fef08a;
+  --bg: #030611;
+  --title-color: #fbbf24;
+  --title-glow: rgba(245, 158, 11, 0.95);
+  --crawl-duration: 40s;
+  --font-serif: 'Noto Serif TC', serif;
+}
+
+/* FESTIVE GOLD (天燈映月 · 福滿金餅) */
+body.theme-festive-gold {
+  --primary: #fbbf24;
+  --accent: #f97316;
+  --bg: #080512;
+  --title-color: #fde047;
+  --title-glow: rgba(251, 191, 36, 0.95);
+  --crawl-duration: 38s;
+  --font-serif: 'Noto Serif TC', serif;
+}

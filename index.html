@@ -8,6 +8,17 @@
     <meta name="mobile-web-app-capable" content="yes">
     <title>Greeting Card - CardForge</title>
     
+    <!-- 首頁智慧路由 (若無受眾卡片參數，自動進入創作者工坊 workspace.html) -->
+    <script>
+        (function() {
+            var params = new URLSearchParams(window.location.search);
+            var isRecipientView = params.has('card') || params.has('id') || params.has('preview');
+            if (!isRecipientView) {
+                window.location.replace('workspace.html');
+            }
+        })();
+    </script>
+    
     <!-- Fonts & Tailwind -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

@@ -71,6 +71,9 @@
 - [x] 根治頻繁 Git Commit：GAS 網關與 Google Sheet SSOT 客戶端落盤。
 - [x] 根治社群分享無預覽：Cloudflare Worker 邊緣 OG 代理腳本就緒。
 - [x] 專案目錄大掃除：清理 100% 廢代碼（`app.js`, `components/`），音訊收納至 `assets/audio/`。
-- [x] 模組化瘦身：`workspace.html` 拆分為組件化裝配，抽離純 JS `js/workspace_store.js`。
+- [x] 模組化瘦身：`workspace.html` 拆分為組件化裝配，抽離純 JS `js/workspace_store.js` 與 `js/editor_views.js` (≤ 450 行門禁)。
 - [x] 播放器升級：`index.html` 移除 225 行重複粒子引擎，抽離 `WelcomeGate` 與 `AudioControls`。
 - [x] 瀏覽器測試權限隔離：恪守「測試由使用者手動執行」鐵律，AI 嚴禁私自調用瀏覽器測試。
+- [x] 首頁智慧分流與君子密碼門禁：`index.html` 根路徑跳轉工坊；`PasswordLockGate` (`10101010`) 本地記憶持久化。
+- [x] 中秋 3D 特效與雙旗艦模板：超級明月 (`lunar-clouds`)、金桂飛花 (`osmanthus-petals`)、祈願天燈海 (`sky-lanterns`)、天上掉月餅 (`falling-mooncakes`) 與真實 3D 金箔月餅 (`golden-mooncake`) 透過 ImgBB 全域 CDN 閉環。
+- [x] 模板工坊穩定性修復：預覽外框切換防拉伸 (`preview-frame` key)、月餅單例貼圖快取防消失 (`cachedMooncakeTex`)、移除示範按鈕 (CTA)。

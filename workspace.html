@@ -54,7 +54,8 @@
             CloudShareModal,
             WorkspaceNavbar,
             CardsGallery,
-            TemplatesGallery
+            TemplatesGallery,
+            PasswordLockGate
         } = window.WorkspaceViews;
 
         const {
@@ -68,6 +69,9 @@
         const TEMPLATE_DUMMY_CARD = window.TEMPLATE_DUMMY_CARD;
 
         function CardForgeApp() {
+            const [isUnlocked, setIsUnlocked] = React.useState(() => {
+                try { return localStorage.getItem('cardforge_auth_unlocked') === 'true'; } catch (e) { return false; }
+            });
             const [currentView, setCurrentView] = React.useState('gallery'); // 'gallery' | 'card_editor' | 'template_editor'
             const [activeGalleryTab, setActiveGalleryTab] = React.useState('cards');
             const [cards, setCards] = React.useState([]);
@@ -79,7 +83,7 @@
             const [cloudShareModal, setCloudShareModal] = React.useState(null);
             const [editorPreviewDevice, setEditorPreviewDevice] = React.useState('mobile');
             const [toastMessage, setToastMessage] = React.useState('');
-            const [uploadStatus, setUploadStatus] = React.useState(null); // { isUploading: bool, message: string }
+            const [uploadStatus, setUploadStatus] = React.useState(null);
             const [posterAutoLoop, setPosterAutoLoop] = React.useState(false);
             const [posterLoopInterval, setPosterLoopInterval] = React.useState(8);
             const fileInputRef = React.useRef(null);
@@ -314,6 +318,10 @@
 
             return (
                 <div className="min-h-screen flex flex-col bg-[#07080c] text-zinc-200">
+                    {!isUnlocked && (
+                        <PasswordLockGate onUnlock={() => setIsUnlocked(true)} />
+                    )}
+
                     {toastMessage && (
                         <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 px-4 py-2 bg-emerald-500 text-zinc-950 font-bold rounded-lg shadow-xl text-xs flex items-center gap-2 animate-bounce">
                             <i className="fa-solid fa-circle-check"></i>

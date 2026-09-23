@@ -55,6 +55,30 @@ window.DEFAULT_TEMPLATES = [
         crawlSpeed: 42,
         theme: { primaryColor: '#a855f7', accentColor: '#38bdf8', bgColor: '#05030a' },
         effects: { particleType: 'blackhole-vortex', particleDensity: 50 }
+    },
+    {
+        id: 'mid-autumn-moon',
+        name: '月夕清輝 · 金桂玉兔',
+        category: 'festive',
+        description: '3D 超級明月月暈 ✕ 祥雲繾綣流動 Shader ✕ 漫天飄落旋轉金桂花瓣。中秋團聚、千里嬋娟極致詩意之選。',
+        layout: 'cinematic-poster',
+        textRevealFx: 'fire-shimmer',
+        revealSpeed: 0.8,
+        bgShader: 'lunar-clouds',
+        crawlSpeed: 40,
+        theme: { primaryColor: '#f59e0b', accentColor: '#fef08a', bgColor: '#030611', textColor: '#f8fafc', titleColor: '#fbbf24', fontFamily: "'Noto Serif TC', serif" },
+        effects: { particleType: 'osmanthus-petals', particleDensity: 38 }
+    },
+    {
+        id: 'mid-autumn-lantern',
+        name: '天燈映月 · 福滿金餅',
+        category: 'festive',
+        description: '3D 精雕自轉金箔月餅 ✕ 萬家燈火祈願天燈海緩緩升空。萬家團圓、闔府安康尊榮之選。',
+        layout: 'cinematic-credits',
+        bgShader: 'golden-mooncake',
+        crawlSpeed: 38,
+        theme: { primaryColor: '#fbbf24', accentColor: '#f97316', bgColor: '#080512', textColor: '#ffffff', titleColor: '#fde047', fontFamily: "'Noto Serif TC', serif" },
+        effects: { particleType: 'sky-lanterns', particleDensity: 30 }
     }
 ];
 
@@ -69,13 +93,13 @@ window.TEMPLATE_DUMMY_CARD = {
     ],
     sender: '模板示範署名 (Signature)\nCardForge Studio',
     media: { bgMode: 'slideshow', photos: [] },
-    cta: [
-        { label: '示範按鈕 (CTA)', url: '#', icon: 'fa-sparkles' }
-    ]
+    cta: []
 };
 
 window.SHADER_OPTIONS = [
     { value: 'none', label: 'none (純淨相片/黑底深色漸層)' },
+    { value: 'lunar-clouds', label: '🌕 lunar-clouds (3D 超級明月 ✕ 祥雲月暈 Shader)' },
+    { value: 'golden-mooncake', label: '🥮 golden-mooncake (3D 浮空自轉金箔月餅)' },
     { value: 'silk-smoke', label: 'silk-smoke (典雅金煙與流體絲綢)' },
     { value: 'particle-orbit', label: 'particle-orbit (斐波那契星環粒子球)' },
     { value: 'hologram', label: 'hologram (青紫全息點雲星雲)' }
@@ -83,6 +107,9 @@ window.SHADER_OPTIONS = [
 
 window.PARTICLE_OPTIONS = [
     { value: 'none', label: 'none (純淨無粒子)' },
+    { value: 'falling-mooncakes', label: '🥮 falling-mooncakes (金餅福降 · 天上掉月餅飄落)' },
+    { value: 'osmanthus-petals', label: '🌸 osmanthus-petals (金桂飛花 · 四瓣落桂翻轉)' },
+    { value: 'sky-lanterns', label: '🏮 sky-lanterns (祈願天燈海 · 燭火搖曳升空)' },
     { value: 'sakura-canvas', label: 'sakura-canvas (3D 飄落翻轉櫻花)' },
     { value: 'rising-stardust', label: 'rising-stardust (金光升騰星塵)' },
     { value: 'orbital-satellites', label: 'orbital-satellites (軌道衛星光跡)' },

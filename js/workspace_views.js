@@ -468,13 +468,101 @@
         );
     }
 
+    // =========================================================================
+    // 6. 君子密碼守衛門禁 (PasswordLockGate)
+    // 零 JSX 原生 createElement，支援 Enter 送出、錯誤震動提示與本地記住狀態
+    // =========================================================================
+    function PasswordLockGate({ onUnlock }) {
+        const [inputPass, setInputPass] = React.useState('');
+        const [isError, setIsError] = React.useState(false);
+        const [errMsg, setErrMsg] = React.useState('');
+
+        const handleSubmit = (e) => {
+            if (e) e.preventDefault();
+            if (inputPass.trim() === '10101010') {
+                try {
+                    localStorage.setItem('cardforge_auth_unlocked', 'true');
+                } catch (err) {}
+                onUnlock();
+            } else {
+                setIsError(true);
+                setErrMsg('密碼不正確，請重新輸入');
+                setTimeout(() => setIsError(false), 2000);
+            }
+        };
+
+        return h('div', {
+            className: 'fixed inset-0 z-[999] bg-[#090a0f]/95 backdrop-blur-xl flex flex-col items-center justify-center p-4 select-none'
+        },
+            // 中央卡片
+            h('div', {
+                className: `w-full max-w-sm bg-zinc-900/90 border ${isError ? 'border-rose-500/80 shadow-rose-950/40 animate-shake' : 'border-zinc-800/80'} rounded-3xl p-8 shadow-2xl flex flex-col items-center text-center backdrop-blur-md transition-all`
+            },
+                // 品牌 Logo 圖示
+                h('div', {
+                    className: 'w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-400 via-rose-500 to-indigo-500 flex items-center justify-center text-zinc-950 text-2xl shadow-xl shadow-amber-500/20 mb-5'
+                },
+                    h('i', { className: 'fa-solid fa-lock' })
+                ),
+                // 標題
+                h('h2', { className: 'text-xl font-bold text-white tracking-wide mb-1' }, 'CardForge Studio'),
+                h('p', { className: 'text-xs text-zinc-400 mb-6' }, '創作者工坊受君子密碼保護，請輸入通行碼'),
+
+                // 密碼表單
+                h('form', {
+                    onSubmit: handleSubmit,
+                    className: 'w-full flex flex-col gap-3'
+                },
+                    h('div', { className: 'relative w-full' },
+                        h('input', {
+                            type: 'password',
+                            autoFocus: true,
+                            value: inputPass,
+                            onChange: (e) => {
+                                setInputPass(e.target.value);
+                                if (errMsg) setErrMsg('');
+                            },
+                            placeholder: '請輸入通行密碼...',
+                            className: 'w-full px-4 py-3 bg-zinc-950/80 border border-zinc-700/80 rounded-xl text-center text-lg text-white font-mono tracking-widest placeholder:text-zinc-600 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/50 transition-all'
+                        })
+                    ),
+                    errMsg ? h('div', { className: 'text-rose-400 text-xs font-medium' }, errMsg) : null,
+                    h('button', {
+                        type: 'submit',
+                        className: 'w-full py-3 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-zinc-950 font-bold rounded-xl text-sm shadow-lg shadow-amber-400/25 flex items-center justify-center gap-2 transition-all cursor-pointer'
+                    },
+                        h('i', { className: 'fa-solid fa-key text-xs' }),
+                        h('span', null, '解鎖進入工坊')
+                    )
+                ),
+
+                // 提示說明
+                h('div', { className: 'mt-6 pt-4 border-t border-zinc-800/80 w-full flex items-center justify-between text-[11px] text-zinc-500' },
+                    h('span', { className: 'flex items-center gap-1' },
+                        h('i', { className: 'fa-solid fa-shield-halved text-amber-400/80' }),
+                        h('span', null, '已啟用本地認證記憶')
+                    ),
+                    h('a', {
+                        href: 'index.html?preview=1',
+                        target: '_blank',
+                        className: 'text-zinc-400 hover:text-amber-400 transition-colors flex items-center gap-1'
+                    },
+                        h('span', null, '受眾播放器'),
+                        h('i', { className: 'fa-solid fa-arrow-up-right-from-square text-[9px]' })
+                    )
+                )
+            )
+        );
+    }
+
     // 掛載至全域
     window.WorkspaceViews = {
         PreviewModal,
         CloudShareModal,
         WorkspaceNavbar,
         CardsGallery,
-        TemplatesGallery
+        TemplatesGallery,
+        PasswordLockGate
     };
 
 })(typeof window !== 'undefined' ? window : this);

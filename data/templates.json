@@ -127,5 +127,57 @@
       "particleDensity": 25
     },
     "defaultMusic": "assets/audio/In Love With You.mp3"
+  },
+  {
+    "id": "mid-autumn-moon",
+    "name": "月夕清輝 · 金桂玉兔",
+    "category": "festive",
+    "description": "3D 超級明月月暈 ✕ 祥雲繾綣流動 Shader ✕ 漫天飄落旋轉金桂花瓣。中秋團聚、千里嬋娟極致詩意之選。",
+    "layout": "cinematic-poster",
+    "textRevealFx": "fire-shimmer",
+    "revealSpeed": 0.8,
+    "bgShader": "lunar-clouds",
+    "crawlSpeed": 40,
+    "bgDimmer": 0.88,
+    "bgBlur": 0,
+    "theme": {
+      "primaryColor": "#f59e0b",
+      "accentColor": "#fef08a",
+      "bgColor": "#030611",
+      "textColor": "#f8fafc",
+      "titleColor": "#fbbf24",
+      "fontFamily": "'Noto Serif TC', 'Cormorant Garamond', serif",
+      "styleClass": "theme-mid-autumn"
+    },
+    "effects": {
+      "particleType": "osmanthus-petals",
+      "particleDensity": 38
+    },
+    "defaultMusic": "assets/audio/In Love With You.mp3"
+  },
+  {
+    "id": "mid-autumn-lantern",
+    "name": "天燈映月 · 福滿金餅",
+    "category": "festive",
+    "description": "3D 精雕自轉金箔月餅 ✕ 萬家燈火祈願天燈海緩緩升空。萬家團圓、闔府安康尊榮之選。",
+    "layout": "cinematic-credits",
+    "bgShader": "golden-mooncake",
+    "crawlSpeed": 38,
+    "bgDimmer": 0.9,
+    "bgBlur": 0,
+    "theme": {
+      "primaryColor": "#fbbf24",
+      "accentColor": "#f97316",
+      "bgColor": "#080512",
+      "textColor": "#ffffff",
+      "titleColor": "#fde047",
+      "fontFamily": "'Noto Serif TC', 'DFKai-SB', serif",
+      "styleClass": "theme-festive-gold"
+    },
+    "effects": {
+      "particleType": "sky-lanterns",
+      "particleDensity": 30
+    },
+    "defaultMusic": "assets/audio/In Love With You.mp3"
   }
 ]
