@@ -182,36 +182,65 @@
 
                         setIsPreviewMode(previewParam === '1' || previewParam === 'true');
 
-                        let targetCard = null;
+                        // =========================================================
+                        // 🔍 超詳細 DEBUG 監控面板 (Console 實時透視)
+                        // =========================================================
+                        console.group("%c🎴 CardForge 播放器卡片加載追蹤", "color: #38bdf8; font-weight: bold; font-size: 13px;");
+                        console.log("%c[1] 網址參數解析:", "color: #fbbf24; font-weight: bold;", {
+                            "卡片ID (id)": cardIdParam,
+                            "模板ID (template)": templateParam,
+                            "收件人 (to/name)": urlParams.get('to') || urlParams.get('name'),
+                            "預覽模式 (preview)": isPreviewMode
+                        });
 
                         // 1. 本地優先：優先從工坊 LocalStorage 陣列中尋找（0ms 秒開，支援尚未發布到雲端的本地草稿）
                         if (cardIdParam && loadedCards && loadedCards.length > 0) {
                             targetCard = loadedCards.find(c => c.id === cardIdParam) || null;
+                            if (targetCard) console.log("%c[2] 命中本地 LocalStorage 畫廊卡片:", "color: #4ade80;", targetCard);
                         }
 
                         // 2. 次級快取：檢查單卡持久化快取 (cardforge_cache_${id})
                         if (!targetCard && cardIdParam) {
                             try {
                                 const raw = localStorage.getItem('cardforge_cache_' + cardIdParam);
-                                if (raw) targetCard = JSON.parse(raw);
+                                if (raw) {
+                                    targetCard = JSON.parse(raw);
+                                    console.log("%c[2] 命中單卡快取 (cardforge_cache):", "color: #4ade80;", targetCard);
+                                }
                             } catch (e) {}
                         }
 
                         // 3. 雲端 SSOT 查詢（若本地完全找不到該卡，或非本地預覽模式時向 GAS 查詢最新版本）
                         if (!targetCard && cardIdParam && window.GasClient) {
-                            targetCard = await window.GasClient.getCard(cardIdParam, (updatedCard) => {
-                                if (updatedCard) {
-                                    setCurrentCard(updatedCard);
-                                    if (updatedCard.templateId && !templateParam) {
-                                        setActiveTemplateId(updatedCard.templateId);
+                            console.log("%c[3] 本地無此卡，正在向 Google 雲端總帳發起查詢... (ID: " + cardIdParam + ")", "color: #38bdf8;");
+                            console.log("   🔗 雲端請求端點:", window.CardForgeConfig?.GAS_API_URL);
+                            try {
+                                targetCard = await window.GasClient.getCard(cardIdParam, (updatedCard) => {
+                                    if (updatedCard) {
+                                        console.log("%c[3-SWR] 雲端背景異步更新完成:", "color: #a855f7;", updatedCard);
+                                        setCurrentCard(updatedCard);
+                                        if (updatedCard.templateId && !templateParam) {
+                                            setActiveTemplateId(updatedCard.templateId);
+                                        }
                                     }
+                                });
+                                if (targetCard) {
+                                    console.log("%c[3] 🎉 雲端查詢成功！獲取到卡片:", "color: #4ade80; font-weight: bold;", targetCard);
+                                } else {
+                                    console.warn("%c[3] ⚠️ 雲端查詢未獲取到資料 (targetCard 為 null)", "color: #f87171;");
                                 }
-                            });
+                            } catch (gasErr) {
+                                console.error("%c[3] ❌ 雲端查詢拋出異常:", "color: #ef4444;", gasErr);
+                            }
                         }
 
                         // 4. 若仍未找到且存在示範卡片，以第一張卡片保底
                         if (!targetCard) {
                             targetCard = (loadedCards && loadedCards.length > 0) ? loadedCards[0] : null;
+                            console.warn("%c[4] 🚨 觸發【示範卡片保底機制】！原因：本地與雲端均未找到此卡", "color: #fb923c; font-weight: bold; background: #431407; padding: 2px 6px; border-radius: 4px;");
+                            console.log("   👉 當前保底卡片:", targetCard?.name || targetCard?.title, targetCard);
+                        } else {
+                            console.log("%c[4] ✅ 成功鎖定目標卡片 (未觸發保底):", "color: #4ade80; font-weight: bold;", targetCard.title);
                         }
 
                         // 5. 🎯 專屬朋友稱謂自適應解析 (URL Parameter ?to=... 或 ?name=...)
@@ -227,25 +256,18 @@
                                 const hasTrailingPunct = /[：:，,！!]$/.test(cleanParam);
 
                                 if (hasSalutationPrefix || hasTrailingPunct) {
-                                    // 情況 1：已是完整禮貌稱謂（來自分發台定制），直接原樣採用，0 差錯
                                     newRecipient = cleanParam;
                                 } else if (baseRecipient.includes('{name}')) {
-                                    // 情況 2：原稱謂含有 {name} 佔位符，精準替換
                                     newRecipient = baseRecipient.replace(/\{name\}/g, cleanParam);
                                 } else if (baseRecipient.includes('朋友')) {
-                                    // 情況 3：原稱謂含有「朋友」字眼（如「親愛的朋友：」），自動將「朋友」升級為真實好友名字
                                     newRecipient = baseRecipient.replace('朋友', cleanParam);
                                 } else if (baseRecipient.startsWith('Dear') || /^[a-zA-Z]/.test(cleanParam)) {
-                                    // 情況 4：英文前綴或英文名字，採用英文逗號標準標點
                                     newRecipient = `Dear ${cleanParam},`;
                                 } else if (baseRecipient.startsWith('尊敬的')) {
-                                    // 情況 5：中文尊稱
                                     newRecipient = `尊敬的 ${cleanParam}：`;
                                 } else if (baseRecipient.startsWith('致')) {
-                                    // 情況 6：商務致敬
                                     newRecipient = `致 ${cleanParam}：`;
                                 } else {
-                                    // 情況 7：預設中文親切前綴
                                     newRecipient = `親愛的 ${cleanParam}：`;
                                 }
 
@@ -253,12 +275,15 @@
                                     ...targetCard,
                                     recipient: newRecipient
                                 };
+                                console.log("%c[5] 稱謂計算完成:", "color: #38bdf8;", newRecipient);
                             }
                         }
 
                         setCurrentCard(targetCard);
                         const effectiveTemplateId = templateParam || (targetCard ? targetCard.templateId : 'mothers-day');
                         setActiveTemplateId(effectiveTemplateId);
+                        console.log("%c[6] 最終渲染模板 (Template ID):", "color: #fbbf24; font-weight: bold;", effectiveTemplateId);
+                        console.groupEnd();
 
                     } catch (err) {
                         console.error('Failed to init card player data:', err);
