@@ -216,29 +216,29 @@
                 }, ctaButtons));
             }
 
-            // 星戰透視深度：perspective: 500px, perspectiveOrigin: 50% 85%
+            // 星戰透視深度與視角自適應
             const container3DStyle = isStarWars ? {
-                perspective: '500px',
+                perspective: 'clamp(480px, 45vw, 750px)',
                 perspectiveOrigin: '50% 85%'
             } : {};
 
-            // 星戰板面寬度與仰角支援使用者自由拖曳微調
+            // 星戰板面寬度自適應：手機直屏維持自訂比例，PC 寬螢幕強制上限 820px，徹底杜絕拉伸至 3400px 造成字體飛出畫面
             const boardStyle = isStarWars ? {
-                width: `${crawlWidthScale}%`,
-                minWidth: `${crawlWidthScale}%`,
-                maxWidth: `${crawlWidthScale}%`,
+                width: `min(${crawlWidthScale}%, 820px)`,
+                minWidth: 'min(92%, 600px)',
+                maxWidth: '820px',
                 fontFamily: fontFamily,
                 '--crawl-duration': `${crawlDurationSec}s`,
                 '--crawl-angle': `${crawlAngle}deg`
             } : {
                 width: '100%',
-                maxWidth: '42rem',
+                maxWidth: '46rem',
                 fontFamily: fontFamily,
                 '--crawl-duration': `${crawlDurationSec}s`
             };
 
             const boardClasses = isStarWars 
-                ? `px-2 text-white ${animClass} ${isPaused ? 'is-paused' : ''}`
+                ? `mx-auto px-4 text-white ${animClass} ${isPaused ? 'is-paused' : ''}`
                 : `w-full max-w-2xl px-6 md:px-8 text-center text-white ${animClass} ${isPaused ? 'is-paused' : ''}`;
 
             rootChildren.push(h('div', {
@@ -250,7 +250,7 @@
                 className: boardClasses,
                 style: boardStyle
             }, h('div', {
-                className: isStarWars ? 'w-full py-8 px-2 space-y-7' : 'w-full py-8 px-4 space-y-8'
+                className: isStarWars ? 'w-full py-8 px-4 space-y-7' : 'w-full py-8 px-4 space-y-8'
             }, crawlChildren))));
         } else if (isPoster) {
             // 🖼️ 滿版動態海報賀卡 (Cinematic Full-bleed Poster) - 徹底打破生硬小方盒！
@@ -345,7 +345,7 @@
             if (card && card.sender) {
                 posterChildren.push(h('div', {
                     key: 'poster-sender',
-                    className: `${fxClass} pt-4 pb-2 text-right`,
+                    className: `${fxClass} pt-4 pb-2 text-right poster-sender-box`,
                     style: { 
                         animationDelay: nextDelay(),
                         '--reveal-duration': `${durationSec}s`
@@ -383,15 +383,16 @@
                 }, ctaButtons));
             }
 
-            // 滿版海報滾動容器 (加入 replayKey 物理版本號，重播 100% 瞬間重新掛載)
+            // 滿版海報容器 (加入 replayKey 物理版本號，重播 100% 瞬間重新掛載)
+            // 遵循 9:16 / 16:9 純淨預覽原則：中間畫框固定比例展示，不產生任何垂直卷軸，內容自適應居中
             rootChildren.push(h('div', {
                 key: `poster-container-${textRevealFx}-${replayKey}`,
-                className: 'absolute inset-0 z-20 overflow-y-auto custom-scrollbar flex flex-col items-center px-6 sm:px-10 py-8 pointer-events-auto',
+                className: 'absolute inset-0 z-20 overflow-hidden scrollbar-none flex flex-col items-center justify-center px-6 sm:px-10 py-6 pointer-events-auto',
                 style: {
                     '--reveal-duration': `${durationSec}s`
                 }
             }, h('div', {
-                className: 'w-full max-w-xl mx-auto space-y-4 text-center sm:text-left',
+                className: 'w-full max-w-xl mx-auto space-y-3.5 text-center sm:text-left poster-content-stage',
                 style: { fontFamily: fontFamily }
             }, posterChildren)));
         }

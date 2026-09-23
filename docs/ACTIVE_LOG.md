@@ -4,6 +4,84 @@
 
 ---
 
+### [2026-09-24] [UNREFINED] [layout] [ide_ux] 全頁外層滾動條徹底斬斷，Figma 式三欄物理獨立鎖死架構落盤
+- **類型**: `BUG_FIX` | `UI_UX` | `LAYOUT`
+- **代碼錨點**: `css/workspace.css`, `workspace.html`, `js/editor_views.js`, `HANDOFF.md`
+- **核心事實 / 決策理由**:
+  1. **全頁白色滾動條拉扯中間舞台踩坑復盤 (Root Cause)**:
+     - 過去 `workspace.html` 頂層容器使用 `min-h-screen`，`css/workspace.css` 的 `body` 允許 `min-height: 100vh`。當右側文案表單較長時，直接撐高了整個 `<body>`，瀏覽器在最右緣出現了一條貫穿全頁的白色外層卷軸，使用者滾動時整頁（包含中間 3D 舞台）被連帶推到導覽列上方慘遭切頭。
+  2. **Figma 式物理鎖死架構**:
+     - `body` 與最外層根容器強制鎖定 `height: 100vh; overflow: hidden;`，最外層全頁卷軸 100% 徹底消滅！
+     - **中間舞台**: 絕對鎖定不動，頂部緊貼導覽列下緣，無論使用者怎麼滑動滾輪，中間永遠定死在中央視窗。
+     - **左右側欄**: 具備專屬的 `overflow-y-auto` 深色精緻卷軸，滑鼠在左邊滾動左欄、在右邊滾動右欄，互不干擾。
+     - **大畫廊**: 配備專屬 `.gallery-scroll-container` 獨立滾動，首頁畫廊流暢瀏覽無損。
+
+---
+
+### [2026-09-24] [UNREFINED] [layout] 編輯器中間舞台置頂吸附導覽列底部、位置固定防聯動滾動
+- **類型**: `UI_UX` | `LAYOUT`
+- **代碼錨點**: `js/editor_views.js`, `HANDOFF.md`, `docs/STATE.md`
+- **核心事實 / 決策理由**:
+  1. **中間預覽舞台錨定與滾動解耦**:
+     - 過去卡片編輯器 (`CardEditorView`) 與模板工坊 (`TemplateEditorView`) 中間的 3D 渲染舞台採用 `justify-center` 垂直居中，導致上下邊距過大且無法緊貼導覽列。
+     - 重構為 `flex flex-col items-center justify-start pt-4 px-4 pb-2 relative overflow-hidden select-none`：
+       - 不論切換「手機」還是「桌面寬屏」，預覽畫框一律緊貼導覽列底部 (`pt-4`)。
+       - 中間區域為純固定渲染視窗，左右兩側欄位各自上下滾動時，中間畫框穩如泰山、完全不被連帶扯動或位移。
+
+---
+
+### [2026-09-23] [UNREFINED] [clean_ui] 受眾端與預覽端徹底移除模板切換色票按鈕，回歸純淨極致賀卡
+- **類型**: `REFACTOR` | `UI_UX` | `CLEANUP`
+- **代碼錨點**: `index.html`, `HANDOFF.md`, `docs/STATE.md`
+- **核心事實 / 決策理由**:
+  1. **職責徹底劃分與干擾消除**:
+     - 過去 `index.html` 在帶有 `preview=1` 時會顯示浮動切換風格彩色色票 (`.floating-switcher`)。
+     - 根據使用者指示，風格模板選取與調試權限應 100% 收斂在創作者工坊（`workspace.html`）的卡片編輯區；受眾端（`index.html`）不論是正式分享連結還是本地預覽，都必須是極致純淨的賀卡播放器，嚴禁出現任何風格切換按鈕遮擋標題與視覺。
+  2. **組件精簡與代碼瘦身**:
+     - 刪除 `index.html` 中的色票按鈕與 `.floating-switcher` CSS，`AudioControls` 僅保留右上角半透明極簡音樂開關藥丸按鈕（`audio-pill-btn`），畫面乾淨無雜訊。
+
+---
+
+### [2026-09-23] [UNREFINED] [star_wars] [responsive] 星戰 PC 100% 縮放文字飛出消失踩坑根除與海報大器字級落盤
+- **類型**: `BUG_FIX` | `RESPONSIVE` | `TYPOGRAPHY`
+- **代碼錨點**: `core/CardEngine.js`, `styles/templates.css`, `index.html`, `HANDOFF.md`
+- **核心事實 / 決策理由**:
+  1. **星戰文字在 PC 100% 縮放時完全消失踩坑復盤 (Root Cause)**:
+     - 過去星戰板面寫死 `width: 180%`，在手機端（390px）等效 702px 剛好滿版；但在 PC 寬螢幕（1920px）下，`1920 * 1.8 = 3,456px`！加上 3D 梯形滅點透視，中間 95% 文字被粗暴拉伸並投影至視野邊界之外，使用者只能在最左側隱約看見一點殘留字邊。
+  2. **星戰寬度自適應上限約束 (Physical Board Cap)**:
+     - 在 `core/CardEngine.js` 中將板面寬度重構為 `width: min(${crawlWidthScale}%, 820px)`，PC 寬螢幕強制上限 820px，透視景深自適應 `clamp(480px, 45vw, 750px)`，文字穩坐螢幕正中央，兩端對齊完美舒展。
+  3. **海報模式影院級響應式字級 (Poster Responsive Typography)**:
+     - 在 `styles/templates.css` 中引入 PC 桌面（`@media (min-width: 768px)`）專屬字級倍率：標題 `clamp(48px, 4.2vw, 68px)`、正文 `clamp(18px, 1.5vw, 24px)`，無需使用者手動將瀏覽器縮放到 200%/300%，在 100% 標準縮放下即時呈現大器、震撼的影院海報排版。
+
+---
+
+### [2026-09-23] [UNREFINED] [architecture] [cinema_stage] 受眾端 PC 寬螢幕黃金比例影院舞台 (Recipient Cinema Stage) 全面落盤
+- **類型**: `FEATURE` | `UI_UX` | `RESPONSIVE`
+- **代碼錨點**: `index.html`, `styles/templates.css`, `HANDOFF.md`, `docs/STATE.md`
+- **核心事實 / 決策理由**:
+  1. **PC 寬螢幕賀卡散架與比例失真踩坑復盤 (Root Cause)**:
+     - 過去 `index.html` 將 `CardEngine` 直接鋪滿 `w-screen h-screen`（1920x1080）。在直屏手機上比例完美，但在 PC 寬螢幕上，文字被撕裂拉伸至兩側，Shader 與 3D 特效失去聚焦邊界。
+  2. **雙層沉浸式舞台架構 (Two-Tier Immersive Stage)**:
+     - **外層環境氛圍層**: 100vw/100vh 全螢幕漫天飄落金桂花瓣與星空粒子，維持大螢幕極致氛圍。
+     - **核心影院海報舞台**: 在 PC 寬螢幕（`@media (min-width: 768px)`）下自動收斂為 `.recipient-cinema-stage`（最大 880px 寬、高質感邊框、柔和暗角陰影、540px 高度黃金海報比），保證文字排版、Shader 月亮大小與編輯器預覽 100% 像素級一致。
+     - **手機移動端**: 自然 100% 滿版無黑邊，兼顧雙端極致體驗。
+
+---
+
+### [2026-09-23] [UNREFINED] [preview] [ui_ux] 工坊右上角「本地預覽」動態路由重構、本地草稿 0ms 秒開與左欄模板列表卷軸拉伸修復
+- **類型**: `BUG_FIX` | `UI_UX` | `ROUTING`
+- **代碼錨點**: `js/workspace_views.js`, `js/editor_views.js`, `index.html`, `HANDOFF.md`, `docs/STATE.md`
+- **核心事實 / 決策理由**:
+  1. **右上角「開啟播放器」重構為「本地預覽」**:
+     - 過去 `WorkspaceNavbar` 右上角按鈕寫死 `<a href="index.html">`，點擊後因無卡片參數被 `index.html` 首頁重定向踢回 `workspace.html`。
+     - 重構為「本地預覽」按鈕，動態帶入當前編輯卡片 ID（`index.html?id=${cardId}&preview=1`），新分頁秒開受眾端真實預覽。
+  2. **受眾端 `index.html` 本地優先 0ms 秒開**:
+     - 在尚未上傳雲端/尚未分配公網短網址的情況下，`index.html` 第一優先直接從 `localStorage` 的 `cardforge_cards` 與單卡快取中讀取最新草稿，不浪費時間等待 Google Sheet 請求，支援完全斷網與未發布狀態下的所見即所得本地預覽。
+  3. **左側「套用外觀模板」列表卷軸拉伸鋪滿**:
+     - 移除 `max-h-64` 生硬高度限制，左側面板外層容器與模板列表調整為 `flex-1 min-h-0` 搭配 `overflow-y-auto`，卷軸一路延伸至視窗最底端，徹底根除下方大片黑色死區與腰斬截斷問題。
+
+---
+
 ### [2026-09-23] [UNREFINED] [templates] 預覽框架切換防拉伸、月餅生硬邊框消除、貼圖快取防消失與示範按鈕清除
 - **類型**: `BUG_FIX` | `UI_UX` | `3D_GRAPHICS`
 - **代碼錨點**: `js/editor_views.js`, `core/BackdropShader.js`, `js/constants.js`, `docs/ACTIVE_LOG.md`
@@ -317,6 +395,19 @@
     1. **根治非全螢幕標題字穿透導航欄**：在 `css/workspace.css` 為 `.phone-frame` 與 `.desktop-frame` 注入 `overflow: hidden !important`、`contain: paint` 與 3D 渲染層硬體隔離 `transform: translateZ(0)`，徹底杜絕文字與特效元素突破手機外框邊界；並將頂部導覽列提升至 `z-50`。
     2. **移除冗餘「備份導出」按鈕**：全系統已全面串接 Google Sheet SSOT 雲端持久化，本地手動下載 JSON 備份已無存在必要，將右上角「備份導出」按鈕徹底移除，大幅簡化導覽列視覺。
     3. **消弭保存疑慮**：將左上角「返回卡片庫」與「返回模板庫」明確認證為 **「保存並返回卡片庫」** 與 **「保存並返回模板庫」**，讓創作者直觀感受自動儲存的確定性。
+
+---
+
+### [2026-09-24] [UNREFINED] [workspace] 消除中間畫框內部無效滾動條，確立 9:16 (手機) 與 16:9 (電腦) 純淨固定比例
+- **類型**: `BUG_FIX` | `UI_UX`
+- **代碼錨點**: `core/CardEngine.js`, `styles/templates.css`, `docs/ACTIVE_LOG.md`
+- **核心事實 / 決策理由**:
+  1. **消滅中間畫框內置垂直滾動條**:
+     - 截圖反饋在卡片編輯器中間畫框（特別是 16:9 桌面寬螢幕模式）右側出現一條多餘的垂直卷軸，破壞了原本高質感的 3D 舞台視覺。
+     - 根因：`CardEngine.js` 舊版在海報容器預設掛載了 `overflow-y-auto custom-scrollbar`，當內部標題或字距稍大時立刻引發滾動條。
+     - 重構：遵照使用者指示「中間不用卷了，一個 9:16，一個 16:9」，將容器樣式鎖定為 `overflow-hidden scrollbar-none`，並加入 `justify-center`，內容自適應垂直置中展示。
+  2. **畫框專屬防溢出大氣排版**:
+     - 在 `styles/templates.css` 為 `.desktop-frame` 與 `.phone-frame` 專門定義 `.poster-content-stage` 的微調比例（大標題 `clamp(34px, 3.2vw, 44px)`，內文 15px/13.5px），確保文字、稱謂與署名在固定畫框內優雅呼吸，完美封閉不產生任何裁切與溢出。
 - **防禦手段 / 測試背書**:
-  - `node -c js/workspace_views.js` 語法校驗 100% 通過。
+  - 全流程純 CSS / JS 原生運作，`workspace.html` 維持 437 行（≤450 行硬紅線）。
 

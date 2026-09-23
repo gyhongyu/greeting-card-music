@@ -8,8 +8,15 @@ body {
     background-color: #08090d;
     color: #ecebe6;
     font-family: 'Jost', system-ui, sans-serif;
+    height: 100vh;
     min-height: 100vh;
-    overflow-x: hidden;
+    overflow: hidden;
+}
+
+/* 畫廊視圖專屬滾動容器 */
+.gallery-scroll-container {
+    height: calc(100vh - 56px);
+    overflow-y: auto;
 }
 
 .code-font { 

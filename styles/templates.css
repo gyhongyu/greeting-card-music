@@ -112,6 +112,40 @@
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, transparent 10%, black 24%, black 92%, transparent 100%);
 }
 
+/* 5. 🎬 受眾端獨立頁面 (#app-body) PC 寬螢幕海報與文字大器比例 (Cinema Responsive Typography)
+   注意：必須限定在 #app-body 下生效，嚴禁覆蓋工作台編輯器內的字型大小拖放滑桿！ */
+@media (min-width: 768px) {
+  #app-body .poster-content-stage {
+    max-width: 720px !important;
+    padding-top: 2rem !important;
+  }
+  #app-body .poster-content-stage h1 {
+    font-size: clamp(48px, 4.2vw, 68px) !important;
+    letter-spacing: 0.05em !important;
+  }
+  #app-body .poster-content-stage h2 {
+    font-size: clamp(24px, 2.2vw, 32px) !important;
+    padding-top: 1.25rem !important;
+  }
+  #app-body .poster-content-stage p {
+    font-size: clamp(18px, 1.5vw, 24px) !important;
+    line-height: 1.85 !important;
+  }
+  #app-body .poster-content-stage .poster-sender-box p {
+    font-size: clamp(20px, 1.8vw, 28px) !important;
+  }
+
+  /* 星戰 3D 升空 PC 桌面大螢幕文字自適應放大，告別 100% 縮放時文字像螞蟻或飛出螢幕 */
+  .anim-star-wars-crawl p,
+  .anim-star-wars-crawl div {
+    font-size: clamp(22px, 1.8vw, 28px) !important;
+    line-height: 1.8 !important;
+  }
+  .anim-star-wars-crawl .clean-text-shadow {
+    letter-spacing: 0.04em !important;
+  }
+}
+
 /* ================= THEMES: BRIGHT, NATURAL & VIVID ================= */
 
 /* MOTHER'S DAY (粉嫩透亮、生活照原色) */
@@ -168,3 +202,24 @@ body.theme-festive-gold {
   --crawl-duration: 38s;
   --font-serif: 'Noto Serif TC', serif;
 }
+
+/* 6. 🚫 全局無滾動條輔助類 (Scrollbar-Free Precision) */
+.scrollbar-none::-webkit-scrollbar {
+  display: none !important;
+}
+.scrollbar-none {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+/* 7. 📱 編輯器畫框 (9:16 與 16:9) 容器內距微調，字級 100% 由 inline style 動態拖放控制 */
+.desktop-frame .poster-content-stage {
+  max-width: 660px !important;
+  padding-top: 0.5rem !important;
+}
+
+.phone-frame .poster-content-stage {
+  padding-top: 0.5rem !important;
+}
+
+

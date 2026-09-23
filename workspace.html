@@ -317,7 +317,7 @@
             };
 
             return (
-                <div className="min-h-screen flex flex-col bg-[#07080c] text-zinc-200">
+                <div className="h-screen flex flex-col bg-[#07080c] text-zinc-200 overflow-hidden">
                     {!isUnlocked && (
                         <PasswordLockGate onUnlock={() => setIsUnlocked(true)} />
                     )}
@@ -347,9 +347,10 @@
                         onExportAllJSON={exportAllJSON}
                     />
 
-                    {/* 首頁大畫廊 (默認進入！) */}
+                    {/* 首頁大畫廊 (默認進入！內部獨立流暢滾動) */}
                     {currentView === 'gallery' && (
-                        <main className="flex-1 max-w-7xl w-full mx-auto p-6 md:p-8">
+                        <main className="flex-1 w-full gallery-scroll-container custom-scrollbar p-6 md:p-8">
+                            <div className="max-w-7xl mx-auto">
                             {activeGalleryTab === 'cards' && (
                                 <CardsGallery
                                     cards={cards}
@@ -379,6 +380,7 @@
                                     }}
                                 />
                             )}
+                            </div>
                         </main>
                     )}
 

@@ -265,14 +265,17 @@
                     h('span', null, '發布至雲端 (免 Commit)')
                 ) : null,
 
-                !isTplEditor ? h('a', {
-                    href: 'index.html',
-                    target: '_blank',
-                    className: 'px-3.5 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-zinc-950 font-bold text-xs flex items-center gap-1.5 shadow-lg shadow-amber-400/20 transition-all',
-                    title: '開啟受眾端 3D 沉浸賀卡播放器'
+                !isTplEditor ? h('button', {
+                    onClick: () => {
+                        const cardId = currentEditingCard?.id || (cardsCount > 0 ? 'default' : '');
+                        const targetUrl = cardId ? `index.html?id=${encodeURIComponent(cardId)}&preview=1` : 'index.html?preview=1';
+                        window.open(targetUrl, '_blank');
+                    },
+                    className: 'px-3.5 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-zinc-950 font-bold text-xs flex items-center gap-1.5 shadow-lg shadow-amber-400/20 transition-all cursor-pointer',
+                    title: '以受眾真實視角本地全螢幕預覽當前賀卡 (無需發布至雲端)'
                 },
-                    h('i', { className: 'fa-solid fa-play text-[10px]' }),
-                    h('span', null, '開啟播放器')
+                    h('i', { className: 'fa-solid fa-eye text-[11px]' }),
+                    h('span', null, '本地預覽')
                 ) : null
             )
         );

@@ -71,8 +71,8 @@
                     )
                 ),
 
-                h('div', { className: 'space-y-2 pt-2 border-t border-zinc-800' },
-                    h('div', { className: 'flex items-center justify-between' },
+                h('div', { className: 'flex-1 min-h-0 flex flex-col space-y-2 pt-2 border-t border-zinc-800' },
+                    h('div', { className: 'flex items-center justify-between shrink-0' },
                         h('label', { className: 'text-zinc-300 font-semibold flex items-center gap-1.5' },
                             h('i', { className: 'fa-solid fa-wand-magic-sparkles text-amber-400' }),
                             h('span', null, '套用外觀模板 (即時套用)')
@@ -91,7 +91,7 @@
                             )
                         ) : null
                     ),
-                    h('div', { className: 'grid grid-cols-1 gap-2 max-h-64 overflow-y-auto custom-scrollbar pr-1' },
+                    h('div', { className: 'flex-1 overflow-y-auto custom-scrollbar pr-1 space-y-2' },
                         templates.map(t => {
                             const isSelected = t.id === currentEditingCard.templateId;
                             return h('button', {
@@ -110,7 +110,7 @@
                     )
                 ),
 
-                h('div', { className: 'mt-auto pt-3 border-t border-zinc-800 flex items-center justify-between text-[11px] text-zinc-500' },
+                h('div', { className: 'shrink-0 pt-3 border-t border-zinc-800 flex items-center justify-between text-[11px] text-zinc-500' },
                     h('div', { className: 'flex items-center gap-1.5' },
                         h('i', { className: 'fa-solid fa-cloud text-emerald-400 text-[10px]' }),
                         h('span', null, '實時自動儲存 (Auto-Saved)')
@@ -119,9 +119,9 @@
                 )
             ),
 
-            // 中間 3D 渲染舞台 (手機居中，上方無任何按鈕重疊)
+            // 中間 3D 渲染舞台 (置頂吸附導覽列底部，尺寸固定，獨立於左右滾動)
             // 綁定 key 確保視角切換時重新掛載並自適應最新尺寸，徹底終結拉伸變形
-            h('section', { className: 'flex-1 bg-black/60 flex items-center justify-center p-4 relative overflow-hidden' },
+            h('section', { className: 'flex-1 bg-black/60 flex flex-col items-center justify-start pt-4 px-4 pb-2 relative overflow-hidden select-none' },
                 h('div', {
                     key: `card-preview-frame-${editorPreviewDevice}`,
                     className: editorPreviewDevice === 'mobile' ? 'phone-frame' : 'desktop-frame'
@@ -708,9 +708,9 @@
                 )
             ),
 
-            // 中間大畫布 (手機居中，上方無任何按鈕重疊)
+            // 中間大畫布 (置頂吸附導覽列底部，尺寸固定，獨立於左右滾動)
             // 綁定 key: 視角切換時迫使重新掛載並自適應最新尺寸，徹底終結拉伸變形
-            h('section', { className: 'flex-1 bg-black/60 flex items-center justify-center p-4 relative overflow-hidden' },
+            h('section', { className: 'flex-1 bg-black/60 flex flex-col items-center justify-start pt-4 px-4 pb-2 relative overflow-hidden select-none' },
                 h('div', {
                     key: `preview-frame-${editorPreviewDevice}`,
                     className: editorPreviewDevice === 'mobile' ? 'phone-frame' : 'desktop-frame'

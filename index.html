@@ -56,42 +56,6 @@
             position: fixed;
         }
 
-        /* Floating Theme Switcher Badge (ONLY visible when ?preview=1 or in debug) */
-        .floating-switcher {
-            position: fixed;
-            top: 1rem;
-            right: 1rem;
-            z-index: 50;
-            background: rgba(15, 17, 23, 0.75);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 9999px;
-            padding: 0.35rem 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-            transition: opacity 0.3s;
-        }
-
-        /* Swatch button for switching themes in preview */
-        .swatch-btn {
-            width: 18px;
-            height: 18px;
-            border-radius: 9999px;
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .swatch-btn:hover {
-            transform: scale(1.2);
-        }
-        .swatch-btn.active {
-            box-shadow: 0 0 0 2px #fff, 0 0 8px currentColor;
-            transform: scale(1.15);
-        }
-
         /* Recipient Discreet Audio Pill */
         .audio-pill-btn {
             position: fixed;
@@ -179,38 +143,8 @@
             );
         }
 
-        // 音訊與風格切換控制浮鈕 (預覽模式展示色票，受眾模式極簡藥丸鈕)
-        function AudioControls({ isPreviewMode, templates, activeTemplateId, isPlayingAudio, onSwitchTemplate, onToggleAudio }) {
-            if (isPreviewMode) {
-                return (
-                    <div className="floating-switcher">
-                        <span className="text-xs text-zinc-300 font-medium hidden sm:inline">切換風格:</span>
-                        <div className="flex items-center gap-2">
-                            {templates.map(t => (
-                                <button
-                                    key={t.id}
-                                    title={`切換為「${t.name}」風格`}
-                                    onClick={() => onSwitchTemplate(t.id)}
-                                    className={`swatch-btn ${activeTemplateId === t.id ? 'active' : ''}`}
-                                    style={{
-                                        backgroundColor: t.theme?.primaryColor || '#ffffff',
-                                        color: t.theme?.primaryColor || '#ffffff'
-                                    }}
-                                />
-                            ))}
-                        </div>
-                        <div className="h-4 w-px bg-white/20 mx-1"></div>
-                        <button 
-                            onClick={onToggleAudio}
-                            title={isPlayingAudio ? "暫停音樂" : "播放音樂"}
-                            className="text-zinc-200 hover:text-white transition-colors text-sm"
-                        >
-                            <i className={`fa-solid ${isPlayingAudio ? 'fa-volume-high' : 'fa-volume-xmark'}`}></i>
-                        </button>
-                    </div>
-                );
-            }
-
+        // 音訊控制浮鈕 (受眾端極簡半透明藥丸鈕，不論本地預覽或受眾皆純淨無色票)
+        function AudioControls({ isPlayingAudio, onToggleAudio }) {
             return (
                 <button
                     onClick={onToggleAudio}
@@ -249,7 +183,22 @@
                         setIsPreviewMode(previewParam === '1' || previewParam === 'true');
 
                         let targetCard = null;
-                        if (cardIdParam && window.GasClient) {
+
+                        // 1. 本地優先：優先從工坊 LocalStorage 陣列中尋找（0ms 秒開，支援尚未發布到雲端的本地草稿）
+                        if (cardIdParam && loadedCards && loadedCards.length > 0) {
+                            targetCard = loadedCards.find(c => c.id === cardIdParam) || null;
+                        }
+
+                        // 2. 次級快取：檢查單卡持久化快取 (cardforge_cache_${id})
+                        if (!targetCard && cardIdParam) {
+                            try {
+                                const raw = localStorage.getItem('cardforge_cache_' + cardIdParam);
+                                if (raw) targetCard = JSON.parse(raw);
+                            } catch (e) {}
+                        }
+
+                        // 3. 雲端 SSOT 查詢（若本地完全找不到該卡，或非本地預覽模式時向 GAS 查詢最新版本）
+                        if (!targetCard && cardIdParam && window.GasClient) {
                             targetCard = await window.GasClient.getCard(cardIdParam, (updatedCard) => {
                                 if (updatedCard) {
                                     setCurrentCard(updatedCard);
@@ -260,10 +209,9 @@
                             });
                         }
 
+                        // 4. 若仍未找到且存在示範卡片，以第一張卡片保底
                         if (!targetCard) {
-                            targetCard = (loadedCards && loadedCards.length > 0)
-                                ? (loadedCards.find(c => c.id === cardIdParam) || loadedCards[0])
-                                : null;
+                            targetCard = (loadedCards && loadedCards.length > 0) ? loadedCards[0] : null;
                         }
 
                         setCurrentCard(targetCard);
@@ -352,22 +300,28 @@
             }
 
             return (
-                <div className="relative w-screen h-screen overflow-hidden" style={{ height: '100dvh' }}>
+                <div className="relative w-screen h-screen overflow-hidden flex items-center justify-center bg-black" style={{ height: '100dvh' }}>
                     <audio ref={audioRef} src={musicUrl} loop autoPlay />
 
+                    {/* 全景背景氛圍層 (若有特效粒子，鋪滿整個 100vw/100vh 視窗) */}
+                    <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+                        {window.ParticleEngine && (
+                            <ParticleEngine effect={activeTemplate.effects || {}} />
+                        )}
+                    </div>
+
                     <AudioControls 
-                        isPreviewMode={isPreviewMode}
-                        templates={templates}
-                        activeTemplateId={activeTemplateId}
                         isPlayingAudio={isPlayingAudio}
-                        onSwitchTemplate={handleSwitchTemplate}
                         onToggleAudio={toggleAudio}
                     />
 
-                    <CardEngine 
-                        card={currentCard} 
-                        template={activeTemplate} 
-                    />
+                    {/* 🎬 核心卡片全景渲染舞台 */}
+                    <div className="w-full h-full z-10 relative">
+                        <CardEngine 
+                            card={currentCard} 
+                            template={activeTemplate} 
+                        />
+                    </div>
                 </div>
             );
         }
