@@ -4,6 +4,39 @@
 
 ---
 
+### [2026-09-24] [UNREFINED] [gas_governance] 全域 gas_clasp_manager 自動化建庫與獨立持久化網關上雲
+- **類型**: `FEATURE` | `DEVOPS` | `INFRASTRUCTURE`
+- **代碼錨點**: `gas/Card_Gateway.gs`, `js/config.js`, `gas_clasp_manager/projects_registry.json`
+- **核心事實 / 決策理由**:
+  1. **告別寫死與手動維護痛點**:
+     - 過去專案採用外部手動部署之舊 GAS 網關，因線上缺少 `save_card` 動作分支導致雲端發布失敗。
+  2. **調用全域 gas_clasp_manager 官方自動化管線**:
+     - 自動在 Google 雲端建立專屬獨立腳本（`greeting_card_gateway`，Script ID: `1hnRlsyHsEdUL0-FzHtgIqTVorJgH8BaAa1CG0g4FilMgWvREZxLhZHuN`）。
+     - 升級 [gas/Card_Gateway.gs](file:///e:/Projects/greeting-card-music/gas/Card_Gateway.gs)：支援以 `PropertiesService` 自動在 Google Drive 建立與維護 `CardForge_DB` 試算表（自適應 Standalone 與 Container-bound），具備完整 `save_card` / `get_card` / `list_cards` API。
+     - 代碼通過 `clasp push --force` 成功推送到 Google 雲端，發布不可變部署 `@1`（Deployment ID: `AKfycbygCbbP4RjhzgtHrkfM6LN59JC8G3Plc58P8xgj15t5dctZn-s9TRaZUDxlye2S-o92`），並自動登記至全域中央台帳 `projects_registry.json`。
+  3. **本地路徑污染根除 (Clean Fallback URL)**:
+     - 在 [js/config.js](file:///e:/Projects/greeting-card-music/js/config.js) 優化 `FALLBACK_SHARE_URL`，在 `file:///` 本地雙擊打開時，自動以 `https://card.teaforia.in/index.html` 保底，徹底杜絕網址中夾雜 `C:/Projects/...` 的本地磁碟字串。
+
+---
+
+### [2026-09-24] [UNREFINED] [hotfix] [cloud_share] CloudShareModal 變數漏宣告致死崩潰修復與雲端降級防禦落盤
+- **類型**: `BUG_FIX` | `HOTFIX` | `RESILIENCE`
+- **代碼錨點**: `js/workspace_views.js` (CloudShareModal), `HANDOFF.md`, `docs/ACTIVE_LOG.md`
+- **核心事實 / 決策理由**:
+  1. **點擊「發布至雲端」瞬間黑屏崩潰復盤 (Root Cause)**:
+     - 在新增雙域名切換 (`selectedDomain`) 時，於 `CloudShareModal` 組件頂部重構了狀態，但在第 77 行 `defaultDetectedPrefix` 使用了 `card.recipient`，然而 `const card = shareModal.card || {};` 變數宣告被意外遺漏在下方。
+     - 導致組件渲染瞬間拋出未捕獲的 `ReferenceError: card is not defined`，觸發 React 頂層 ErrorBoundary 崩潰卸載，呈現黑屏。
+  2. **根除方案與防禦強化 (Permanent Fix & Resilience)**:
+     - 於 `js/workspace_views.js` 的 `CloudShareModal` 開頭第一行立即安全解構宣告：
+       ```javascript
+       const card = shareModal.card || {};
+       const baseShareUrl = shareModal.shareUrl || '';
+       ```
+     - 增加彈窗防禦機制：若線上 GAS 網關尚未更新或暫時返回錯誤時，彈窗不再崩潰，且清晰顯示「雲端降級/保底提示橫幅」，無縫提供可用的本地保底連結與雙域名/WhatsApp 轉發功能。
+     - 經 `node -c js/workspace_views.js` 靜態語法檢查通過，`workspace.html` 嚴格維持 436 行（門禁 ≤ 450 行）。
+
+---
+
 ### [2026-09-24] [UNREFINED] [domain] [vip_share] 雙域名 (card.teaforia.in ✕ card.foxlink.co.in) 一鍵切換與偏好記憶落盤
 - **類型**: `FEATURE` | `UI_UX` | `CONFIGURATION`
 - **代碼錨點**: `js/config.js` (SHARE_DOMAINS), `js/workspace_views.js` (CloudShareModal), `docs/ACTIVE_LOG.md`

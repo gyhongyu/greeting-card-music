@@ -11,6 +11,33 @@
  */
 
 const SHEET_NAME = "Cards_Store";
+const DB_NAME = "CardForge_DB";
+
+function getSpreadsheetDB() {
+  // 1. 若為容器腳本 (Container-bound)，直接取得關聯之試算表
+  try {
+    const activeSS = SpreadsheetApp.getActiveSpreadsheet();
+    if (activeSS) return activeSS;
+  } catch (e) {}
+
+  // 2. 若為獨立腳本 (Standalone)，使用腳本屬性記憶或在 Google Drive 自動建立
+  const scriptProps = PropertiesService.getScriptProperties();
+  let ssId = scriptProps.getProperty("CARD_DB_SPREADSHEET_ID");
+
+  if (ssId) {
+    try {
+      return SpreadsheetApp.openById(ssId);
+    } catch (e) {
+      console.warn("Cached spreadsheet ID invalid or deleted, will recreate: " + e.message);
+    }
+  }
+
+  // 3. 在 Google Drive 自動建立全新的試算表並儲存 ID
+  const newSS = SpreadsheetApp.create(DB_NAME);
+  ssId = newSS.getId();
+  scriptProps.setProperty("CARD_DB_SPREADSHEET_ID", ssId);
+  return newSS;
+}
 
 function doGet(e) {
   return handleRequest(e, "GET");
@@ -44,7 +71,7 @@ function handleRequest(e, method) {
     }
 
     const action = params.action || "list_cards";
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const ss = getSpreadsheetDB();
     let sheet = ss.getSheetByName(SHEET_NAME);
     
     // 若工作表不存在則自動初始化

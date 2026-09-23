@@ -1,0 +1,6 @@
+# claspignore - 由 gas_clasp_manager 自動生成之白名單
+**/**
+!appsscript.json
+!**/*.js
+!**/*.gs
+!**/*.html

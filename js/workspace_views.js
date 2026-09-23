@@ -51,6 +51,10 @@
     function CloudShareModal({ shareModal, onClose, onShowToast }) {
         if (!shareModal) return null;
 
+        // 安全取得當前卡片物件與基礎分享連結 (防禦保底為空物件與空字串)
+        const card = shareModal.card || {};
+        const baseShareUrl = shareModal.shareUrl || '';
+
         // 網域列表 (從全域配置讀取，若無則保底兩大自訂網域)
         const availableDomains = (window.CardForgeConfig && window.CardForgeConfig.SHARE_DOMAINS) || [
             { label: "🍵 Teaforia 精品品牌 (card.teaforia.in)", value: "https://card.teaforia.in" },
@@ -207,6 +211,14 @@
                     h('p', { className: 'text-xs text-zinc-300 font-medium' }, shareModal.statusText)
                 ) : h('div', { className: 'space-y-4' },
                     
+                    // 雲端降級或保底狀態橫幅 (若存在提示)
+                    (shareModal.statusText && (shareModal.isError || shareModal.statusText.includes('保底'))) ? h('div', {
+                        className: 'p-2.5 bg-amber-950/40 border border-amber-600/40 rounded-lg flex items-center gap-2 text-xs text-amber-200'
+                    },
+                        h('i', { className: 'fa-solid fa-triangle-exclamation text-amber-400 text-sm shrink-0' }),
+                        h('span', { className: 'leading-tight text-[11px]' }, shareModal.statusText)
+                    ) : null,
+
                     // 0. 分發網域切換 (Teaforia 品牌 / Foxlink 商務)
                     h('div', { className: 'p-3 bg-zinc-950 rounded-lg border border-zinc-800 space-y-1.5' },
                         h('div', { className: 'flex items-center justify-between text-xs' },
