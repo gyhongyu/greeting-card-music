@@ -18,6 +18,8 @@ window.DEFAULT_CARDS = [
             'Wishing you peace, love, and all the happiness you deserve.'
         ],
         sender: 'With all my love,\nChen Hung Yu',
+        shareCaption: '{name}，送你一份特別定製的母親節溫情祝福卡，願你平安喜樂、心想事成：',
+        coverImage: 'https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=1200&q=80',
         media: { bgMode: 'slideshow', photos: [] }
     }
 ];
@@ -152,4 +154,16 @@ window.FONT_FAMILY_OPTIONS = [
         value: "'JetBrains Mono', Consolas, Monaco, monospace"
     }
 ];
+
+window.MUSIC_OPTIONS = [
+    {
+        label: '🎵 浪漫純情 · In Love With You',
+        value: 'assets/audio/In Love With You.mp3'
+    },
+    {
+        label: '🍂 深情寄託 · 把思念寄給遠方',
+        value: 'assets/audio/把思念寄給遠方.mp3'
+    }
+];
+
 

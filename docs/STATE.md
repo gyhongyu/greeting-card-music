@@ -77,3 +77,6 @@
 - [x] 首頁智慧分流與君子密碼門禁：`index.html` 根路徑跳轉工坊；`PasswordLockGate` (`10101010`) 本地記憶持久化。
 - [x] 中秋 3D 特效與雙旗艦模板：超級明月 (`lunar-clouds`)、金桂飛花 (`osmanthus-petals`)、祈願天燈海 (`sky-lanterns`)、天上掉月餅 (`falling-mooncakes`) 與真實 3D 金箔月餅 (`golden-mooncake`) 透過 ImgBB 全域 CDN 閉環。
 - [x] 模板工坊穩定性修復：預覽外框切換防拉伸 (`preview-frame` key)、月餅單例貼圖快取防消失 (`cachedMooncakeTex`)、移除示範按鈕 (CTA)。
+- [x] 音樂庫擴充與修復：納入第二首背景音訊《把思念寄給遠方.mp3》；根除受眾端首次點擊開關狀態脫節 (State Desync)。
+- [x] 社群分發與雙網域中樞：上線 Teaforia ✕ Foxlink 雙域名切換 (LocalStorage 偏好記憶)；中英前綴與長輩敬稱 (Dear / 尊敬的 / 致 / 親愛的) 自由切換與純淨 ?to= 參數解析。
+

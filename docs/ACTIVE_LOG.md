@@ -4,6 +4,59 @@
 
 ---
 
+### [2026-09-24] [UNREFINED] [domain] [vip_share] 雙域名 (card.teaforia.in ✕ card.foxlink.co.in) 一鍵切換與偏好記憶落盤
+- **類型**: `FEATURE` | `UI_UX` | `CONFIGURATION`
+- **代碼錨點**: `js/config.js` (SHARE_DOMAINS), `js/workspace_views.js` (CloudShareModal), `docs/ACTIVE_LOG.md`
+- **核心事實 / 決策理由**:
+  1. **雙品牌情境分流痛點**:
+     - 使用者擁有兩個頂級自訂網域：`https://card.teaforia.in`（個人/精品品牌/親友/海外英文）與 `https://card.foxlink.co.in`（正崴企業商務/客戶/主管）。
+     - 過去分發彈窗中短網址只綁定單一網域，使用者無法在不改代碼的前提下切換分發網址。
+  2. **配置抽離與彈窗選單 (Config-Driven & Domain Selector)**:
+     - 在 `js/config.js` 增加 `SHARE_DOMAINS` 配置矩陣，抽離網域實體，完全杜絕在 JS 中硬編碼。
+     - 在 `js/workspace_views.js` 的 `CloudShareModal` 最上方增加「分發網域」下拉切換選單：
+       - `🍵 Teaforia 精品品牌 (card.teaforia.in)`
+       - `🏢 Foxlink 企業商務 (card.foxlink.co.in)`
+     - 具備 `localStorage` 偏好記憶機制（`cardforge_preferred_domain`），切換一次後自動保持，無需重複點選。
+     - 切換網域時，下方的「兩行式社群導語」、「一鍵複製純網址」、「WhatsApp 直發連結」與「親自體驗」按鈕全部即時連動置換！
+
+---
+
+### [2026-09-24] [UNREFINED] [audio] 受眾端音樂按鈕首次點擊關不掉之狀態脫節 (State Desync) 根治
+- **類型**: `BUG_FIX` | `AUDIO`
+- **代碼錨點**: `index.html` (CardPlayerApp, AudioControls, audio ref)
+- **核心事實 / 決策理由**:
+  1. **第一次按關不掉的踩坑復盤 (Root Cause)**:
+     - 過去 `<audio>` 標籤寫在 `if (!isStarted) return <WelcomeGate>` 之後，且帶有 `autoPlay`。
+     - 當使用者在開場 WelcomeGate 點擊「開啟賀卡」時，`handleStart` 觸發了 `setIsStarted(true)`，但此時 `<audio>` DOM 節點尚未被 React 渲染（`audioRef.current` 還是 `null`！），導致在 `handleStart` 裡的 `audioRef.current.play()` 根本沒執行到。
+     - 接著組件重新渲染，`<audio ref={audioRef} autoPlay />` 因帶有 `autoPlay` 屬性由瀏覽器自動播放音樂，然而 React 的 `isPlayingAudio` 狀態卻仍為初始值 `false`！
+     - 當使用者看到右上角音樂按鈕點擊第一次時，`toggleAudio` 看到 `isPlayingAudio === false`，誤以為音樂是關的，反而執行了 `audio.play()`！因此第一次按「完全關不掉」；必須按第二次時（此時 state 變成 true）才會執行 `audio.pause()`。
+  2. **根除方案 (Permanent Fix)**:
+     - **音訊常駐頂層**: 將 `<audio>` DOM 移至組件根部常駐，不被 WelcomeGate 條件渲染中斷卸載。
+     - **實體 DOM 真理源**: `toggleAudio` 改為直接讀取瀏覽器硬體層真實狀態 `if (!audio.paused) { audio.pause(); } else { audio.play(); }`，不論 React state 如何，100% 絕對遵從硬體真實狀態！
+     - **原生事件反向閉環**: 在 `<audio>` 上綁定 `onPlay={() => setIsPlayingAudio(true)}` 與 `onPause={() => setIsPlayingAudio(false)}`，由音訊實體驅動 React UI 圖標，確保畫面狀態與音訊聲音永遠 100% 同步！
+
+---
+
+### [2026-09-24] [UNREFINED] [vip_share] 中英/長輩敬語稱謂動態切換與純淨 ?to= 參數解析體系落盤
+- **類型**: `FEATURE` | `UI_UX` | `REFACTOR`
+- **代碼錨點**: `js/workspace_views.js` (CloudShareModal), `index.html`, `docs/ACTIVE_LOG.md`
+- **核心事實 / 決策理由**:
+  1. **稱謂固定死導致主管/長輩與英文翻車痛點 (Root Cause)**:
+     - 過去分發賀卡時，若受眾是主管或長輩，直接寫「親愛的 王總」顯得輕浮失禮；若是英文受眾（如 Danny、Summer），寫成中文「親愛的 Danny：」或標點使用中文全形冒號，顯得生硬突兀。
+  2. **分發台前綴禮貌敬稱選擇器 (Salutation Prefix Selector)**:
+     - 在 `js/workspace_views.js` (`CloudShareModal`) 內增加前綴選擇：
+       - `親愛的` (平輩/朋友，如：親愛的 小美：)
+       - `尊敬的` (長輩/主管，如：尊敬的 王總：)
+       - `致` (正式/商務，如：致 合作夥伴：)
+       - `Dear` (英文/國際，如：Dear Danny,)
+       - `無` (直呼稱謂，如：Eva)
+     - 系統自動根據所選前綴即時在受眾導語拼接得體招呼（英文自動帶逗號 `, `，中文帶冒號 `：`）。
+  3. **極簡純淨 URL 與受眾端智慧識別 (Clean URL & Recipient Parser)**:
+     - 網址嚴守不拼接冗長雜亂參數的鐵律，只帶簡潔的 `?to=...`（傳遞完整計算後的稱謂或純名字）。
+     - `index.html` 接收端若收到已帶敬稱（`Dear`、`尊敬的`、`致`、`親愛的`）或結尾標點的完整稱謂，直接 100% 信任原樣採納，0 差錯；若收到純名字，則自動依原卡片風格適配英文 `Dear` 或中文 `親愛的`。
+
+---
+
 ### [2026-09-24] [UNREFINED] [layout] [ide_ux] 全頁外層滾動條徹底斬斷，Figma 式三欄物理獨立鎖死架構落盤
 - **類型**: `BUG_FIX` | `UI_UX` | `LAYOUT`
 - **代碼錨點**: `css/workspace.css`, `workspace.html`, `js/editor_views.js`, `HANDOFF.md`
@@ -410,4 +463,69 @@
      - 在 `styles/templates.css` 為 `.desktop-frame` 與 `.phone-frame` 專門定義 `.poster-content-stage` 的微調比例（大標題 `clamp(34px, 3.2vw, 44px)`，內文 15px/13.5px），確保文字、稱謂與署名在固定畫框內優雅呼吸，完美封閉不產生任何裁切與溢出。
 - **防禦手段 / 測試背書**:
   - 全流程純 CSS / JS 原生運作，`workspace.html` 維持 437 行（≤450 行硬紅線）。
+
+---
+
+### [2026-09-24] [UNREFINED] [sharing] 社群分享導言、兩行式分發台與自適應朋友稱謂 (VIP Share) 全面落地
+- **類型**: `FEATURE` | `UI_UX` | `ARCHITECTURE`
+- **代碼錨點**: `js/constants.js`, `js/workspace_store.js`, `js/editor_views.js`, `js/workspace_views.js`, `index.html`, `docs/ACTIVE_LOG.md`
+- **核心事實 / 決策理由**:
+  1. **社群分享導言與封面欄位**:
+     - 在卡片實體與編輯器新增 `shareCaption`（分享引導文案，支援 `{name}` 佔位符）與 `coverImage`（自訂 OG:Image 網址）。
+  2. **兩行式社群分發台 (CloudShareModal 升級)**:
+     - 解決單一冰冷連結點擊率低與手改網址痛點。
+     - 支援在彈窗內輸入好友姓名（如「Joe」、「王經理」），自動生成帶參網址 `?to=...`，並即時預覽兩行式訊息：
+       - 第一行：自適應稱呼之專屬賀詞導語。
+       - 第二行：乾淨專屬短連結。
+     - 提供「一鍵複製【導語 + 網址】」與「發送 WhatsApp」（自動喚醒對話框帶入文字）。
+  3. **受眾端動態稱謂自適應解析 (index.html)**:
+     - 受眾端打開時讀取 `?to=...` 或 `?name=...`，自動智能適配稱謂（支援 `{name}` 精準置換、自動將「朋友」升級為好友名字、Dear/親愛的 前綴拼接）。
+     - 內建 30 字元防溢出安全保護，無參數時優雅降級為預設溫馨稱謂。
+- **防禦手段 / 測試背書**:
+  - `workspace.html` 維持 437 行（≤450 行硬門禁）。
+  - 外部 JS 零 JSX 依賴，`file:///` 本地雙擊秒開無 CORS 阻礙。
+
+---
+
+### [2026-09-24] [UNREFINED] [assets] 全局社群預覽圖 WebP 圖床化、新曲《把思念寄給遠方》歸檔與 3D 模板提示
+- **類型**: `ASSET` | `FEATURE` | `UI_UX`
+- **代碼錨點**: `js/config.js`, `js/constants.js`, `js/editor_views.js`, `assets/audio/`, `docs/ACTIVE_LOG.md`
+- **核心事實 / 決策理由**:
+  1. **全域社群分享預覽圖 (OG:Image) 永久直連**:
+     - 將 `鏈結預覽圖-全局.jpg` 轉換為高質量 WebP (`assets/images/share-cover.webp`，體積僅 91KB)。
+     - 透過 `imgbb_embedder` 登記至 CardForge 核心網站資產相簿（永久保留），取得 CDN 直連 `https://i.ibb.co/YFsSdsjg/share-cover-webp.webp`。
+     - 寫入 `js/config.js` 的 `DEFAULT_COVER` 作為全域所有卡片的預設社群氣泡卡片圖。
+  2. **第二首專屬音樂歸檔與隨選下拉**:
+     - 將 `把思念寄給遠方.mp3` 正式移入 `assets/audio/把思念寄給遠方.mp3`。
+     - 在 `js/constants.js` 與 `js/editor_views.js` 建立 `window.MUSIC_OPTIONS` 下拉選單，支援在「In Love With You」與「把思念寄給遠方」間一鍵切換，亦保留手動輸入自訂網址/路徑的自由。
+  3. **3D 藝術背景與相片層疊提示**:
+     - 針對使用者提出的「背景 3D 與相片層疊遮擋」疑慮，在編輯器相片區塊加入智慧提示：若模板具備 3D Shader（如明月/黑洞/金煙），明確提醒創作者「保持無相片可完整展現 3D 光影；若上傳相片將優先展示相片」，消除操作疑惑。
+- **防禦手段 / 測試背書**:
+  - `workspace.html` 依然保持 437 行（≤450 行硬門禁）。
+  - `node -c` 語法校驗 100% 通過。
+
+---
+
+### [2026-09-24] [UNREFINED] [editor] 收件人稱謂三段式拆解 ✕ 社群分享導言自動繼承稱謂前綴
+- **類型**: `REFACTOR` | `UI_UX`
+- **代碼錨點**: `js/editor_views.js`, `docs/ACTIVE_LOG.md`
+- **核心事實 / 決策理由**:
+  1. **收件人稱謂拆開 (圖 1 落地)**:
+     - 解決單一文字框既要填前綴又要填名字的生硬感。
+     - 拆解為三格橫排結構：
+       - `敬語前綴`（親愛的 / 尊敬的 / XX的 / 致 / 自訂）
+       - `稱呼本體`（填入朋友名字；若留空則自動等待 URL 參數 `{Name}` 注入）
+       - `結尾標點`（下拉可選：`：`、`:`、`，`、`！`、`無`）
+     - 即時雙向組合並同步更新至中間畫框，所見即所得。
+  2. **社群分享導語拆開與自動繼承 (圖 2 落地)**:
+     - 根除使用者重複輸入稱謂與名字的心智負擔。
+     - 拆分為：
+       - `左側前綴徽章`：不可修改，自動聯動繼承上方設定的前綴（例如 `親愛的 {name}，` 或 `尊敬的 {name}，`）。
+       - `右側自填祝賀內文`：創作者只需專注填寫賀詞核心句（例如 `中秋節快樂，這是我為你定制的賀卡。`），不再需要手打 `{name}` 語法。
+- **防禦手段 / 測試背書**:
+  - `workspace.html` 總行數嚴格保持 437 行（≤450 行）。
+  - `node -c js/editor_views.js` 語法校驗通過。
+
+
+
 

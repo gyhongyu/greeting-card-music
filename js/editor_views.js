@@ -156,15 +156,90 @@
                             className: 'w-full bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1.5 text-white outline-none focus:border-amber-400'
                         })
                     ),
-                    h('div', null,
-                        h('label', { className: 'block text-zinc-400 mb-1' }, '收件人稱謂 (Recipient)'),
-                        h('input', {
-                            type: 'text',
-                            value: currentEditingCard.recipient || '',
-                            onChange: e => updateEditingCard({ recipient: e.target.value }),
-                            className: 'w-full bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1.5 text-white outline-none focus:border-amber-400'
-                        })
-                    ),
+                    // 收件人稱謂拆開：敬語前綴 (尊敬的/親愛的/XX的) + 好友稱呼 + 結尾標點
+                    (() => {
+                        const rawRec = currentEditingCard.recipient || '親愛的朋友：';
+                        // 智能解析現有字串拆解為前綴、主體與標點
+                        let prefix = '親愛的';
+                        let mainName = '朋友';
+                        let punct = '：';
+
+                        const punctMatch = rawRec.match(/[：:，,！!]$/);
+                        if (punctMatch) {
+                            punct = punctMatch[0];
+                        }
+                        const cleanRec = punctMatch ? rawRec.slice(0, -1) : rawRec;
+
+                        if (cleanRec.startsWith('尊敬的')) {
+                            prefix = '尊敬的';
+                            mainName = cleanRec.replace('尊敬的', '').trim();
+                        } else if (cleanRec.startsWith('親愛的')) {
+                            prefix = '親愛的';
+                            mainName = cleanRec.replace('親愛的', '').trim();
+                        } else if (cleanRec.startsWith('致 ')) {
+                            prefix = '致';
+                            mainName = cleanRec.replace('致 ', '').trim();
+                        } else if (cleanRec.startsWith('Dear ')) {
+                            prefix = 'Dear';
+                            mainName = cleanRec.replace('Dear ', '').trim();
+                        } else if (cleanRec.includes('的')) {
+                            const idx = cleanRec.indexOf('的');
+                            prefix = cleanRec.slice(0, idx + 1);
+                            mainName = cleanRec.slice(idx + 1).trim();
+                        } else {
+                            prefix = '';
+                            mainName = cleanRec.trim();
+                        }
+
+                        const updateCombinedRecipient = (newPfx, newName, newPunct) => {
+                            const space = (newPfx && !newPfx.endsWith('的') && !newPfx.endsWith('致')) ? ' ' : '';
+                            const combined = `${newPfx}${space}${newName}${newPunct}`;
+                            updateEditingCard({ recipient: combined });
+                        };
+
+                        return h('div', { className: 'space-y-1.5' },
+                            h('div', { className: 'flex items-center justify-between' },
+                                h('label', { className: 'block text-zinc-400 text-xs font-medium' }, '收件人稱謂 (Recipient)'),
+                                h('span', { className: 'text-[10px] text-zinc-500 font-mono' }, '稱呼留空則自動吃 {Name} 參數')
+                            ),
+                            h('div', { className: 'grid grid-cols-12 gap-2' },
+                                // 1. 敬稱前綴 (親愛的/尊敬的/自訂)
+                                h('div', { className: 'col-span-4' },
+                                    h('input', {
+                                        type: 'text',
+                                        value: prefix,
+                                        placeholder: '如: 親愛的',
+                                        onChange: e => updateCombinedRecipient(e.target.value, mainName, punct),
+                                        className: 'w-full bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1.5 text-white text-xs outline-none focus:border-amber-400'
+                                    })
+                                ),
+                                // 2. 稱呼本體 (留空或填朋友)
+                                h('div', { className: 'col-span-6' },
+                                    h('input', {
+                                        type: 'text',
+                                        value: mainName,
+                                        placeholder: '留空自動支援URL參數',
+                                        onChange: e => updateCombinedRecipient(prefix, e.target.value, punct),
+                                        className: 'w-full bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1.5 text-amber-300 font-medium text-xs outline-none focus:border-amber-400'
+                                    })
+                                ),
+                                // 3. 結尾標點 (： / : / ，)
+                                h('div', { className: 'col-span-2' },
+                                    h('select', {
+                                        value: punct,
+                                        onChange: e => updateCombinedRecipient(prefix, mainName, e.target.value),
+                                        className: 'w-full bg-zinc-900 border border-zinc-800 rounded px-1.5 py-1.5 text-white text-xs outline-none focus:border-amber-400 cursor-pointer text-center'
+                                    },
+                                        h('option', { value: '：' }, '：'),
+                                        h('option', { value: ':' }, ':'),
+                                        h('option', { value: '，' }, '，'),
+                                        h('option', { value: '！' }, '！'),
+                                        h('option', { value: '' }, '無')
+                                    )
+                                )
+                            )
+                        );
+                    })(),
                     h('div', null,
                         h('label', { className: 'block text-zinc-400 mb-1' }, '落款署名 (Sender / Signature)'),
                         h('textarea', {
@@ -256,6 +331,14 @@
                         )
                     ),
 
+                    // 💡 3D 視覺層疊提示：當前模板已有 3D Shader 時溫馨提醒
+                    (currentEditingTemplate?.bgShader && currentEditingTemplate.bgShader !== 'none') ? (
+                        h('div', { className: 'p-2 bg-amber-950/20 rounded border border-amber-900/30 text-[10px] text-amber-200/90 flex items-start gap-1.5 leading-relaxed' },
+                            h('i', { className: 'fa-solid fa-lightbulb text-amber-400 mt-0.5 shrink-0' }),
+                            h('span', null, '當前模板具備 3D 藝術背景（如明月/黑洞/金煙）。保持無相片可完整展現 3D 光影；若上傳相片將置於相片層優先展示。')
+                        )
+                    ) : null,
+
                     // 隱藏的 File Input
                     h('input', {
                         type: 'file',
@@ -333,19 +416,38 @@
                     ))
                 ),
 
-                // 背景配樂
+                // 背景配樂 (支援下拉選單與自訂路徑)
                 h('div', { className: 'bg-zinc-900/50 p-3 rounded-lg border border-zinc-800 space-y-2' },
-                    h('label', { className: 'block text-zinc-400 font-medium' }, '背景配樂 (Audio URL / 相對路徑)'),
-                    h('input', {
-                        type: 'text',
-                        value: currentEditingCard.media?.customMusic || '',
-                        placeholder: '預設使用模板配樂 (可填 assets/audio/In Love With You.mp3)',
+                    h('div', { className: 'flex items-center justify-between' },
+                        h('label', { className: 'block text-zinc-300 font-medium' }, '背景配樂 (Music)'),
+                        h('span', { className: 'text-[10px] text-zinc-500 font-mono' }, '立體聲循環')
+                    ),
+                    h('select', {
+                        value: currentEditingCard.media?.customMusic || 'assets/audio/In Love With You.mp3',
                         onChange: e => {
                             updateEditingCard({
                                 media: { ...(currentEditingCard.media || {}), customMusic: e.target.value }
                             });
                         },
-                        className: 'w-full bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1.5 text-white outline-none focus:border-amber-400 font-mono text-[11px]'
+                        className: 'w-full bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1.5 text-white text-[11px] outline-none focus:border-amber-400 cursor-pointer'
+                    },
+                        (window.MUSIC_OPTIONS || [
+                            { label: '🎵 浪漫純情 · In Love With You', value: 'assets/audio/In Love With You.mp3' },
+                            { label: '🍂 深情寄託 · 把思念寄給遠方', value: 'assets/audio/把思念寄給遠方.mp3' }
+                        ]).map((m, idx) => (
+                            h('option', { key: idx, value: m.value }, m.label)
+                        ))
+                    ),
+                    h('input', {
+                        type: 'text',
+                        value: currentEditingCard.media?.customMusic || '',
+                        placeholder: '或手動輸入音樂網址 / 相對路徑',
+                        onChange: e => {
+                            updateEditingCard({
+                                media: { ...(currentEditingCard.media || {}), customMusic: e.target.value }
+                            });
+                        },
+                        className: 'w-full bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-white outline-none focus:border-amber-400 font-mono text-[10px] text-zinc-400'
                     })
                 ),
 
@@ -442,7 +544,123 @@
                             )
                         )
                     )
-                ) : null
+                ) : null,
+
+                // 🌐 社群分享導言與預覽封面配置 (Open Graph & WhatsApp Share)
+                h('div', { className: 'space-y-3 bg-zinc-900/50 p-3 rounded-lg border border-sky-900/40' },
+                    h('div', { className: 'flex items-center justify-between' },
+                        h('label', { className: 'text-zinc-300 font-semibold flex items-center gap-1.5' },
+                            h('i', { className: 'fa-solid fa-share-nodes text-sky-400' }),
+                            h('span', null, '社群分享導語與封面預覽')
+                        ),
+                        h('span', { className: 'text-[10px] px-1.5 py-0.5 rounded font-mono bg-sky-950/60 text-sky-300 border border-sky-800/40' }, 'WhatsApp / LINE')
+                    ),
+                    h('p', { className: 'text-[11px] text-zinc-400 leading-relaxed' },
+                        '分享時自動複製為兩行：第一行為此導語，第二行為專屬賀卡網址。支援 ',
+                        h('code', { className: 'text-sky-300 font-mono font-bold' }, '{name}'),
+                        ' 朋友稱謂自動置換。'
+                    ),
+                    // 社群分享導言：左側自動繼承上方稱謂前綴 + 右側自填祝賀內容
+                    (() => {
+                        // 從當前收件人稱謂中提取前綴與稱呼
+                        const rawRec = currentEditingCard.recipient || '親愛的朋友：';
+                        const punctMatch = rawRec.match(/[：:，,！!]$/);
+                        const cleanRec = punctMatch ? rawRec.slice(0, -1) : rawRec;
+                        
+                        // 計算繼承的提示標籤：如「親愛的 {name}，」或「尊敬的 {name}，」
+                        let inheritedPrefix = '{name}，';
+                        if (cleanRec.startsWith('尊敬的')) {
+                            inheritedPrefix = '尊敬的 {name}，';
+                        } else if (cleanRec.startsWith('親愛的')) {
+                            inheritedPrefix = '親愛的 {name}，';
+                        } else if (cleanRec.startsWith('致 ')) {
+                            inheritedPrefix = '致 {name}，';
+                        } else if (cleanRec.startsWith('Dear ')) {
+                            inheritedPrefix = 'Dear {name}, ';
+                        } else if (cleanRec.includes('的')) {
+                            const idx = cleanRec.indexOf('的');
+                            inheritedPrefix = `${cleanRec.slice(0, idx + 1)} {name}，`;
+                        }
+
+                        // 如果現有 shareCaption 開頭已經包含了這個前綴，則抽離出純自填的祝賀內文
+                        let customBody = currentEditingCard.shareCaption || '';
+                        if (customBody.includes('，')) {
+                            const firstComma = customBody.indexOf('，');
+                            // 若前半段含有 {name} 或 前綴，只保留後半段給使用者編輯
+                            if (customBody.slice(0, firstComma).includes('name') || customBody.slice(0, firstComma).includes('的')) {
+                                customBody = customBody.slice(firstComma + 1).trim();
+                            }
+                        } else if (customBody.includes(', ')) {
+                            const firstComma = customBody.indexOf(', ');
+                            if (customBody.slice(0, firstComma).includes('name') || customBody.slice(0, firstComma).includes('Dear')) {
+                                customBody = customBody.slice(firstComma + 2).trim();
+                            }
+                        }
+                        if (!customBody) {
+                            customBody = '中秋節快樂，這是我為你定制的賀卡。';
+                        }
+
+                        return h('div', { className: 'space-y-1.5' },
+                            h('div', { className: 'flex items-center justify-between' },
+                                h('label', { className: 'block text-zinc-400 text-[11px] font-medium' }, '分享附帶文字 (Share Intro Text)'),
+                                h('span', { className: 'text-[10px] text-sky-400 font-mono' }, '自動繼承上方稱謂前綴')
+                            ),
+                            h('div', { className: 'flex items-stretch gap-1.5' },
+                                // 1. 左側：自動繼承的前綴徽章 (不可修改，自動聯動)
+                                h('div', {
+                                    className: 'px-2.5 py-2 bg-sky-950/60 border border-sky-800/60 rounded flex items-center justify-center text-sky-300 font-mono text-xs font-semibold shrink-0 select-none shadow-sm',
+                                    title: '自動繼承上方收件人稱謂前綴'
+                                }, inheritedPrefix),
+                                // 2. 右側：自填祝賀內容
+                                h('textarea', {
+                                    rows: 2,
+                                    value: customBody,
+                                    placeholder: '中秋節快樂，這是我為你定制的賀卡。',
+                                    onChange: e => {
+                                        const newBody = e.target.value;
+                                        // 組合出完整 shareCaption 保存在 card 結構中
+                                        const fullCaption = `${inheritedPrefix}${newBody}`;
+                                        updateEditingCard({ shareCaption: fullCaption });
+                                    },
+                                    className: 'flex-1 bg-zinc-900 border border-zinc-800 rounded p-2 text-white outline-none focus:border-sky-400 text-xs font-sans resize-y'
+                                })
+                            )
+                        );
+                    })(),
+                    h('div', { className: 'space-y-1.5' },
+                        h('div', { className: 'flex items-center justify-between' },
+                            h('label', { className: 'block text-zinc-400 text-[11px]' }, '社群封面圖片 (OG:Image)'),
+                            h('span', { className: 'text-[10px] text-zinc-500 font-mono' }, '1200×630 橫版最佳')
+                        ),
+                        h('div', { className: 'flex items-center gap-2' },
+                            h('input', {
+                                type: 'text',
+                                value: currentEditingCard.coverImage || '',
+                                placeholder: '留空則自動使用全局高質感預覽圖',
+                                onChange: e => updateEditingCard({ coverImage: e.target.value }),
+                                className: 'flex-1 bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1.5 text-white font-mono text-[11px] outline-none focus:border-sky-400'
+                            }),
+                            currentEditingCard.coverImage ? (
+                                h('button', {
+                                    type: 'button',
+                                    onClick: () => updateEditingCard({ coverImage: '' }),
+                                    className: 'px-2 py-1 text-[11px] text-zinc-400 hover:text-zinc-200'
+                                }, '恢復預設')
+                            ) : null
+                        ),
+                        // 縮圖預覽狀態
+                        h('div', { className: 'flex items-center gap-2 pt-1' },
+                            h('img', {
+                                src: currentEditingCard.coverImage || window.CardForgeConfig?.DEFAULT_COVER || 'https://i.ibb.co/YFsSdsjg/share-cover-webp.webp',
+                                alt: 'OG Preview',
+                                className: 'w-16 h-9 rounded object-cover border border-zinc-700 shrink-0 shadow'
+                            }),
+                            h('div', { className: 'text-[10px] text-zinc-400 leading-tight truncate' },
+                                currentEditingCard.coverImage ? '✅ 當前卡片自訂專屬封面' : '🌐 使用系統全局預設封面 (CardForge 專屬)'
+                            )
+                        )
+                    )
+                )
             )
         );
     }

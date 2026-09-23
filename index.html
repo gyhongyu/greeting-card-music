@@ -214,6 +214,48 @@
                             targetCard = (loadedCards && loadedCards.length > 0) ? loadedCards[0] : null;
                         }
 
+                        // 5. 🎯 專屬朋友稱謂自適應解析 (URL Parameter ?to=... 或 ?name=...)
+                        if (targetCard) {
+                            const recipientParam = urlParams.get('to') || urlParams.get('name');
+                            if (recipientParam && recipientParam.trim()) {
+                                const cleanParam = recipientParam.trim().slice(0, 40); // 40 字元防溢出邊界防禦
+                                const baseRecipient = targetCard.recipient || '親愛的朋友：';
+                                let newRecipient = '';
+                                
+                                // 判斷傳入參數是否已經是完整的禮貌稱謂 (例如: "Dear Danny," 或 "尊敬的 王總：" 或 結尾有標點)
+                                const hasSalutationPrefix = /^(Dear|尊敬的|親愛的|致)\s*/i.test(cleanParam);
+                                const hasTrailingPunct = /[：:，,！!]$/.test(cleanParam);
+
+                                if (hasSalutationPrefix || hasTrailingPunct) {
+                                    // 情況 1：已是完整禮貌稱謂（來自分發台定制），直接原樣採用，0 差錯
+                                    newRecipient = cleanParam;
+                                } else if (baseRecipient.includes('{name}')) {
+                                    // 情況 2：原稱謂含有 {name} 佔位符，精準替換
+                                    newRecipient = baseRecipient.replace(/\{name\}/g, cleanParam);
+                                } else if (baseRecipient.includes('朋友')) {
+                                    // 情況 3：原稱謂含有「朋友」字眼（如「親愛的朋友：」），自動將「朋友」升級為真實好友名字
+                                    newRecipient = baseRecipient.replace('朋友', cleanParam);
+                                } else if (baseRecipient.startsWith('Dear') || /^[a-zA-Z]/.test(cleanParam)) {
+                                    // 情況 4：英文前綴或英文名字，採用英文逗號標準標點
+                                    newRecipient = `Dear ${cleanParam},`;
+                                } else if (baseRecipient.startsWith('尊敬的')) {
+                                    // 情況 5：中文尊稱
+                                    newRecipient = `尊敬的 ${cleanParam}：`;
+                                } else if (baseRecipient.startsWith('致')) {
+                                    // 情況 6：商務致敬
+                                    newRecipient = `致 ${cleanParam}：`;
+                                } else {
+                                    // 情況 7：預設中文親切前綴
+                                    newRecipient = `親愛的 ${cleanParam}：`;
+                                }
+
+                                targetCard = {
+                                    ...targetCard,
+                                    recipient: newRecipient
+                                };
+                            }
+                        }
+
                         setCurrentCard(targetCard);
                         const effectiveTemplateId = templateParam || (targetCard ? targetCard.templateId : 'mothers-day');
                         setActiveTemplateId(effectiveTemplateId);
@@ -255,23 +297,20 @@
 
                 if (audioRef.current) {
                     audioRef.current.volume = 0.55;
-                    audioRef.current.play().then(() => {
-                        setIsPlayingAudio(true);
-                    }).catch(e => {
-                        console.log('Audio playback initiated:', e);
-                        setIsPlayingAudio(true);
+                    audioRef.current.play().catch(e => {
+                        console.log('Audio autoplay blocked or waiting for user interaction:', e);
                     });
                 }
             };
 
+            // 雙向鐵壁同步：以 audio 實體 DOM 的 paused 狀態為最高真理
             const toggleAudio = () => {
-                if (!audioRef.current) return;
-                if (isPlayingAudio) {
-                    audioRef.current.pause();
-                    setIsPlayingAudio(false);
+                const audio = audioRef.current;
+                if (!audio) return;
+                if (!audio.paused) {
+                    audio.pause();
                 } else {
-                    audioRef.current.play();
-                    setIsPlayingAudio(true);
+                    audio.play().catch(e => console.log('Audio play failed:', e));
                 }
             };
 
@@ -289,39 +328,47 @@
                 ? currentCard.media.customMusic 
                 : (activeTemplate.defaultMusic || 'assets/audio/In Love With You.mp3');
 
-            if (!isStarted) {
-                return (
-                    <WelcomeGate 
-                        card={currentCard} 
-                        template={activeTemplate} 
-                        onStart={handleStart} 
-                    />
-                );
-            }
-
             return (
                 <div className="relative w-screen h-screen overflow-hidden flex items-center justify-center bg-black" style={{ height: '100dvh' }}>
-                    <audio ref={audioRef} src={musicUrl} loop autoPlay />
-
-                    {/* 全景背景氛圍層 (若有特效粒子，鋪滿整個 100vw/100vh 視窗) */}
-                    <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-                        {window.ParticleEngine && (
-                            <ParticleEngine effect={activeTemplate.effects || {}} />
-                        )}
-                    </div>
-
-                    <AudioControls 
-                        isPlayingAudio={isPlayingAudio}
-                        onToggleAudio={toggleAudio}
+                    {/* 🎵 音訊 DOM 節點常駐頂層，掛載原生事件即時反向同步 React isPlayingAudio 狀態 */}
+                    <audio 
+                        ref={audioRef} 
+                        src={musicUrl} 
+                        loop 
+                        preload="auto"
+                        onPlay={() => setIsPlayingAudio(true)}
+                        onPause={() => setIsPlayingAudio(false)}
                     />
 
-                    {/* 🎬 核心卡片全景渲染舞台 */}
-                    <div className="w-full h-full z-10 relative">
-                        <CardEngine 
+                    {!isStarted ? (
+                        <WelcomeGate 
                             card={currentCard} 
                             template={activeTemplate} 
+                            onStart={handleStart} 
                         />
-                    </div>
+                    ) : (
+                        <React.Fragment>
+                            {/* 全景背景氛圍層 (若有特效粒子，鋪滿整個 100vw/100vh 視窗) */}
+                            <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+                                {window.ParticleEngine && (
+                                    <ParticleEngine effect={activeTemplate.effects || {}} />
+                                )}
+                            </div>
+
+                            <AudioControls 
+                                isPlayingAudio={isPlayingAudio}
+                                onToggleAudio={toggleAudio}
+                            />
+
+                            {/* 🎬 核心卡片全景渲染舞台 */}
+                            <div className="w-full h-full z-10 relative">
+                                <CardEngine 
+                                    card={currentCard} 
+                                    template={activeTemplate} 
+                                />
+                            </div>
+                        </React.Fragment>
+                    )}
                 </div>
             );
         }
