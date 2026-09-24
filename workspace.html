@@ -131,19 +131,10 @@
                                     setCards(prevCards => {
                                         const map = new Map(prevCards.map(c => [c.id, c]));
                                         cloudList.forEach(cc => {
-                                            if (!map.has(cc.id)) {
-                                                map.set(cc.id, {
-                                                    id: cc.id,
-                                                    name: cc.title || '雲端賀卡',
-                                                    title: cc.title,
-                                                    recipient: cc.recipient || '',
-                                                    sender: cc.sender || '',
-                                                    paragraphs: [cc.description || ''],
-                                                    templateId: cc.templateId || 'mothers-day',
-                                                    updatedAt: cc.updatedAt ? cc.updatedAt.split('T')[0] : '雲端',
-                                                    category: 'personal',
-                                                    media: { bgMode: 'slideshow', photos: cc.imageUrl ? [cc.imageUrl] : [] }
-                                                });
+                                            if (map.has(cc.id)) {
+                                                map.set(cc.id, window.WorkspaceStore ? window.WorkspaceStore.mergeCard(map.get(cc.id), cc) : { ...map.get(cc.id), ...cc });
+                                            } else {
+                                                map.set(cc.id, cc);
                                             }
                                         });
                                         return Array.from(map.values());

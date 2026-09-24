@@ -80,4 +80,5 @@
 - [x] 音樂庫擴充與修復：納入第二首背景音訊《把思念寄給遠方.mp3》；根除受眾端首次點擊開關狀態脫節 (State Desync)。
 - [x] 社群分發與雙網域中樞：上線 Teaforia ✕ Foxlink 雙域名切換 (LocalStorage 偏好記憶)；中英前綴與長輩敬稱 (Dear / 尊敬的 / 致 / 親愛的) 自由切換與純淨 ?to= 參數解析。
 - [x] 卡片與模板雙軌雲端 SSOT 重構：徹底告別手動保存孤島；實現本地即時響應 (0ms) ＋ 背景防抖批量差異增量同步 (Background Batch Diff-Sync)；深層安全合併 (Deep Merge) 杜絕巢狀覆蓋；受眾端動態 SWR 模板拉取保證公網不走樣；導覽列三態指示燈即時回饋。
+- [x] 根治線上卡片縮水截斷：GAS internalListCards 完整無損解析 configJson；前端無損解構載入卡片段落、音樂與分類。
 

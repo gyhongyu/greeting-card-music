@@ -294,16 +294,22 @@ function internalListCards(sheet) {
   const list = [];
   for (let i = data.length - 1; i >= 1; i--) {
     if (data[i][0]) {
-      list.push({
-        id: data[i][0],
-        title: data[i][1],
-        sender: data[i][2],
-        recipient: data[i][3],
-        description: data[i][4],
-        imageUrl: data[i][5],
-        templateId: data[i][7],
-        updatedAt: data[i][9]
-      });
+      try {
+        const fullCard = JSON.parse(data[i][8]); // 優先完整回傳試算表第 9 欄 configJson 全量資料
+        list.push(fullCard);
+      } catch (e) {
+        list.push({
+          id: data[i][0],
+          name: data[i][1],
+          title: data[i][1],
+          sender: data[i][2],
+          recipient: data[i][3],
+          paragraphs: [data[i][4]],
+          imageUrl: data[i][5],
+          templateId: data[i][7],
+          updatedAt: data[i][9]
+        });
+      }
       if (list.length >= 60) break;
     }
   }

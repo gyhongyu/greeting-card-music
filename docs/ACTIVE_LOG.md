@@ -4,6 +4,22 @@
 
 ---
 
+### [2026-09-24] [UNREFINED] [card_lossless_sync] 根除線上卡片讀取截斷縮水 (list_cards 全量 configJson 回傳與前端無損解構)
+- **類型**: `BUG_FIX` | `RESILIENCE` | `DATA_INTEGRITY`
+- **代碼錨點**: `gas/Card_Gateway.gs` (internalListCards), `workspace.html` (init card loading)
+- **核心事實 / 決策理由**:
+  1. **線上卡片縮水病灶根除**:
+     - 過去 `internalListCards` 僅截取試算表第 5 欄的前 150 字描述，導致線上新環境讀取時段落被強制閹割為單行、音樂欄位遺失。
+     - 升級 `internalListCards` 優先 `JSON.parse` 試算表第 9 欄 `configJson`，100% 完整無損回傳全量卡片資料（段落陣列、自訂音樂、分類與署名）。
+  2. **前端接收解構清理**:
+     - 在 `workspace.html` 中移除寫死「1 個段落、personal、空音樂」的殘缺拼裝代碼，直接無損寫入 `cards` 並透過 `WorkspaceStore.mergeCard` 進行安全深層合併。
+  3. **GAS 網關部署升級**:
+     - 通過 `clasp push` 與 `deploy` 成功將網關無損晉升至版本 `@3`（`post_verification` 真值確認通過）。
+  4. **門禁核驗**:
+     - `workspace.html` 精確為 429 行（門禁 ≤ 450 行）。
+
+---
+
 ### [2026-09-24] [UNREFINED] [cloud_ssot] [diff_sync] 卡片與模板雙軌雲端 SSOT 重構、背景差異增量防抖同步 (Diff-Sync) 與深層安全合併落盤
 - **類型**: `FEATURE` | `REFACTOR` | `ARCHITECTURE` | `RESILIENCE`
 - **代碼錨點**: `gas/Card_Gateway.gs`, `js/gas_client.js`, `js/workspace_store.js`, `js/workspace_views.js`, `workspace.html`, `index.html`
