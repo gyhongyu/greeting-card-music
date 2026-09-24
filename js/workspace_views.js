@@ -385,7 +385,7 @@
             // Brand Logo
             h('div', { className: 'flex items-center gap-3' },
                 h('img', {
-                    src: 'assets/icons/favicon-32x32.png',
+                    src: 'assets/icons/favicon-32x32.png?v=2',
                     alt: 'CardForge',
                     className: 'w-8 h-8 rounded-lg object-contain shadow drop-shadow-md hover:scale-105 transition-transform'
                 }),
