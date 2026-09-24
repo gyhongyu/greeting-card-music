@@ -251,49 +251,142 @@
                     )
                 ),
 
-                // 祝福段落
+                // 祝福段落與電影字幕 (SRT) 雙模切換
                 h('div', { className: 'space-y-3 bg-zinc-900/50 p-3 rounded-lg border border-zinc-800' },
                     h('div', { className: 'flex items-center justify-between' },
-                        h('label', { className: 'text-zinc-400 font-medium' }, `祝福段落 (${currentEditingCard.paragraphs?.length || 0})`),
-                        h('button', {
-                            type: 'button',
-                            onClick: () => {
-                                const p = [...(currentEditingCard.paragraphs || []), '在此輸入新的感心賀詞...'];
-                                updateEditingCard({ paragraphs: p });
-                            },
-                            className: 'text-amber-400 hover:text-amber-300 text-[11px] flex items-center gap-1'
-                        },
-                            h('i', { className: 'fa-solid fa-plus text-[10px]' }),
-                            h('span', null, '增加段落')
-                        )
-                    ),
-                    (currentEditingCard.paragraphs || []).map((para, idx) => (
-                        h('div', { key: idx, className: 'relative group' },
-                            h('textarea', {
-                                rows: 3,
-                                value: para,
-                                onChange: e => {
-                                    const updatedP = [...currentEditingCard.paragraphs];
-                                    updatedP[idx] = e.target.value;
-                                    updateEditingCard({ paragraphs: updatedP });
+                        h('div', { className: 'flex items-center gap-1.5' },
+                            h('label', { className: 'text-zinc-300 font-medium' }, currentEditingCard.layout === 'cinematic-subtitles' || currentEditingCard.media?.subtitleUrl ? '電影字幕 (SRT)' : `祝福段落 (${currentEditingCard.paragraphs?.length || 0})`),
+                            (currentEditingCard.media?.subtitleUrl || currentEditingTemplate?.subtitleUrl) ? (
+                                h('span', { className: 'text-[9px] px-1.5 py-0.5 rounded font-mono bg-sky-950/60 text-sky-400 border border-sky-800/40' }, '原聲同步中')
+                            ) : null
+                        ),
+                        h('div', { className: 'flex items-center gap-1.5' },
+                            // 切換版型或字幕按鈕
+                            h('button', {
+                                type: 'button',
+                                onClick: () => {
+                                    const nextLayout = currentEditingCard.layout === 'cinematic-subtitles' ? 'cinematic-credits' : 'cinematic-subtitles';
+                                    updateEditingCard({ layout: nextLayout });
                                 },
-                                className: 'w-full bg-zinc-900 border border-zinc-800 rounded p-2 text-white outline-none focus:border-amber-400 text-xs resize-y'
-                            }),
-                            currentEditingCard.paragraphs.length > 1 ? (
+                                className: `px-2 py-0.5 rounded text-[10px] border transition-colors ${currentEditingCard.layout === 'cinematic-subtitles' ? 'bg-sky-500/20 text-sky-300 border-sky-500/40' : 'bg-zinc-800 text-zinc-400 border-zinc-700 hover:text-white'}`
+                            }, currentEditingCard.layout === 'cinematic-subtitles' ? '🎬 電影字幕模式' : '切換字幕模式'),
+                            currentEditingCard.layout !== 'cinematic-subtitles' ? (
                                 h('button', {
                                     type: 'button',
                                     onClick: () => {
-                                        const updatedP = currentEditingCard.paragraphs.filter((_, i) => i !== idx);
-                                        updateEditingCard({ paragraphs: updatedP });
+                                        const p = [...(currentEditingCard.paragraphs || []), '在此輸入新的感心賀詞...'];
+                                        updateEditingCard({ paragraphs: p });
                                     },
-                                    className: 'absolute top-2 right-2 p-1 text-zinc-500 hover:text-rose-400 transition-colors opacity-0 group-hover:opacity-100',
-                                    title: '刪除此段落'
+                                    className: 'text-amber-400 hover:text-amber-300 text-[11px] flex items-center gap-1'
                                 },
-                                    h('i', { className: 'fa-regular fa-trash-can text-[10px]' })
+                                    h('i', { className: 'fa-solid fa-plus text-[10px]' }),
+                                    h('span', null, '增加段落')
                                 )
                             ) : null
                         )
-                    ))
+                    ),
+
+                    // 若為電影字幕模式或已有字幕路徑：展示 SRT 專屬控制面板
+                    (currentEditingCard.layout === 'cinematic-subtitles' || currentEditingCard.media?.subtitleUrl) ? (
+                        h('div', { className: 'space-y-2 pt-1 border-t border-zinc-800/80' },
+                            h('div', { className: 'flex items-center justify-between text-[11px] text-zinc-400' },
+                                h('span', null, 'SRT 字幕檔案 (可上傳至 Google Drive 專屬資料夾或填入直連)'),
+                                h('label', {
+                                    className: 'text-sky-400 hover:text-sky-300 bg-sky-950/60 hover:bg-sky-900/60 border border-sky-700/50 px-2 py-0.5 rounded text-[10px] cursor-pointer flex items-center gap-1 transition-colors'
+                                }, [
+                                    h('i', { key: 'up-icon', className: 'fa-solid fa-cloud-arrow-up text-[9px]' }),
+                                    h('span', { key: 'up-txt' }, '上傳 .srt 檔'),
+                                    h('input', {
+                                        key: 'srt-file-input',
+                                        type: 'file',
+                                        accept: '.srt,.txt',
+                                        className: 'hidden',
+                                        onChange: e => {
+                                            const file = e.target.files && e.target.files[0];
+                                            if (!file) return;
+                                            const reader = new FileReader();
+                                            reader.onload = async (re) => {
+                                                const content = re.target.result;
+                                                if (window.GasClient && window.GasClient.uploadSubtitle) {
+                                                    const res = await window.GasClient.uploadSubtitle(file.name, content);
+                                                    if (res && res.success && res.url) {
+                                                        updateEditingCard({
+                                                            media: { ...(currentEditingCard.media || {}), subtitleUrl: res.url }
+                                                        });
+                                                        alert('字幕已成功上傳至 Google Drive 專屬資料夾！');
+                                                        return;
+                                                    }
+                                                }
+                                                // 若離線或未串 GAS，保底寫入相對路徑或內嵌
+                                                updateEditingCard({
+                                                    media: { ...(currentEditingCard.media || {}), subtitleUrl: content }
+                                                });
+                                            };
+                                            reader.readAsText(file);
+                                        }
+                                    })
+                                ])
+                            ),
+                            h('input', {
+                                type: 'text',
+                                value: currentEditingCard.media?.subtitleUrl !== undefined
+                                    ? currentEditingCard.media.subtitleUrl
+                                    : (currentEditingTemplate?.subtitleUrl || 'assets/subtitles/Miracle_Under_the_Sky.srt'),
+                                placeholder: 'SRT 網址或相對路徑 (例: assets/subtitles/Miracle_Under_the_Sky.srt)',
+                                onChange: e => {
+                                    updateEditingCard({
+                                        media: { ...(currentEditingCard.media || {}), subtitleUrl: e.target.value }
+                                    });
+                                },
+                                className: 'w-full bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-white font-mono text-[10px] outline-none focus:border-sky-400'
+                            }),
+                            h('div', { className: 'flex justify-between items-center text-[10px] text-zinc-500' },
+                                h('span', null, '💡 預設讀取天穹奇蹟官方中英雙語字幕'),
+                                (currentEditingCard.media?.subtitleUrl) ? (
+                                    h('button', {
+                                        type: 'button',
+                                        onClick: () => {
+                                            updateEditingCard({
+                                                media: { ...(currentEditingCard.media || {}), subtitleUrl: '' }
+                                            });
+                                        },
+                                        className: 'text-zinc-400 hover:text-amber-400 transition-colors'
+                                    }, '重置為官方預設')
+                                ) : null
+                            )
+                        )
+                    ) : null,
+
+                    // 原有普通祝福段落清單 (非字幕模式時展示)
+                    currentEditingCard.layout !== 'cinematic-subtitles' ? (
+                        (currentEditingCard.paragraphs || []).map((para, idx) => (
+                            h('div', { key: idx, className: 'relative group' },
+                                h('textarea', {
+                                    rows: 3,
+                                    value: para,
+                                    onChange: e => {
+                                        const updatedP = [...currentEditingCard.paragraphs];
+                                        updatedP[idx] = e.target.value;
+                                        updateEditingCard({ paragraphs: updatedP });
+                                    },
+                                    className: 'w-full bg-zinc-900 border border-zinc-800 rounded p-2 text-white outline-none focus:border-amber-400 text-xs resize-y'
+                                }),
+                                currentEditingCard.paragraphs.length > 1 ? (
+                                    h('button', {
+                                        type: 'button',
+                                        onClick: () => {
+                                            const updatedP = currentEditingCard.paragraphs.filter((_, i) => i !== idx);
+                                            updateEditingCard({ paragraphs: updatedP });
+                                        },
+                                        className: 'absolute top-2 right-2 p-1 text-zinc-500 hover:text-rose-400 transition-colors opacity-0 group-hover:opacity-100',
+                                        title: '刪除此段落'
+                                    },
+                                        h('i', { className: 'fa-regular fa-trash-can text-[10px]' })
+                                    )
+                                ) : null
+                            )
+                        ))
+                    ) : null
                 ),
 
                 // 背景相片展示與上傳
@@ -416,10 +509,51 @@
                     ))
                 ),
 
-                // 背景配樂 (支援下拉選單與自訂路徑)
+                // 背景視訊 (支援 1:1 視訊或自訂影片)
                 h('div', { className: 'bg-zinc-900/50 p-3 rounded-lg border border-zinc-800 space-y-2' },
                     h('div', { className: 'flex items-center justify-between' },
-                        h('label', { className: 'block text-zinc-300 font-medium' }, '背景配樂 (Music)'),
+                        h('label', { className: 'block text-zinc-300 font-medium flex items-center gap-1.5' },
+                            h('i', { className: 'fa-solid fa-film text-amber-400 text-xs' }),
+                            h('span', null, '背景視訊 (Video Background)')
+                        ),
+                        h('span', { className: 'text-[10px] text-zinc-500 font-mono' }, '1:1 正方形羽化')
+                    ),
+                    h('input', {
+                        type: 'text',
+                        value: currentEditingCard.media?.customVideo !== undefined 
+                            ? currentEditingCard.media.customVideo 
+                            : (currentEditingTemplate?.bgVideo || ''),
+                        placeholder: '視訊路徑 (例: assets/videos/Miracle_Under_the_Sky.mp4 或直連網址)',
+                        onChange: e => {
+                            updateEditingCard({
+                                media: { ...(currentEditingCard.media || {}), customVideo: e.target.value }
+                            });
+                        },
+                        className: 'w-full bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-white outline-none focus:border-amber-400 font-mono text-[11px] text-zinc-300'
+                    }),
+                    h('div', { className: 'flex items-center justify-between text-[10px] text-zinc-500' },
+                        h('span', null, '留空則吃模板預設；支援 .mp4 直連'),
+                        (currentEditingCard.media?.customVideo || currentEditingTemplate?.bgVideo) ? (
+                            h('button', {
+                                type: 'button',
+                                onClick: () => {
+                                    updateEditingCard({
+                                        media: { ...(currentEditingCard.media || {}), customVideo: '' }
+                                    });
+                                },
+                                className: 'text-zinc-400 hover:text-amber-400 transition-colors'
+                            }, '清除自訂')
+                        ) : null
+                    )
+                ),
+
+                // 背景配樂 (支援下拉選單、自訂路徑、音量拉桿與一鍵靜音)
+                h('div', { className: 'bg-zinc-900/50 p-3 rounded-lg border border-zinc-800 space-y-2.5' },
+                    h('div', { className: 'flex items-center justify-between' },
+                        h('label', { className: 'block text-zinc-300 font-medium flex items-center gap-1.5' },
+                            h('i', { className: 'fa-solid fa-music text-amber-400 text-xs' }),
+                            h('span', null, '背景配樂 (Music)')
+                        ),
                         h('span', { className: 'text-[10px] text-zinc-500 font-mono' }, '立體聲循環')
                     ),
                     h('select', {
@@ -448,7 +582,44 @@
                             });
                         },
                         className: 'w-full bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-white outline-none focus:border-amber-400 font-mono text-[10px] text-zinc-400'
-                    })
+                    }),
+
+                    // 🎚️ 音量拉桿與一鍵靜音開關 (Volume Slider & Mute Toggle)
+                    h('div', { className: 'pt-1 border-t border-zinc-800/80 space-y-1.5' },
+                        h('div', { className: 'flex items-center justify-between text-xs' },
+                            h('span', { className: 'text-zinc-400 flex items-center gap-1.5 text-[11px]' },
+                                h('i', { className: `fa-solid ${Number(currentEditingCard.media?.musicVolume ?? 55) === 0 ? 'fa-volume-xmark text-rose-400' : 'fa-volume-high text-amber-400'}` }),
+                                h('span', null, '配樂音量')
+                            ),
+                            h('div', { className: 'flex items-center gap-2' },
+                                h('button', {
+                                    type: 'button',
+                                    onClick: () => {
+                                        const curVol = Number(currentEditingCard.media?.musicVolume ?? 55);
+                                        const newVol = curVol === 0 ? 55 : 0;
+                                        updateEditingCard({
+                                            media: { ...(currentEditingCard.media || {}), musicVolume: newVol }
+                                        });
+                                    },
+                                    className: `px-1.5 py-0.5 rounded text-[10px] border transition-colors ${Number(currentEditingCard.media?.musicVolume ?? 55) === 0 ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' : 'bg-zinc-800 text-zinc-400 border-zinc-700 hover:text-white'}`
+                                }, Number(currentEditingCard.media?.musicVolume ?? 55) === 0 ? '已靜音' : '快速靜音'),
+                                h('span', { className: 'text-amber-400 font-mono text-[11px] w-8 text-right' }, `${currentEditingCard.media?.musicVolume !== undefined ? currentEditingCard.media.musicVolume : 55}%`)
+                            )
+                        ),
+                        h('input', {
+                            type: 'range',
+                            min: 0,
+                            max: 100,
+                            step: 5,
+                            value: currentEditingCard.media?.musicVolume !== undefined ? currentEditingCard.media.musicVolume : 55,
+                            onChange: e => {
+                                updateEditingCard({
+                                    media: { ...(currentEditingCard.media || {}), musicVolume: Number(e.target.value) }
+                                });
+                            },
+                            className: 'w-full accent-amber-400 h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer'
+                        })
+                    )
                 ),
 
                 // 卡片文字排版與字體大小 (Typography & Font Size)

@@ -194,6 +194,41 @@ function handleRequest(e, method) {
         syncedTemplates: syncedTplResults
       };
 
+    // -------------------------------------------------------------
+    // 4. 上傳字幕至 Google Drive 專屬資料夾 (Upload Subtitle to Drive)
+    // -------------------------------------------------------------
+    } else if (action === "upload_subtitle") {
+      const fileName = params.fileName || ("subtitle_" + Date.now() + ".srt");
+      const content = params.content || "";
+      if (!content) return createJsonResponse({ success: false, error: "Missing subtitle content" }, headers);
+
+      try {
+        const folderName = "CardForge_Subtitles";
+        const folders = DriveApp.getFoldersByName(folderName);
+        let folder;
+        if (folders.hasNext()) {
+          folder = folders.next();
+        } else {
+          folder = DriveApp.createFolder(folderName);
+          folder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        }
+
+        const file = folder.createFile(fileName, content, MimeType.PLAIN_TEXT);
+        file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        const fileId = file.getId();
+        // 永久直連讀取網址 (Direct raw text URL)
+        const downloadUrl = "https://drive.google.com/uc?export=download&id=" + fileId;
+
+        responseData = {
+          success: true,
+          fileId: fileId,
+          fileName: fileName,
+          url: downloadUrl
+        };
+      } catch (driveErr) {
+        responseData = { success: false, error: "Drive upload failed: " + driveErr.toString() };
+      }
+
     } else {
       responseData = { success: false, error: "Unknown action: " + action };
     }

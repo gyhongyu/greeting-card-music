@@ -108,14 +108,41 @@
             if (localTpls) {
                 try { loadedTemplates = JSON.parse(localTpls); } catch (e) {}
             }
-            if (!loadedTemplates || loadedTemplates.length === 0) {
-                try {
-                    const res = await fetch('data/templates.json');
-                    if (res.ok) loadedTemplates = await res.json();
-                } catch (e) {
-                    loadedTemplates = window.DEFAULT_TEMPLATES || [];
+
+            const defaultTpls = window.DEFAULT_TEMPLATES || [];
+            // 優先合併 window.DEFAULT_TEMPLATES，確保在 file:/// 協議下新發布模板 100% 立即生效
+            if (defaultTpls.length > 0) {
+                if (!loadedTemplates || loadedTemplates.length === 0) {
+                    loadedTemplates = defaultTpls;
+                } else {
+                    const map = new Map(loadedTemplates.map(t => [t.id, t]));
+                    defaultTpls.forEach(dt => {
+                        if (!map.has(dt.id)) {
+                            map.set(dt.id, dt);
+                        }
+                    });
+                    loadedTemplates = Array.from(map.values());
                 }
             }
+
+            // 嘗試讀取 data/templates.json (若是 http/https 環境)
+            try {
+                const res = await fetch('data/templates.json');
+                if (res.ok) {
+                    const jsonTpls = await res.json();
+                    const map = new Map(loadedTemplates.map(t => [t.id, t]));
+                    jsonTpls.forEach(jt => {
+                        if (!map.has(jt.id)) {
+                            map.set(jt.id, jt);
+                        }
+                    });
+                    loadedTemplates = Array.from(map.values());
+                }
+            } catch (e) {}
+
+            try {
+                localStorage.setItem(STORAGE_KEY_TEMPLATES, JSON.stringify(loadedTemplates));
+            } catch (e) {}
 
             // 初始化時恢復未完成的 dirty 狀態
             try {

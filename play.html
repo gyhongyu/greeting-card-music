@@ -327,10 +327,15 @@
                 } catch (e) {}
 
                 if (audioRef.current) {
-                    audioRef.current.volume = 0.55;
-                    audioRef.current.play().catch(e => {
-                        console.log('Audio autoplay blocked or waiting for user interaction:', e);
-                    });
+                    const cardVol = (currentCard && currentCard.media && currentCard.media.musicVolume !== undefined)
+                        ? Number(currentCard.media.musicVolume) / 100
+                        : 0.55;
+                    audioRef.current.volume = Math.max(0, Math.min(1, cardVol));
+                    if (cardVol > 0) {
+                        audioRef.current.play().catch(e => {
+                            console.log('Audio autoplay blocked or waiting for user interaction:', e);
+                        });
+                    }
                 }
             };
 

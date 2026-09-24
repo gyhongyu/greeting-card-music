@@ -77,13 +77,24 @@ function CardForgeApp() {
             if (localTpls) {
                 try { loadedTemplates = JSON.parse(localTpls); } catch (e) {}
             }
-            if (!loadedTemplates || loadedTemplates.length === 0) {
-                try {
-                    const res = await fetch('data/templates.json');
-                    if (res.ok) loadedTemplates = await res.json();
-                } catch (e) {
-                    console.warn('Failed to load data/templates.json', e);
+            try {
+                const res = await fetch('data/templates.json');
+                if (res.ok) {
+                    const jsonTpls = await res.json();
+                    if (!loadedTemplates || loadedTemplates.length === 0) {
+                        loadedTemplates = jsonTpls;
+                    } else {
+                        const map = new Map(loadedTemplates.map(t => [t.id, t]));
+                        jsonTpls.forEach(jt => {
+                            if (!map.has(jt.id)) {
+                                map.set(jt.id, jt);
+                            }
+                        });
+                        loadedTemplates = Array.from(map.values());
+                    }
                 }
+            } catch (e) {
+                console.warn('Failed to load data/templates.json', e);
             }
             setTemplates(loadedTemplates || []);
 

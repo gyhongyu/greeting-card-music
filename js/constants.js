@@ -26,6 +26,34 @@ window.DEFAULT_CARDS = [
 
 window.DEFAULT_TEMPLATES = [
     {
+        id: 'video-square-sky',
+        name: '1:1視頻播放模板 · 天穹奇蹟',
+        category: 'personal',
+        description: '1:1 正方形動態視訊光影 ✕ 邊緣羽化融化特效 ✕ 升騰星塵粒子。支援自訂視訊背景與照片層疊加。',
+        layout: 'cinematic-subtitles',
+        bgShader: 'none',
+        bgVideo: 'assets/videos/Miracle_Under_the_Sky.mp4',
+        subtitleUrl: 'assets/subtitles/Miracle_Under_the_Sky.srt',
+        videoFit: 'square-feather',
+        crawlSpeed: 42,
+        bgDimmer: 0.88,
+        bgBlur: 0,
+        theme: {
+            primaryColor: '#38bdf8',
+            accentColor: '#818cf8',
+            bgColor: '#030712',
+            textColor: '#f8fafc',
+            titleColor: '#38bdf8',
+            fontFamily: "'Noto Serif TC', 'Cormorant Garamond', serif",
+            styleClass: 'theme-video-sky'
+        },
+        effects: {
+            particleType: 'rising-stardust',
+            particleDensity: 25
+        },
+        defaultMusic: 'assets/audio/In Love With You.mp3'
+    },
+    {
         id: 'mothers-day',
         name: '典雅溫情 · 櫻花信箋',
         category: 'personal',
@@ -122,7 +150,8 @@ window.PARTICLE_OPTIONS = [
 window.LAYOUT_OPTIONS = [
     { value: 'star-wars-crawl', label: '🌌 星際大戰 · 滅點升空 (Star Wars 3D 透視深空飄遠縮小)' },
     { value: 'cinematic-credits', label: '🎬 電影卷軸 · 典雅信箋 (Cinematic Credits 平直等速滾動)' },
-    { value: 'cinematic-poster', label: '🖼️ 滿版海報 · 動態登場 (Cinematic Poster 全景海報動態特效)' }
+    { value: 'cinematic-poster', label: '🖼️ 滿版海報 · 動態登場 (Cinematic Poster 全景海報動態特效)' },
+    { value: 'cinematic-subtitles', label: '🎤 電影字幕 · 原聲同步 (Cinematic Subtitles 依時間浮現淡出)' }
 ];
 
 window.TEXT_REVEAL_OPTIONS = [

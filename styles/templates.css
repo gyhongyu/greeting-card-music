@@ -212,4 +212,108 @@ body.theme-festive-gold {
   padding-top: 0.5rem !important;
 }
 
+/* 8. 🎬 1:1 正方形視訊背景與邊緣羽化融化特效 (Square Video Feathering & Seamless Blend) */
+.video-square-container {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.video-square-element {
+  width: 100vmin;
+  height: 100vmin;
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  pointer-events: none;
+  /* 柔和平滑邊緣羽化，讓上下 (手機) 或左右 (PC) 與底層照片/背景完美融化 */
+  -webkit-mask-image: radial-gradient(circle at center, rgba(0,0,0,1) 58%, rgba(0,0,0,0.85) 72%, rgba(0,0,0,0) 98%);
+  mask-image: radial-gradient(circle at center, rgba(0,0,0,1) 58%, rgba(0,0,0,0.85) 72%, rgba(0,0,0,0) 98%);
+  will-change: transform, opacity;
+  box-shadow: 0 0 80px rgba(0,0,0,0.8);
+}
+
+/* VIDEO SKY (1:1 視訊播放 · 天穹奇蹟) */
+body.theme-video-sky {
+  --primary: #38bdf8;
+  --accent: #818cf8;
+  --bg: #030712;
+  --title-color: #38bdf8;
+  --title-glow: rgba(56, 189, 248, 0.95);
+  --crawl-duration: 42s;
+  --font-serif: 'Noto Serif TC', serif;
+}
+
+/* 9. 🎬 電影字幕 · 原聲同步 (Cinematic Subtitles Layout & Motion) */
+.cinematic-subtitles-stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  padding-bottom: 4.5rem;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  pointer-events: none;
+  z-index: 25;
+}
+
+.cinematic-subtitle-box {
+  max-width: 720px;
+  width: 100%;
+  text-align: center;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 75%);
+  padding: 1rem 1.5rem;
+  border-radius: 1rem;
+}
+
+.cinematic-subtitle-primary {
+  font-size: 1.25rem;
+  line-height: 1.4;
+  font-weight: 400;
+  color: #ffffff;
+  letter-spacing: 0.04em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9), 0 0 20px rgba(0, 0, 0, 0.6);
+  font-family: 'Cormorant Garamond', 'Noto Serif TC', serif;
+}
+
+.cinematic-subtitle-secondary {
+  font-size: 1.05rem;
+  line-height: 1.5;
+  margin-top: 0.35rem;
+  font-weight: 500;
+  color: var(--primary, #38bdf8);
+  letter-spacing: 0.06em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95), 0 0 16px rgba(56, 189, 248, 0.4);
+  font-family: 'Noto Serif TC', serif;
+}
+
+.anim-subtitle-enter {
+  animation: subtitleEnter 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes subtitleEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+    filter: blur(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0px);
+  }
+}
+
+
+
 

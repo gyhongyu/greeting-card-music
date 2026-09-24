@@ -393,6 +393,48 @@ window.GasClient = (function() {
         }
     }
 
+    /**
+     * 上傳字幕檔至 Google Drive 專屬資料夾 (CardForge_Subtitles)
+     * @param {string} fileName 檔名 (如 subtitle_xxx.srt)
+     * @param {string} content SRT 內容文字
+     * @returns {Promise<{success: boolean, url?: string, fileId?: string, error?: string}>}
+     */
+    async function uploadSubtitle(fileName, content) {
+        if (!content) {
+            return { success: false, error: "字幕內容不可為空" };
+        }
+
+        const payload = {
+            action: "upload_subtitle",
+            fileName: fileName || ("subtitle_" + Date.now() + ".srt"),
+            content: content
+        };
+
+        try {
+            const res = await fetch(config.GAS_API_URL, {
+                method: "POST",
+                mode: "cors",
+                headers: {
+                    "Content-Type": "text/plain;charset=utf-8"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+                throw new Error(`HTTP Error: ${res.status}`);
+            }
+
+            const data = await res.json();
+            return data;
+        } catch (err) {
+            console.error("[GasClient.uploadSubtitle] Error:", err);
+            return {
+                success: false,
+                error: err.message
+            };
+        }
+    }
+
     return {
         saveCard,
         getCard,
@@ -400,6 +442,7 @@ window.GasClient = (function() {
         saveTemplate,
         getTemplate,
         listTemplates,
-        batchSync
+        batchSync,
+        uploadSubtitle
     };
 })();

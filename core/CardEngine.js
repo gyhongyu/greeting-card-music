@@ -28,6 +28,100 @@
         const bgShaderSpeed = (template && template.bgShaderSpeed !== undefined) ? template.bgShaderSpeed : 1.0;
         const crawlDurationSec = (template && template.crawlSpeed) ? Number(template.crawlSpeed) : 44;
 
+        // 視訊背景參數支援 (Video Background Layer)
+        const bgVideo = (card && card.media && card.media.customVideo) || (template && template.bgVideo) || null;
+        const videoFit = (template && template.videoFit) || 'square-feather';
+
+        // 🎬 電影字幕支援 (Cinematic Subtitles)
+        const subtitleSource = (card && card.media && card.media.subtitleUrl) 
+            || (template && template.subtitleUrl) 
+            || ((layout === 'cinematic-subtitles' || template?.id === 'video-square-sky') ? 'assets/subtitles/Miracle_Under_the_Sky.srt' : null);
+
+        const [parsedSubtitles, setParsedSubtitles] = React.useState([]);
+        const [currentSubtitle, setCurrentSubtitle] = React.useState(null);
+        const videoElementRef = React.useRef(null);
+
+        // SRT 純文字解析函式 (純 JS 零依賴，容錯各種換行與時序格式)
+        const parseSRTText = React.useCallback((data) => {
+            if (!data || typeof data !== 'string') return [];
+            const parseTime = (tStr) => {
+                if (!tStr) return 0;
+                const clean = tStr.trim().replace(',', '.');
+                const parts = clean.split(':');
+                if (parts.length === 3) {
+                    return parseFloat(parts[0]) * 3600 + parseFloat(parts[1]) * 60 + parseFloat(parts[2]);
+                }
+                return 0;
+            };
+
+            const blocks = data.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split(/\n\s*\n/);
+            const list = [];
+            blocks.forEach(block => {
+                const lines = block.trim().split('\n');
+                if (lines.length >= 2) {
+                    const timeLine = lines[0].includes('-->') ? lines[0] : (lines[1].includes('-->') ? lines[1] : null);
+                    if (timeLine) {
+                        const [sStr, eStr] = timeLine.split('-->');
+                        const start = parseTime(sStr);
+                        const end = parseTime(eStr);
+                        const textLines = lines.slice(lines.indexOf(timeLine) + 1);
+                        if (textLines.length > 0) {
+                            list.push({
+                                start,
+                                end,
+                                primary: textLines[0] || '',
+                                secondary: textLines[1] || ''
+                            });
+                        }
+                    }
+                }
+            });
+            return list;
+        }, []);
+
+        // 載入字幕來源 (支援本機檔案、網址直連或內聯文字)
+        React.useEffect(() => {
+            if (!subtitleSource) {
+                setParsedSubtitles([]);
+                return;
+            }
+            if (subtitleSource.includes('-->')) {
+                setParsedSubtitles(parseSRTText(subtitleSource));
+            } else {
+                fetch(subtitleSource)
+                    .then(r => r.ok ? r.text() : '')
+                    .then(txt => {
+                        if (txt) setParsedSubtitles(parseSRTText(txt));
+                    })
+                    .catch(e => console.warn('Failed to load SRT:', e));
+            }
+        }, [subtitleSource, parseSRTText]);
+
+        // 時間同步監聽 (Time Sync Listener)
+        React.useEffect(() => {
+            if (layout !== 'cinematic-subtitles' || parsedSubtitles.length === 0) return;
+
+            const updateSubByTime = (sec) => {
+                const cur = parsedSubtitles.find(s => sec >= s.start && sec <= s.end);
+                setCurrentSubtitle(cur || null);
+            };
+
+            const videoEl = videoElementRef.current;
+            if (videoEl) {
+                const onTime = () => updateSubByTime(videoEl.currentTime);
+                videoEl.addEventListener('timeupdate', onTime);
+                return () => videoEl.removeEventListener('timeupdate', onTime);
+            } else {
+                // 若無影片則跟隨全局 audio 標籤或定時推展
+                const audioEl = document.querySelector('audio');
+                if (audioEl) {
+                    const onTime = () => updateSubByTime(audioEl.currentTime);
+                    audioEl.addEventListener('timeupdate', onTime);
+                    return () => audioEl.removeEventListener('timeupdate', onTime);
+                }
+            }
+        }, [layout, parsedSubtitles]);
+
         // 文字排版與字級微調 (Typography & Size Scaling)
         const fontFamily = theme.fontFamily || "'DFKai-SB', 'BiauKai', 'Kaiti SC', 'STKaiti', 'Noto Serif TC', serif";
         const fontSizeScale = Number(theme.fontSizeScale !== undefined ? theme.fontSizeScale : 1.0);
@@ -100,12 +194,35 @@
             }, photoElements));
         }
 
+        // 2.5 VIDEO BACKGROUND LAYER (1:1 視訊播放 ✕ 邊緣羽化融化特效)
+        if (bgVideo) {
+            rootChildren.push(h('div', {
+                key: 'video-bg-container',
+                className: 'video-square-container z-0'
+            }, [
+                h('video', {
+                    key: 'video-element',
+                    ref: videoElementRef,
+                    src: encodeURI(bgVideo),
+                    autoPlay: true,
+                    loop: true,
+                    muted: true,
+                    playsInline: true,
+                    preload: 'auto',
+                    className: 'video-square-element',
+                    style: {
+                        filter: `brightness(${bgBrightness}) saturate(1.08)`
+                    }
+                })
+            ]));
+        }
+
         // Vignette
         rootChildren.push(h('div', {
             key: 'vignette',
             className: 'absolute inset-0 pointer-events-none z-10',
             style: {
-                background: 'radial-gradient(circle at center, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.35) 100%)'
+                background: 'radial-gradient(circle at center, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.45) 100%)'
             }
         }));
 
@@ -397,6 +514,50 @@
                 className: 'w-full max-w-xl mx-auto space-y-4 text-center poster-content-stage',
                 style: { fontFamily: fontFamily }
             }, posterChildren)));
+        } else if (isStarted && layout === 'cinematic-subtitles') {
+            // 🎬 電影字幕 · 原聲同步 (Cinematic Subtitles Layout)
+            const subBoxChildren = [];
+
+            if (currentSubtitle) {
+                if (currentSubtitle.primary) {
+                    subBoxChildren.push(h('div', {
+                        key: 'sub-primary',
+                        className: 'cinematic-subtitle-primary',
+                        style: {
+                            fontFamily: fontFamily,
+                            fontSize: `calc(1.25rem * ${fontSizeScale})`
+                        }
+                    }, currentSubtitle.primary));
+                }
+                if (currentSubtitle.secondary) {
+                    subBoxChildren.push(h('div', {
+                        key: 'sub-secondary',
+                        className: 'cinematic-subtitle-secondary',
+                        style: {
+                            color: theme.primaryColor || '#38bdf8',
+                            fontSize: `calc(1.05rem * ${fontSizeScale})`
+                        }
+                    }, currentSubtitle.secondary));
+                }
+            } else {
+                // 無字幕區間展示靜態收件人/問候
+                if (card && card.recipient) {
+                    subBoxChildren.push(h('div', {
+                        key: 'sub-idle',
+                        className: 'text-xs sm:text-sm font-light tracking-widest text-zinc-400/80 uppercase'
+                    }, card.recipient));
+                }
+            }
+
+            rootChildren.push(h('div', {
+                key: 'cinematic-subtitles-stage',
+                className: 'cinematic-subtitles-stage'
+            }, [
+                h('div', {
+                    key: currentSubtitle ? `sub-${currentSubtitle.start}` : 'sub-empty',
+                    className: `cinematic-subtitle-box ${currentSubtitle ? 'anim-subtitle-enter' : 'opacity-40'}`
+                }, subBoxChildren)
+            ]));
         }
 
 

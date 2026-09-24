@@ -4,6 +4,38 @@
 
 ---
 
+### [2026-09-24] [UNREFINED] [cinematic_subtitles_and_drive_storage] 實作原聲同步「電影字幕機 (Cinematic Subtitles)」版型、純 JS SRT 解析器與 Google Drive 專屬資料夾 (CardForge_Subtitles) 雲端儲存通道
+- **類型**: `FEATURE` | `ARCHITECTURE` | `USER_EXPERIENCE`
+- **代碼錨點**: `core/CardEngine.js`, `styles/templates.css`, `js/constants.js`, `data/templates.json`, `js/editor_views.js`, `gas/Card_Gateway.gs`, `js/gas_client.js`
+- **核心事實 / 決策理由**:
+  1. **電影字幕機版型與原聲同步 (Cinematic Subtitles & TimeSync)**:
+     - 解決傳統漫遊滾動文字無法跟隨背景歌曲/原聲對話節奏的問題。
+     - 引入全新版型 `cinematic-subtitles`（🎤 電影字幕 · 原聲同步），在 `CardEngine.js` 內建輕量純 JS SRT 解析器，監聽視訊 `timeupdate` 時間軸，每句雙語字幕平滑以微縮浮現（`subtitleEnter`）登場、停留、淡出。
+  2. **Google Drive 專屬資料夾儲存 (CardForge_Subtitles)**:
+     - 根絕「Google Sheet 單一儲存格字元上限 (50,000 字元)」在長字幕/演講下容易撐爆損壞的死穴。
+     - 採用方案 1：在 `Card_Gateway.gs` 增設 `upload_subtitle` 動作，將上傳之 `.srt` 實體檔案歸檔至 Google Drive 專屬資料夾 `CardForge_Subtitles`，卡片僅儲存永久直連下載 URL，零儲存格壓力。
+     - 官方預設：將 `Miracle_Under_the_Sky.srt` 納入 `assets/subtitles/` 保底資產庫。
+  3. **門禁核驗**:
+     - `workspace.html` 保持 442 行（嚴格 ≤ 450 行門禁）。
+     - 零編譯純 JS，`file:///` 本地雙擊與線上 CDN 雙向秒開。
+
+
+### [2026-09-24] [UNREFINED] [square_video_template_and_audio_volume_control] 打造 1:1 正方形視訊播放模板 (video-square-sky)、實現邊緣羽化融化特效，並提供背景配樂音量微調與快速靜音
+- **類型**: `FEATURE` | `ARCHITECTURE` | `USER_EXPERIENCE`
+- **代碼錨點**: `data/templates.json`, `styles/templates.css`, `core/CardEngine.js`, `js/editor_views.js`, `play.html`
+- **核心事實 / 決策理由**:
+  1. **1:1 視訊正方形羽化融合設計 (Feathered Radial Mask)**:
+     - 解決方形視訊在手機 (9:16) 上下留空、PC (16:9) 左右留空引發的生硬切邊問題。
+     - 採用 CSS `radial-gradient` 遮罩 (`video-square-element`)，將視訊向外圍平滑羽化至透明，使視訊光影自然融化到底層相片輪播與背景漸變中，消滅死黑邊與切割線。
+  2. **視訊與音訊獨立管理 (Sound Separation & Volume Control)**:
+     - 背景視訊強制 `muted playsinline autoplay loop` 確保全端自動播放零阻礙。
+     - 解決部分視訊帶語音/歌手歌曲與背景音樂衝突的問題，在 `editor_views.js` 增設「配樂音量拉桿 (0%~100%)」與「一鍵快速靜音按鈕」。
+     - `play.html` 受眾端在開門點擊時讀取 `media.musicVolume` 比例，若設為 0 則完全不放音樂，平滑支援無聲或自訂音量。
+  3. **門禁核驗**:
+     - `workspace.html` 保持純粹組裝（嚴格 ≤ 450 行門禁）。
+     - 遵循「先攻克 1:1 視訊，穩定後再擴展 9:16 / 16:9」策略。
+
+
 ### [2026-09-24] [UNREFINED] [three_tier_player_isolation_and_wechat_clean_path] 受眾端播放器獨立為 play.html、根除首頁跳轉死循環、上線無狀態純路徑 /p/:id/:to 並固化前端影音錄製避坑指南
 - **類型**: `ARCHITECTURE` | `BUG_FIX` | `REFACTOR` | `POST_MORTEM`
 - **代碼錨點**: `play.html`, `index.html`, `cloudflare/worker_og_proxy.js`, `js/workspace_views.js`
