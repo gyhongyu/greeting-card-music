@@ -86,12 +86,20 @@
             const [uploadStatus, setUploadStatus] = React.useState(null);
             const [posterAutoLoop, setPosterAutoLoop] = React.useState(false);
             const [posterLoopInterval, setPosterLoopInterval] = React.useState(8);
+            const [syncStatus, setSyncStatus] = React.useState('synced');
             const fileInputRef = React.useRef(null);
 
             const showToast = (msg) => {
                 setToastMessage(msg);
                 setTimeout(() => setToastMessage(''), 3000);
             };
+
+            // 監聽 WorkspaceStore 背景差異同步狀態
+            React.useEffect(() => {
+                if (window.WorkspaceStore) {
+                    window.WorkspaceStore.onSyncStatusChange(status => setSyncStatus(status));
+                }
+            }, []);
 
             // 自動定時循環重播海報文字動態特效 (支援模板工坊與卡片編輯器即時動態預覽)
             React.useEffect(() => {
@@ -142,20 +150,32 @@
                                     });
                                 }
                             }).catch(() => {});
+
+                            window.GasClient.listTemplates().then(cloudTpls => {
+                                if (cloudTpls && cloudTpls.length > 0) {
+                                    setTemplates(prevTpls => {
+                                        const map = new Map(prevTpls.map(t => [t.id, t]));
+                                        cloudTpls.forEach(ct => {
+                                            map.set(ct.id, { ...(map.get(ct.id) || {}), ...ct });
+                                        });
+                                        return Array.from(map.values());
+                                    });
+                                }
+                            }).catch(() => {});
                         }
                     }
                 };
                 init();
             }, []);
 
-            const saveCards = (newCards) => {
+            const saveCards = (newCards, changedId) => {
                 setCards(newCards);
-                if (window.WorkspaceStore) window.WorkspaceStore.saveCards(newCards);
+                if (window.WorkspaceStore) window.WorkspaceStore.saveCards(newCards, changedId);
             };
 
-            const saveTemplates = (newTpls) => {
+            const saveTemplates = (newTpls, changedId) => {
                 setTemplates(newTpls);
-                if (window.WorkspaceStore) window.WorkspaceStore.saveTemplates(newTpls);
+                if (window.WorkspaceStore) window.WorkspaceStore.saveTemplates(newTpls, changedId);
             };
 
             const exportAllJSON = () => {
@@ -165,41 +185,21 @@
                 }
             };
 
-            const handleCloudPublish = async (targetCard) => {
-                if (!window.GasClient) {
-                    alert('未檢測到 GAS 客戶端模組');
-                    return;
-                }
+            const handleCloudPublish = (targetCard) => {
+                if (!targetCard) return;
+                const baseShare = window.CardForgeConfig?.SHARE_BASE_URL || window.CardForgeConfig?.FALLBACK_SHARE_URL || 'https://card.teaforia.in';
+                const shareUrl = `${baseShare}?id=${encodeURIComponent(targetCard.id)}`;
+
                 setCloudShareModal({
                     card: targetCard,
-                    shareUrl: '',
-                    isSaving: true,
-                    statusText: '正在同步至 Google Sheets 雲端中央台帳...'
+                    shareUrl: shareUrl,
+                    isSaving: false,
+                    statusText: '背景差異增量同步已生效'
                 });
 
-                const res = await window.GasClient.saveCard(targetCard);
-                if (res) {
-                    if (res.success) {
-                        if (res.id && res.id !== targetCard.id) {
-                            const updatedCards = cards.map(c => c.id === targetCard.id ? { ...c, id: res.id } : c);
-                            saveCards(updatedCards);
-                        }
-                        setCloudShareModal({
-                            card: targetCard,
-                            shareUrl: res.shareUrl,
-                            isSaving: false,
-                            statusText: '發布成功！社群動態預覽已就緒'
-                        });
-                        showToast('🎉 雲端儲存成功！已生成專屬短連結');
-                    } else {
-                        setCloudShareModal({
-                            card: targetCard,
-                            shareUrl: res.fallbackShareUrl || '',
-                            isSaving: false,
-                            statusText: `已自動為您切換為本機保底連結`
-                        });
-                        showToast('⚠️ 已切換為本地保底連結');
-                    }
+                // 立即觸發未發送的增量同步，保證雲端 SSOT 資料完整無損
+                if (window.WorkspaceStore) {
+                    window.WorkspaceStore.forceSyncNow(cards, templates);
                 }
             };
 
@@ -263,10 +263,10 @@
 
             const handleSaveTemplate = (updatedTpl) => {
                 const updated = templates.map(t => t.id === updatedTpl.id ? updatedTpl : t);
-                saveTemplates(updated);
+                saveTemplates(updated, updatedTpl.id);
                 setEditingTemplate(null);
                 setCurrentView('gallery');
-                showToast(`模板「${updatedTpl.name}」規格已成功保存！`);
+                showToast(`模板「${updatedTpl.name}」規格已保存並自動同步雲端！`);
             };
 
             // 處理使用者選取或拖曳上傳圖片 (WebP 極致壓縮 + ImgBB 直傳)
@@ -312,8 +312,8 @@
 
             const updateEditingCard = (fields) => {
                 if (!currentEditingCard) return;
-                const updated = cards.map(c => c.id === currentEditingCard.id ? { ...c, ...fields } : c);
-                saveCards(updated);
+                const updated = cards.map(c => c.id === currentEditingCard.id ? (window.WorkspaceStore ? window.WorkspaceStore.mergeCard(c, fields) : { ...c, ...fields }) : c);
+                saveCards(updated, currentEditingCard.id);
             };
 
             return (
@@ -345,6 +345,8 @@
                         onSaveTemplate={() => handleSaveTemplate(editingTemplate)}
                         onCloudPublish={() => handleCloudPublish(currentEditingCard)}
                         onExportAllJSON={exportAllJSON}
+                        syncStatus={syncStatus}
+                        onForceSync={() => window.WorkspaceStore && window.WorkspaceStore.forceSyncNow(cards, templates)}
                     />
 
                     {/* 首頁大畫廊 (默認進入！內部獨立流暢滾動) */}

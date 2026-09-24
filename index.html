@@ -284,7 +284,38 @@
                         setCurrentCard(targetCard);
                         const effectiveTemplateId = templateParam || (targetCard ? targetCard.templateId : 'mothers-day');
                         setActiveTemplateId(effectiveTemplateId);
-                        console.log("%c[6] 最終渲染模板 (Template ID):", "color: #fbbf24; font-weight: bold;", effectiveTemplateId);
+
+                        // 6. 模板雲端動態 SWR 同步 (確保預設或自訂模板在工坊修改後，公網受眾端能即時吃到最新規格)
+                        if (effectiveTemplateId && window.GasClient) {
+                            console.log("%c[6-TPL] 正在向雲端 SSOT 請求模板最新規格 (" + effectiveTemplateId + ")...", "color: #a855f7;");
+                            window.GasClient.getTemplate(effectiveTemplateId, (cloudTpl) => {
+                                if (cloudTpl) {
+                                    setTemplates(prev => {
+                                        const idx = prev.findIndex(t => t.id === cloudTpl.id);
+                                        if (idx >= 0) {
+                                            const updated = [...prev];
+                                            updated[idx] = cloudTpl;
+                                            return updated;
+                                        }
+                                        return [...prev, cloudTpl];
+                                    });
+                                }
+                            }).then(cloudTpl => {
+                                if (cloudTpl) {
+                                    setTemplates(prev => {
+                                        const idx = prev.findIndex(t => t.id === cloudTpl.id);
+                                        if (idx >= 0) {
+                                            const updated = [...prev];
+                                            updated[idx] = cloudTpl;
+                                            return updated;
+                                        }
+                                        return [...prev, cloudTpl];
+                                    });
+                                    console.log("%c[6-TPL] 🎉 雲端最新模板覆蓋成功:", "color: #4ade80;", cloudTpl.name);
+                                }
+                            }).catch(() => {});
+                        }
+                        console.log("%c[7] 最終渲染模板 (Template ID):", "color: #fbbf24; font-weight: bold;", effectiveTemplateId);
                         console.groupEnd();
 
                     } catch (err) {

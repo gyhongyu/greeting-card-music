@@ -4,6 +4,24 @@
 
 ---
 
+### [2026-09-24] [UNREFINED] [cloud_ssot] [diff_sync] 卡片與模板雙軌雲端 SSOT 重構、背景差異增量防抖同步 (Diff-Sync) 與深層安全合併落盤
+- **類型**: `FEATURE` | `REFACTOR` | `ARCHITECTURE` | `RESILIENCE`
+- **代碼錨點**: `gas/Card_Gateway.gs`, `js/gas_client.js`, `js/workspace_store.js`, `js/workspace_views.js`, `workspace.html`, `index.html`
+- **核心事實 / 決策理由**:
+  1. **徹底解決「手動保存」孤島脫節與雙軌脫鉤**:
+     - 過去卡片僅存在本地 `localStorage`，手動按發布才備份至 GAS；模板則完全無雲端同步機制，導致受眾端打開自訂模板卡片時必然走樣。
+     - 全面重構為 **本地即時響應 (Optimistic UI 0ms) ＋ 背景防抖差異增量同步 (Background Batch Diff-Sync)** 模型。
+  2. **三大關鍵技術突破**:
+     - **深層安全合併 (Deep Merge)**：在 `js/workspace_store.js` 實現 `deepMergeCard`，徹底根除 `updateEditingCard` 淺層解構沖掉 `media.customMusic` 等巢狀設定之隱患。
+     - **差異增量防抖引擎 (Diff-Sync Engine)**：維護 `dirtyCardIds` 與 `dirtyTemplateIds` 髒標記，防抖 2.5 秒批量打包發送至 GAS，避免頻繁請求；頂部導覽列即時回饋「🟢 雲端已同步 / 🔄 同步中 / 🟡 離線保底」。
+     - **受眾端動態 SWR 模板拉取**：公網受眾端 (`index.html`) 若遇本地未收錄之自訂模板，自動發起雲端 SWR 查詢補齊並快取，公網展示 100% 絕不走樣。
+  3. **寫後校驗 (Read-After-Write Verification)**:
+     - GAS 網關增加 `Templates_Store` 工作表與 `batch_sync` 接口，回傳真實儲存資料並由前端回填快取，確保雲端 SSOT 資料完整無損。
+  4. **嚴格守護架構門禁**:
+     - `workspace.html` 嚴格維持 439 行（門禁 ≤ 450 行），零 JSX 模組化規範 100% 合規。
+
+---
+
 ### [2026-09-24] [UNREFINED] [gas_governance] 全域 gas_clasp_manager 自動化建庫與獨立持久化網關上雲
 - **類型**: `FEATURE` | `DEVOPS` | `INFRASTRUCTURE`
 - **代碼錨點**: `gas/Card_Gateway.gs`, `js/config.js`, `gas_clasp_manager/projects_registry.json`

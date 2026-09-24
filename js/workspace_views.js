@@ -371,7 +371,9 @@
         setEditorPreviewDevice,
         onSaveTemplate,
         onCloudPublish,
-        onExportAllJSON
+        onExportAllJSON,
+        syncStatus,
+        onForceSync
     }) {
         const isGallery = currentView === 'gallery';
         const isTplEditor = currentView === 'template_editor';
@@ -471,35 +473,39 @@
                     )
                 ) : null,
 
+                // 雲端即時差異同步狀態燈 (Sync Status Badge)
+                h('button', {
+                    type: 'button',
+                    onClick: () => {
+                        if (typeof onForceSync === 'function') onForceSync();
+                    },
+                    className: 'flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-zinc-900 border border-zinc-800 text-[11px] font-mono select-none transition-colors hover:border-zinc-700 cursor-pointer',
+                    title: syncStatus === 'syncing' ? '正在背景批量差異同步至 Google Sheet SSOT...' : (syncStatus === 'synced' ? '雲端資料庫已同步最新版 (點擊可立即重檢)' : '暫時本機保底，連線後自動補發 (點擊可立即重試)')
+                },
+                    syncStatus === 'syncing' ? h('i', { className: 'fa-solid fa-arrows-rotate fa-spin text-sky-400 text-[10px]' }) :
+                    syncStatus === 'offline' ? h('span', { className: 'w-2 h-2 rounded-full bg-amber-400 animate-pulse' }) :
+                    h('span', { className: 'w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]' }),
+                    h('span', {
+                        className: syncStatus === 'syncing' ? 'text-sky-300' : (syncStatus === 'offline' ? 'text-amber-300' : 'text-zinc-400')
+                    }, syncStatus === 'syncing' ? '同步中' : (syncStatus === 'offline' ? '離線保底(點擊重試)' : '已同步'))
+                ),
+
                 isTplEditor && editingTemplate ? h('button', {
                     onClick: onSaveTemplate,
-                    className: 'px-4 py-1.5 text-xs rounded bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold flex items-center gap-1.5 shadow-lg shadow-indigo-500/25 transition-all border border-indigo-400/40',
+                    className: 'px-4 py-1.5 text-xs rounded bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold flex items-center gap-1.5 shadow-lg shadow-indigo-500/25 transition-all border border-indigo-400/40 cursor-pointer',
                     title: '保存當前模板視覺與 3D 特效規格'
                 },
                     h('i', { className: 'fa-solid fa-floppy-disk' }),
-                    h('span', null, '保存模板規格')
+                    h('span', null, '保存模板')
                 ) : null,
 
                 (!isGallery && !isTplEditor) ? h('button', {
                     onClick: onCloudPublish,
-                    className: 'px-3.5 py-1.5 text-xs rounded bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold flex items-center gap-1.5 shadow-lg shadow-sky-500/20 transition-all border border-sky-400/30',
-                    title: '儲存至 Google Sheet SSOT 並取得社群預覽分享短網址'
+                    className: 'px-3.5 py-1.5 text-xs rounded bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold flex items-center gap-1.5 shadow-lg shadow-sky-500/20 transition-all border border-sky-400/30 cursor-pointer',
+                    title: '取得社群預覽分享短網址與 WhatsApp 專屬導語'
                 },
-                    h('i', { className: 'fa-solid fa-cloud-arrow-up' }),
-                    h('span', null, '發布至雲端 (免 Commit)')
-                ) : null,
-
-                !isTplEditor ? h('button', {
-                    onClick: () => {
-                        const cardId = currentEditingCard?.id || (cardsCount > 0 ? 'default' : '');
-                        const targetUrl = cardId ? `index.html?id=${encodeURIComponent(cardId)}&preview=1` : 'index.html?preview=1';
-                        window.open(targetUrl, '_blank');
-                    },
-                    className: 'px-3.5 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-zinc-950 font-bold text-xs flex items-center gap-1.5 shadow-lg shadow-amber-400/20 transition-all cursor-pointer',
-                    title: '以受眾真實視角本地全螢幕預覽當前賀卡 (無需發布至雲端)'
-                },
-                    h('i', { className: 'fa-solid fa-eye text-[11px]' }),
-                    h('span', null, '本地預覽')
+                    h('i', { className: 'fa-solid fa-share-nodes text-[11px]' }),
+                    h('span', null, '分享卡片')
                 ) : null
             )
         );

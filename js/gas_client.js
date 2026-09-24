@@ -1,13 +1,17 @@
 /**
  * ☁️ CardForge 雲端資料客戶端 (gas_client.js)
- * 提供 Google Sheet SSOT 儲存、讀取與 SWR 本地快取秒開機制
+ * 提供 Google Sheet SSOT 儲存、讀取、SWR 本地快取秒開機制，
+ * 以及卡片 ＋ 模板 雙軌差異增量批量同步 (Batch Diff-Sync) 與寫後校驗 (Read-After-Write Verification)
  */
 
 window.GasClient = (function() {
     const config = window.CardForgeConfig || {
         GAS_API_URL: "https://script.google.com/macros/s/AKfycbxcSYXocdTxhvYRq0A5eXsJqYvOI0xImay63Au9FSmolEwlbJ0My5Gr0aWUcvVpx8AiIA/exec",
-        STORAGE_PREFIX: "cardforge_cache_"
+        STORAGE_PREFIX: "cardforge_cache_",
+        TPL_STORAGE_PREFIX: "cardforge_tpl_cache_"
     };
+
+    const TPL_PREFIX = config.TPL_STORAGE_PREFIX || "cardforge_tpl_cache_";
 
     /**
      * 儲存卡片至 Google Sheet 雲端 SSOT
@@ -19,7 +23,6 @@ window.GasClient = (function() {
             return { success: false, error: "卡片資料不可為空" };
         }
 
-        // 若無 ID 則自動生成
         if (!card.id) {
             card.id = "c_" + Date.now().toString(36) + Math.random().toString(36).substr(2, 4);
         }
@@ -37,7 +40,6 @@ window.GasClient = (function() {
                 console.warn("localStorage quota exceeded", e);
             }
 
-            // 發送至 GAS 網關
             const res = await fetch(config.GAS_API_URL, {
                 method: "POST",
                 mode: "cors",
@@ -56,6 +58,14 @@ window.GasClient = (function() {
                 const finalId = data.id || card.id;
                 const baseShare = config.SHARE_BASE_URL || config.FALLBACK_SHARE_URL;
                 const shareUrl = `${baseShare}?id=${encodeURIComponent(finalId)}`;
+
+                // 寫後校驗 (Read-After-Write Verification)
+                if (data.card && data.card.id === finalId) {
+                    try {
+                        localStorage.setItem(config.STORAGE_PREFIX + finalId, JSON.stringify(data.card));
+                    } catch (e) {}
+                }
+
                 return {
                     success: true,
                     id: finalId,
@@ -68,7 +78,6 @@ window.GasClient = (function() {
 
         } catch (err) {
             console.error("[GasClient.saveCard] Error:", err);
-            // 雲端失敗時降級方案：依然提供本地生成的 ID 與 Hash 分享網址
             const baseShare = config.FALLBACK_SHARE_URL || window.location.origin;
             return {
                 success: false,
@@ -89,7 +98,6 @@ window.GasClient = (function() {
     async function getCard(cardId, onBackgroundUpdate) {
         if (!cardId) return null;
 
-        // 1. SWR 第一步：嘗試從本地 localStorage 取得快取 (0ms 秒開)
         let cachedCard = null;
         try {
             const raw = localStorage.getItem(config.STORAGE_PREFIX + cardId);
@@ -100,11 +108,10 @@ window.GasClient = (function() {
             console.warn("Failed to read cache", e);
         }
 
-        // 2. SWR 第二步：向 GAS 發起非同步查詢以取得最新版本
         const fetchPromise = (async () => {
             try {
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 4000); // 4秒超時
+                const timeoutId = setTimeout(() => controller.abort(), 4000);
 
                 const res = await fetch(`${config.GAS_API_URL}?action=get_card&id=${encodeURIComponent(cardId)}`, {
                     signal: controller.signal
@@ -118,7 +125,6 @@ window.GasClient = (function() {
                             localStorage.setItem(config.STORAGE_PREFIX + cardId, JSON.stringify(data.card));
                         } catch (e) {}
 
-                        // 若提供了背景更新回調，且資料有變更則觸發
                         if (typeof onBackgroundUpdate === "function") {
                             onBackgroundUpdate(data.card);
                         }
@@ -131,12 +137,10 @@ window.GasClient = (function() {
             return null;
         })();
 
-        // 若本地已有快取，直接回傳本地快取，背景繼續更新
         if (cachedCard) {
             return cachedCard;
         }
 
-        // 若本地無快取，等待雲端結果
         const cloudCard = await fetchPromise;
         return cloudCard;
     }
@@ -167,9 +171,228 @@ window.GasClient = (function() {
         return [];
     }
 
+    /**
+     * 儲存模板至 Google Sheet 雲端 SSOT
+     * @param {Object} template 模板物件
+     * @returns {Promise<{success: boolean, id: string, error?: string}>}
+     */
+    async function saveTemplate(template) {
+        if (!template) {
+            return { success: false, error: "模板資料不可為空" };
+        }
+
+        if (!template.id) {
+            template.id = "tpl-" + Date.now();
+        }
+
+        const payload = {
+            action: "save_template",
+            template: template
+        };
+
+        try {
+            try {
+                localStorage.setItem(TPL_PREFIX + template.id, JSON.stringify(template));
+            } catch (e) {}
+
+            const res = await fetch(config.GAS_API_URL, {
+                method: "POST",
+                mode: "cors",
+                headers: {
+                    "Content-Type": "text/plain;charset=utf-8"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+                throw new Error(`HTTP Error: ${res.status}`);
+            }
+
+            const data = await res.json();
+            if (data.success) {
+                const finalId = data.id || template.id;
+                if (data.template) {
+                    try {
+                        localStorage.setItem(TPL_PREFIX + finalId, JSON.stringify(data.template));
+                    } catch (e) {}
+                }
+                return {
+                    success: true,
+                    id: finalId,
+                    message: "模板已成功同步至雲端"
+                };
+            } else {
+                throw new Error(data.error || "GAS 網關返回失敗");
+            }
+        } catch (err) {
+            console.error("[GasClient.saveTemplate] Error:", err);
+            return {
+                success: false,
+                id: template.id,
+                error: err.message,
+                isLocalFallback: true
+            };
+        }
+    }
+
+    /**
+     * 讀取模板 (SWR 漸進快取模式，供受眾端動態拉取自訂模板)
+     * @param {string} templateId 模板 ID
+     * @param {function} onBackgroundUpdate 若背景更新成功時的回調
+     * @returns {Promise<Object|null>}
+     */
+    async function getTemplate(templateId, onBackgroundUpdate) {
+        if (!templateId) return null;
+
+        let cachedTpl = null;
+        try {
+            const raw = localStorage.getItem(TPL_PREFIX + templateId);
+            if (raw) {
+                cachedTpl = JSON.parse(raw);
+            }
+        } catch (e) {}
+
+        const fetchPromise = (async () => {
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+                const res = await fetch(`${config.GAS_API_URL}?action=get_template&id=${encodeURIComponent(templateId)}`, {
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.success && data.template) {
+                        try {
+                            localStorage.setItem(TPL_PREFIX + templateId, JSON.stringify(data.template));
+                        } catch (e) {}
+
+                        if (typeof onBackgroundUpdate === "function") {
+                            onBackgroundUpdate(data.template);
+                        }
+                        return data.template;
+                    }
+                }
+            } catch (err) {
+                console.warn("[GasClient.getTemplate] Cloud fetch error / timeout:", err.message);
+            }
+            return null;
+        })();
+
+        if (cachedTpl) {
+            return cachedTpl;
+        }
+
+        const cloudTpl = await fetchPromise;
+        return cloudTpl;
+    }
+
+    /**
+     * 獲取公開雲端模板清單
+     * @returns {Promise<Array>}
+     */
+    async function listTemplates() {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3500);
+
+            const res = await fetch(`${config.GAS_API_URL}?action=list_templates`, {
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success && Array.isArray(data.templates)) {
+                    return data.templates;
+                }
+            }
+        } catch (err) {
+            console.warn("[GasClient.listTemplates] Fallback to local templates", err.message);
+        }
+        return [];
+    }
+
+    /**
+     * 後台批量增量差異同步 (Batch Diff-Sync)
+     * @param {{cards?: Array, templates?: Array}} diffPayload 差異資料
+     * @returns {Promise<{success: boolean, syncedCards: Array, syncedTemplates: Array, error?: string}>}
+     */
+    async function batchSync(diffPayload) {
+        const cardsToSync = diffPayload?.cards || [];
+        const tplsToSync = diffPayload?.templates || [];
+
+        if (cardsToSync.length === 0 && tplsToSync.length === 0) {
+            return { success: true, syncedCards: [], syncedTemplates: [], message: "No dirty items to sync" };
+        }
+
+        const payload = {
+            action: "batch_sync",
+            cards: cardsToSync,
+            templates: tplsToSync
+        };
+
+        try {
+            const res = await fetch(config.GAS_API_URL, {
+                method: "POST",
+                mode: "cors",
+                headers: {
+                    "Content-Type": "text/plain;charset=utf-8"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+                throw new Error(`HTTP Error: ${res.status}`);
+            }
+
+            const data = await res.json();
+            if (data.success) {
+                // 寫後校驗 (Read-After-Write Verification)：回填快取
+                if (Array.isArray(data.syncedCards)) {
+                    data.syncedCards.forEach(item => {
+                        if (item.card && item.id) {
+                            try {
+                                localStorage.setItem(config.STORAGE_PREFIX + item.id, JSON.stringify(item.card));
+                            } catch (e) {}
+                        }
+                    });
+                }
+                if (Array.isArray(data.syncedTemplates)) {
+                    data.syncedTemplates.forEach(item => {
+                        if (item.template && item.id) {
+                            try {
+                                localStorage.setItem(TPL_PREFIX + item.id, JSON.stringify(item.template));
+                            } catch (e) {}
+                        }
+                    });
+                }
+                return {
+                    success: true,
+                    syncedCards: data.syncedCards || [],
+                    syncedTemplates: data.syncedTemplates || []
+                };
+            } else {
+                throw new Error(data.error || "Batch sync failed");
+            }
+        } catch (err) {
+            console.warn("[GasClient.batchSync] Warning / Error:", err.message);
+            return {
+                success: false,
+                error: err.message
+            };
+        }
+    }
+
     return {
         saveCard,
         getCard,
-        listCards
+        listCards,
+        saveTemplate,
+        getTemplate,
+        listTemplates,
+        batchSync
     };
 })();
