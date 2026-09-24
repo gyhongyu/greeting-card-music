@@ -190,6 +190,48 @@
             return `${formattedCaption}\n\n${finalShareUrl}`;
         }, [card.shareCaption, recipientPrefix, recipientName, finalShareUrl]);
 
+        // 微信 9:16 短影音匯出狀態
+        const [isExportingVideo, setIsExportingVideo] = React.useState(false);
+        const [exportProgress, setExportProgress] = React.useState(0);
+
+        // 啟動短影音生成
+        const handleExportVideo = async () => {
+            if (!window.CardVideoExporter) {
+                onShowToast('⚠️ 影音引擎尚未載入完畢，請重新整理頁面');
+                return;
+            }
+            setIsExportingVideo(true);
+            setExportProgress(0);
+            try {
+                const targetRecipient = computedFullRecipient || card.recipient || '親愛的朋友：';
+                const result = await window.CardVideoExporter.exportVideo({
+                    card: card,
+                    recipientFullText: targetRecipient,
+                    durationSec: 10,
+                    fps: 30,
+                    onProgress: p => setExportProgress(p)
+                });
+
+                // 自動觸發下載
+                const cleanName = (recipientName.trim() || '客製').replace(/[^\w\u4e00-\u9fa5]/g, '_');
+                const downloadUrl = URL.createObjectURL(result.blob);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = `CardForge_${cleanName}_9-16.${result.extension}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(downloadUrl), 5000);
+
+                onShowToast(`🎉 已成功生成 9:16 短影音！已開始下載`);
+            } catch (err) {
+                console.error('[ExportVideo] 失敗:', err);
+                onShowToast('⚠️ 生成影音時發生錯誤，請稍後再試');
+            } finally {
+                setIsExportingVideo(false);
+            }
+        };
+
         // 複製純網址
         const handleCopyUrlOnly = () => {
             navigator.clipboard.writeText(finalShareUrl);
@@ -333,6 +375,40 @@
                                 h('i', { className: 'fa-brands fa-whatsapp text-sm' }),
                                 h('span', null, '發送 WhatsApp')
                             )
+                        )
+                    ),
+
+                    // 2.5 微信專屬 9:16 短影音生成卡片 (免被封、帶音樂、帶人名)
+                    h('div', { className: 'p-3 bg-gradient-to-r from-purple-950/40 to-indigo-950/40 rounded-lg border border-purple-800/40 space-y-2 text-xs' },
+                        h('div', { className: 'flex items-center justify-between' },
+                            h('span', { className: 'text-purple-300 font-bold flex items-center gap-1.5 text-xs' },
+                                h('i', { className: 'fa-solid fa-film text-purple-400' }),
+                                h('span', null, '微信專屬：9:16 直式客製短影音 (MP4)')
+                            ),
+                            h('span', { className: 'text-[10px] text-purple-400/90 font-mono' }, '零跳轉 ✕ 帶稱謂 ✕ 自帶漸消音樂')
+                        ),
+                        h('p', { className: 'text-[11px] text-zinc-400 leading-relaxed' },
+                            '將當前卡片、專屬稱謂 (',
+                            h('span', { className: 'text-purple-300 font-medium' }, computedFullRecipient || '親愛的朋友'),
+                            ') 與動態音樂合成 10 秒精緻短影音，直接當作微信影片秒發好友！'
+                        ),
+                        isExportingVideo ? h('div', { className: 'space-y-1.5 pt-1' },
+                            h('div', { className: 'w-full bg-zinc-800 rounded-full h-2 overflow-hidden' },
+                                h('div', {
+                                    className: 'bg-purple-500 h-2 transition-all duration-150',
+                                    style: { width: `${exportProgress}%` }
+                                })
+                            ),
+                            h('div', { className: 'flex justify-between text-[10px] text-zinc-400 font-mono' },
+                                h('span', null, '正在逐幀渲染專屬星空與淡出音樂...'),
+                                h('span', { className: 'text-purple-300 font-bold' }, `${exportProgress}%`)
+                            )
+                        ) : h('button', {
+                            onClick: handleExportVideo,
+                            className: 'w-full py-2 px-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded text-xs flex items-center justify-center gap-2 shadow-lg transition-all active:scale-95'
+                        },
+                            h('i', { className: 'fa-solid fa-wand-magic-sparkles text-amber-300' }),
+                            h('span', null, `一鍵生成【${computedFullRecipient || '專屬客製'}】10秒短影音`)
                         )
                     ),
 
