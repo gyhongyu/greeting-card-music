@@ -109,28 +109,52 @@
             return `親愛的 ${trimmedName}：`;
         }, [recipientPrefix, recipientName]);
 
-        // 計算專屬帶參 URL (根據選中的分發網域切換，並帶入 ?to=...)
+        // 計算專屬帶參 URL (根據選中的分發網域切換，自訂網域優先採用無狀態路徑 /p/:id/:to 杜絕微信截斷)
         const finalShareUrl = React.useMemo(() => {
             if (!baseShareUrl) return '';
             
-            // 將原本網址的 origin/base 替換為使用者選中的特定自訂域名
-            let urlToUse = baseShareUrl;
+            // 提取 cardId
+            let cardId = card.id || '';
+            try {
+                const parsed = new URL(baseShareUrl);
+                cardId = parsed.searchParams.get('id') || card.id || '';
+            } catch (e) {
+                const m = baseShareUrl.match(/[?&]id=([^&]+)/);
+                if (m) cardId = decodeURIComponent(m[1]);
+            }
+
+            // 選中的分發域名 origin (例如 https://card.teaforia.in)
+            let chosenOrigin = '';
             if (selectedDomain) {
                 try {
+                    chosenOrigin = new URL(selectedDomain).origin;
+                } catch (e) {}
+            }
+
+            // 純淨姓名：僅傳遞姓名本身，自動過濾空格與標點
+            const toVal = recipientName.trim().replace(/[，,：:！!。.、\s]/g, '');
+
+            // 若在自訂網域或線上環境：使用 100% 防微信截斷的無狀態短路徑 /p/:id/:to
+            if (chosenOrigin && (chosenOrigin.includes('teaforia.in') || chosenOrigin.includes('foxlink.co.in'))) {
+                return toVal 
+                    ? `${chosenOrigin}/p/${encodeURIComponent(cardId)}/${encodeURIComponent(toVal)}`
+                    : `${chosenOrigin}/p/${encodeURIComponent(cardId)}`;
+            }
+
+            // 本地 file:// 或其他環境回退為標準 play.html 查詢參數
+            let urlToUse = baseShareUrl;
+            if (chosenOrigin) {
+                try {
                     const parsed = new URL(baseShareUrl);
-                    const chosen = new URL(selectedDomain);
-                    urlToUse = `${chosen.origin}${parsed.pathname === '/' ? '' : parsed.pathname}${parsed.search}`;
+                    urlToUse = `${chosenOrigin}${parsed.pathname === '/' ? '/play.html' : parsed.pathname}${parsed.search}`;
                 } catch (e) {
                     urlToUse = baseShareUrl;
                 }
             }
-
-            // 純淨 URL 參數：僅傳遞姓名本身，自動過濾空格與標點 (避免逗號 %2C 與空格 %20 造成微信等社群軟體截斷)
-            const toVal = recipientName.trim().replace(/[，,：:！!。.、\s]/g, '');
             if (!toVal) return urlToUse;
             const sep = urlToUse.includes('?') ? '&' : '?';
             return `${urlToUse}${sep}to=${encodeURIComponent(toVal)}`;
-        }, [baseShareUrl, selectedDomain, recipientName]);
+        }, [baseShareUrl, selectedDomain, recipientName, card.id]);
 
         // 計算兩行式分享訊息 (社群導語首句智能拼接對象稱呼)
         const fullShareMessage = React.useMemo(() => {

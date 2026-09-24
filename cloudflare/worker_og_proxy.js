@@ -19,6 +19,9 @@ const GAS_API_URL = "https://script.google.com/macros/s/AKfycbygCbbP4RjhzgtHrkfM
 // 社群爬蟲特徵正則 (嚴格比對 User-Agent)
 const BOT_UA_REGEX = /facebookexternalhit|Facebot|Twitterbot|LinkedInBot|WhatsApp|LineBot|Discordbot|TelegramBot|Slackbot|SkypeUriPreview|Google-Structured-Data-Testing-Tool|baiduspider|bingbot/i;
 
+// 路徑式 URL 正則：匹配 /p/:cardId 或 /p/:cardId/:recipientName (同時相容 /c/ 前綴)
+const CLEAN_PATH_REGEX = /^\/(?:p|c)\/([^\/]+?)(?:\/([^\/]+?))?\/?$/;
+
 addEventListener('fetch', event => {
   event.respondWith(handleRequest(event.request));
 });
@@ -26,17 +29,35 @@ addEventListener('fetch', event => {
 async function handleRequest(request) {
   const url = new URL(request.url);
   const userAgent = request.headers.get("user-agent") || "";
-  const cardId = url.searchParams.get("id");
-
-  // 判斷是否為社群爬蟲
   const isSocialBot = BOT_UA_REGEX.test(userAgent);
 
-  // 若有帶 cardId 且為社群爬蟲，啟動「邊緣 OG 動態注入」
+  // ━━━ 1. 無狀態路徑解析 (/p/:cardId/:to 或 /c/:cardId/:to) ━━━
+  const pathMatch = url.pathname.match(CLEAN_PATH_REGEX);
+  if (pathMatch) {
+    let cardId = decodeURIComponent(pathMatch[1]);
+    let recipientName = pathMatch[2] ? decodeURIComponent(pathMatch[2]) : "";
+
+    // 爬蟲造訪：直接動態產生 OG 預覽卡片
+    if (isSocialBot) {
+      return handleBotPreview(request, url, cardId);
+    }
+
+    // 一般人類/微信瀏覽器：302 重定向至 play.html (帶參數)，保證微信內整條路徑高亮不截斷
+    const targetUrl = new URL("/play.html", url.origin);
+    targetUrl.searchParams.set("id", cardId);
+    if (recipientName) {
+      targetUrl.searchParams.set("to", recipientName);
+    }
+    return Response.redirect(targetUrl.toString(), 302);
+  }
+
+  // ━━━ 2. 傳統 QueryString (?id=...) ━━━
+  const cardId = url.searchParams.get("id");
   if (isSocialBot && cardId) {
     return handleBotPreview(request, url, cardId);
   }
 
-  // 若為普通人類訪客，直接反代透傳至 GitHub Pages 靜態播放器
+  // 普通人類訪客造訪根路徑或其他檔案：透傳至 GitHub Pages
   return proxyToGitHubPages(request, url);
 }
 
