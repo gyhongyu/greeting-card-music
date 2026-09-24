@@ -14,7 +14,7 @@
 
 // 配置：您的 GitHub Pages 原始主機與 GAS 網關網址
 const GITHUB_PAGES_ORIGIN = "https://gyhongyu.github.io/greeting-card-music";
-const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxcSYXocdTxhvYRq0A5eXsJqYvOI0xImay63Au9FSmolEwlbJ0My5Gr0aWUcvVpx8AiIA/exec"; // 可替換為專屬網關
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbygCbbP4RjhzgtHrkfM6LN59JC8G3Plc58P8xgj15t5dctZn-s9TRaZUDxlye2S-o92/exec";
 
 // 社群爬蟲特徵正則 (嚴格比對 User-Agent)
 const BOT_UA_REGEX = /facebookexternalhit|Facebot|Twitterbot|LinkedInBot|WhatsApp|LineBot|Discordbot|TelegramBot|Slackbot|SkypeUriPreview|Google-Structured-Data-Testing-Tool|baiduspider|bingbot/i;
@@ -44,7 +44,7 @@ export default {
 async function handleBotPreview(request, url, cardId) {
   let title = "CardForge - 沉浸式音樂賀卡";
   let description = "為您獻上一份充滿星空、音樂與真摯祝福的專屬多媒體賀卡。";
-  let imageUrl = "https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=1200&q=80";
+  let imageUrl = "https://i.ibb.co/YFsSdsjg/share-cover-webp.webp";
 
   try {
     // 嘗試向 GAS 查詢卡片元數據 (設 2.5 秒超時避免爬蟲等太久)
@@ -66,7 +66,10 @@ async function handleBotPreview(request, url, cardId) {
         } else if (card.description) {
           description = card.description;
         }
-        if (card.media && card.media.photos && card.media.photos.length > 0) {
+        // 優先使用自訂社群封面 coverImage，其次相片，無則保持全局預設
+        if (card.coverImage) {
+          imageUrl = card.coverImage;
+        } else if (card.media && card.media.photos && card.media.photos.length > 0) {
           imageUrl = card.media.photos[0];
         } else if (card.imageUrl) {
           imageUrl = card.imageUrl;

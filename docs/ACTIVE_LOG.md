@@ -4,6 +4,21 @@
 
 ---
 
+### [2026-09-24] [UNREFINED] [og_image_preview_fix] 受眾端首頁補齊全套 Open Graph / Twitter Card 預覽圖標籤，並升級 Cloudflare 邊緣動態代理
+- **類型**: `FEATURE` | `SOCIAL_PREVIEW` | `BUG_FIX`
+- **代碼錨點**: `index.html`, `cloudflare/worker_og_proxy.js`
+- **核心事實 / 決策理由**:
+  1. **病灶精確鎖定**:
+     - `index.html` 的 `<head>` 區塊遺漏了 Open Graph 標籤，導致 WhatsApp、LINE、Facebook 爬蟲訪問時抓不到 `og:image`，預覽圖空白。
+  2. **雙軌根治改造**:
+     - **靜態保底注入**: 在 `index.html` 注入完整 `og:image`、`og:title`、`og:description` 與 Twitter Card 標籤，指向 CardForge 專屬發光封面圖 (`https://i.ibb.co/YFsSdsjg/share-cover-webp.webp`)，確保默認狀態下 100% 呈現高質感封面。
+     - **邊緣動態代理升級**: 同步升級 `cloudflare/worker_og_proxy.js`，對齊最新 GAS 端點，並優先解析卡片自訂 `card.coverImage` 欄位，支援未來自訂封面秒級動態透傳。
+  3. **門禁核驗**:
+     - `workspace.html` 保持 441 行（嚴格 ≤ 450 行門禁）。
+     - 本地暫存提交，嚴格遵守使用者指示「先不推送遠端倉庫，等待後續 Bug 一同推送」。
+
+---
+
 ### [2026-09-24] [UNREFINED] [template_typography_width_scale_fix] 全面移除懸停/點擊暫停機制、解除字級 !important 暴力覆蓋、加入 flexShrink:0 徹底解鎖板面寬度與字級拉桿
 - **類型**: `BUG_FIX` | `REFACTOR` | `USER_EXPERIENCE`
 - **代碼錨點**: `styles/templates.css`, `core/CardEngine.js`
