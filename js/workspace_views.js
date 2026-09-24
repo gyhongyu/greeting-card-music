@@ -125,8 +125,8 @@
                 }
             }
 
-            // 純淨 URL 參數：僅傳遞姓名本身，避免逗號 %2C 與空格 %20 造成微信等社群軟體截斷
-            const toVal = recipientName.trim();
+            // 純淨 URL 參數：僅傳遞姓名本身，自動過濾空格與標點 (避免逗號 %2C 與空格 %20 造成微信等社群軟體截斷)
+            const toVal = recipientName.trim().replace(/[，,：:！!。.、\s]/g, '');
             if (!toVal) return urlToUse;
             const sep = urlToUse.includes('?') ? '&' : '?';
             return `${urlToUse}${sep}to=${encodeURIComponent(toVal)}`;
@@ -136,9 +136,9 @@
         const fullShareMessage = React.useMemo(() => {
             const rawCaption = card.shareCaption || '{name}，佳節愉快！這是一張為你特別定製的 3D 星空賀卡，祝你一切順心：';
             
-            // 決定導語開頭顯示的對象呼喚 (例如: Dear Danny, 或 王總， 或 親愛的 Danny，)
+            // 決定導語開頭顯示的對象呼喚 (例如: Dear Danny, 或 王總， 或 親愛的 Danny，)，過濾重複標點
             let saluteText = '朋友，';
-            const trimmedName = recipientName.trim();
+            const trimmedName = recipientName.trim().replace(/[，,：:！!。.、]/g, '');
             if (trimmedName) {
                 if (recipientPrefix === 'Dear') {
                     saluteText = `Dear ${trimmedName}, `;
