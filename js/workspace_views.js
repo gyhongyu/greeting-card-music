@@ -370,6 +370,7 @@
         editorPreviewDevice,
         setEditorPreviewDevice,
         onSaveTemplate,
+        onSaveCard,
         onCloudPublish,
         onExportAllJSON,
         syncStatus,
@@ -434,11 +435,17 @@
                 )
             ) : h('div', { className: 'flex items-center gap-3' },
                 h('button', {
-                    onClick: () => setCurrentView('gallery'),
+                    onClick: () => {
+                        if (typeof onSaveCard === 'function') {
+                            onSaveCard();
+                        } else {
+                            setCurrentView('gallery');
+                        }
+                    },
                     className: 'px-4 py-1.5 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-amber-400 hover:bg-zinc-800 text-amber-300 font-bold text-xs flex items-center gap-2 shadow transition-all',
-                    title: '已實時自動儲存，點擊返回卡片庫'
+                    title: '保存修改並同步雲端，返回卡片庫'
                 },
-                    h('i', { className: 'fa-solid fa-arrow-left' }),
+                    h('i', { className: 'fa-solid fa-cloud-arrow-up' }),
                     h('span', null, '保存並返回卡片庫')
                 ),
                 h('span', { className: 'text-zinc-500 text-xs' }, '|'),

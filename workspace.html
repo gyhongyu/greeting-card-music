@@ -304,7 +304,24 @@
             const updateEditingCard = (fields) => {
                 if (!currentEditingCard) return;
                 const updated = cards.map(c => c.id === currentEditingCard.id ? (window.WorkspaceStore ? window.WorkspaceStore.mergeCard(c, fields) : { ...c, ...fields }) : c);
-                saveCards(updated, currentEditingCard.id);
+                setCards(updated);
+                // 純本地快取保存 (所見即所得秒開，絕不在編輯中斷打雲端)
+                if (window.WorkspaceStore) window.WorkspaceStore.saveCardsLocal(updated);
+            };
+
+            const handleSaveCurrentCard = async () => {
+                if (!currentEditingCard) {
+                    setCurrentView('gallery');
+                    return;
+                }
+                // 明確保存並標記為 dirty 啟動雲端同步
+                saveCards(cards, currentEditingCard.id);
+                setCurrentView('gallery');
+                showToast(`卡片「${currentEditingCard.name}」已保存並啟動雲端同步！`);
+                // 立即觸發同步
+                if (window.WorkspaceStore) {
+                    window.WorkspaceStore.forceSyncNow(cards, templates);
+                }
             };
 
             return (
@@ -334,6 +351,7 @@
                         editorPreviewDevice={editorPreviewDevice}
                         setEditorPreviewDevice={setEditorPreviewDevice}
                         onSaveTemplate={() => handleSaveTemplate(editingTemplate)}
+                        onSaveCard={handleSaveCurrentCard}
                         onCloudPublish={() => handleCloudPublish(currentEditingCard)}
                         onExportAllJSON={exportAllJSON}
                         syncStatus={syncStatus}

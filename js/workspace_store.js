@@ -132,14 +132,21 @@
         },
 
         /**
-         * 持久化卡片陣列至 LocalStorage，並將變更的卡片標記為 dirty 啟動背景增量同步
+         * 僅持久化卡片至 LocalStorage (編輯器實時草稿所見即所得，絕不向雲端發請求)
          */
-        saveCards(cards, changedCardId) {
+        saveCardsLocal(cards) {
             try {
                 localStorage.setItem(STORAGE_KEY_CARDS, JSON.stringify(cards));
             } catch (e) {
                 console.error('Failed to save cards to localStorage', e);
             }
+        },
+
+        /**
+         * 持久化卡片陣列至 LocalStorage，並將變更的卡片標記為 dirty 啟動雲端同步
+         */
+        saveCards(cards, changedCardId) {
+            this.saveCardsLocal(cards);
 
             if (changedCardId) {
                 dirtyCardIds.add(changedCardId);

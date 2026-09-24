@@ -5,13 +5,20 @@
  */
 
 window.GasClient = (function() {
-    const config = window.CardForgeConfig || {
-        GAS_API_URL: "https://script.google.com/macros/s/AKfycbxcSYXocdTxhvYRq0A5eXsJqYvOI0xImay63Au9FSmolEwlbJ0My5Gr0aWUcvVpx8AiIA/exec",
-        STORAGE_PREFIX: "cardforge_cache_",
-        TPL_STORAGE_PREFIX: "cardforge_tpl_cache_"
-    };
+    const config = new Proxy({}, {
+        get(target, prop) {
+            const current = window.CardForgeConfig || {};
+            if (prop in current) return current[prop];
+            const fallback = {
+                GAS_API_URL: "https://script.google.com/macros/s/AKfycbygCbbP4RjhzgtHrkfM6LN59JC8G3Plc58P8xgj15t5dctZn-s9TRaZUDxlye2S-o92/exec",
+                STORAGE_PREFIX: "cardforge_cache_",
+                TPL_STORAGE_PREFIX: "cardforge_tpl_cache_"
+            };
+            return fallback[prop];
+        }
+    });
 
-    const TPL_PREFIX = config.TPL_STORAGE_PREFIX || "cardforge_tpl_cache_";
+    const TPL_PREFIX = "cardforge_tpl_cache_";
 
     /**
      * 儲存卡片至 Google Sheet 雲端 SSOT

@@ -112,10 +112,10 @@
 
                 h('div', { className: 'shrink-0 pt-3 border-t border-zinc-800 flex items-center justify-between text-[11px] text-zinc-500' },
                     h('div', { className: 'flex items-center gap-1.5' },
-                        h('i', { className: 'fa-solid fa-cloud text-emerald-400 text-[10px]' }),
-                        h('span', null, '實時自動儲存 (Auto-Saved)')
+                        h('i', { className: 'fa-solid fa-floppy-disk text-amber-400 text-[10px]' }),
+                        h('span', null, '本地草稿即時生效 (Local Draft)')
                     ),
-                    h('span', { className: 'text-[10px] text-zinc-600 font-mono' }, '頂部統一操作')
+                    h('span', { className: 'text-[10px] text-zinc-500' }, '點擊頂部保存同步雲端')
                 )
             ),
 

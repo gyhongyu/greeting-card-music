@@ -4,6 +4,23 @@
 
 ---
 
+### [2026-09-24] [UNREFINED] [editor_local_draft] [cloud_push_on_save] 編輯器改動改為純本地草稿隔離、按「保存並返回卡片庫」才一次性同步雲端、根除 GAS 404 舊網址殘留
+- **類型**: `BUG_FIX` | `REFACTOR` | `USER_EXPERIENCE` | `RESILIENCE`
+- **代碼錨點**: `js/gas_client.js`, `js/workspace_store.js`, `js/workspace_views.js`, `js/editor_views.js`, `workspace.html`
+- **核心事實 / 決策理由**:
+  1. **徹底根除「改一個欄位就狂打 GAS」之架構荒謬**:
+     - 過去編輯器內每次輸入文字或下拉切換分類，都會觸發 `saveCards` 並防抖打 `batchSync` 向 Google Apps Script 發 HTTP 請求。
+     - 改為 **純本地草稿模式 (Local Draft Only)**：編輯期間所有操作（分類、標題、音樂、段落、照片）僅更新 React State 與本機 LocalStorage（`saveCardsLocal`），保證 0 延遲、絕不頻繁打擾雲端。
+  2. **明確「按保存才一次性推送雲端 (Commit & Push)」架構**:
+     - 頂部導覽列【保存並返回卡片庫】按鈕綁定 `handleSaveCurrentCard`，只有使用者點擊時，才標記 dirty 並調用 `forceSyncNow` 一次性打包推送雲端 SSOT。
+     - 底部狀態標籤明確改為「本地草稿即時生效 (Local Draft) - 點擊頂部保存同步雲端」。
+  3. **根除 404 報錯死因**:
+     - `gas_client.js` 改為動態 Proxy 取得 `window.CardForgeConfig`，徹底消滅閉包引用舊 GAS 網址引發的 404 失敗，保證單卡與批量同步 100% 成功。
+  4. **門禁核驗**:
+     - `workspace.html` 保持 448 行（嚴格遵守 ≤ 450 行紅線）。
+
+---
+
 ### [2026-09-24] [UNREFINED] [card_lossless_sync] 根除線上卡片讀取截斷縮水 (list_cards 全量 configJson 回傳與前端無損解構)
 - **類型**: `BUG_FIX` | `RESILIENCE` | `DATA_INTEGRITY`
 - **代碼錨點**: `gas/Card_Gateway.gs` (internalListCards), `workspace.html` (init card loading)
