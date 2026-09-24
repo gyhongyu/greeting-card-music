@@ -4,6 +4,13 @@
  * 1. 'silk-smoke' (Template A: Raw WebGL dark silk with golden ambient smoke drift)
  * 2. 'particle-orbit' (Template B: Three.js fibonacci particle sphere with gold orbital ring)
  * 3. 'hologram' (Template C: Cyan & violet digital point cloud)
+ * 4. 'lunar-clouds' (Template D: Super Moon & Ethereal Flowing Night Clouds)
+ * 5. 'golden-mooncake' (Template E: Photorealistic 3D Mooncake with studio lighting)
+ *
+ * ⚠️ MOBILE WEBGL SHADER INVARIANT (行動端著色器鐵律):
+ * 1. 嚴禁使用 fract(sin(...) * 43758.5453)！在 Mali/Adreno 行動端 GPU 會嚴重浮點截斷產生馬賽克碎片。
+ * 2. 強制使用 Dave Hoskins 無 sine 雜湊演算法 (Hash without Sine)。
+ * 3. 片段著色器頂部一律包含 #ifdef GL_FRAGMENT_PRECISION_HIGH 精度自適應防禦。
  */
 
 window.BackdropShader = (function () {
@@ -58,9 +65,18 @@ window.BackdropShader = (function () {
         let animId = null;
         const VERT = "attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}";
         const FRAG = [
+            "#ifdef GL_FRAGMENT_PRECISION_HIGH",
             "precision highp float;",
+            "#else",
+            "precision mediump float;",
+            "#endif",
             "uniform vec2 u_res;uniform float u_time;uniform float u_opacity;uniform float u_speed;",
-            "float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123);}",
+            "// Mobile-Safe GLSL PRNG (Dave Hoskins Hash without Sine - 100% immune to mobile GPU float truncation)",
+            "float hash(vec2 p){",
+            " vec3 p3=fract(vec3(p.xyx)*0.1031);",
+            " p3+=vec3(dot(p3,p3.yzx+33.33));",
+            " return fract((p3.x+p3.y)*p3.z);",
+            "}",
             "float noise(vec2 p){vec2 i=floor(p);vec2 f=fract(p);f=f*f*(3.-2.*f);",
             " return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}",
             "float fbm(vec2 p){float v=0.;float a=.5;",
@@ -293,9 +309,18 @@ window.BackdropShader = (function () {
         let animId = null;
         const VERT = "attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}";
         const FRAG = [
+            "#ifdef GL_FRAGMENT_PRECISION_HIGH",
             "precision highp float;",
+            "#else",
+            "precision mediump float;",
+            "#endif",
             "uniform vec2 u_res;uniform float u_time;uniform float u_opacity;uniform float u_speed;",
-            "float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123);}",
+            "// Mobile-Safe GLSL PRNG (Dave Hoskins Hash without Sine - 100% immune to mobile GPU float truncation)",
+            "float hash(vec2 p){",
+            " vec3 p3=fract(vec3(p.xyx)*0.1031);",
+            " p3+=vec3(dot(p3,p3.yzx+33.33));",
+            " return fract((p3.x+p3.y)*p3.z);",
+            "}",
             "float noise(vec2 p){vec2 i=floor(p);vec2 f=fract(p);f=f*f*(3.-2.*f);",
             " return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}",
             "float fbm(vec2 p){float v=0.;float a=.5;",
@@ -333,13 +358,25 @@ window.BackdropShader = (function () {
             const s = gl.createShader(t);
             gl.shaderSource(s, src);
             gl.compileShader(s);
+            if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+                console.warn("[BackdropShader] compile error:", gl.getShaderInfoLog(s));
+                return null;
+            }
             return s;
         }
 
+        const vs = compile(gl.VERTEX_SHADER, VERT);
+        const fs = compile(gl.FRAGMENT_SHADER, FRAG);
+        if (!vs || !fs) return () => {};
+
         const prog = gl.createProgram();
-        gl.attachShader(prog, compile(gl.VERTEX_SHADER, VERT));
-        gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, FRAG));
+        gl.attachShader(prog, vs);
+        gl.attachShader(prog, fs);
         gl.linkProgram(prog);
+        if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+            console.warn("[BackdropShader] link error:", gl.getProgramInfoLog(prog));
+            return () => {};
+        }
 
         const buf = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, buf);
