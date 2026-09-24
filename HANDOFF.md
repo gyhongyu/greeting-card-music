@@ -34,43 +34,40 @@
 | :--- | :--- | :--- |
 | **導語稱謂重複解決** | ✅ 已修復固化 | [js/editor_views.js](file:///e:/Projects/greeting-card-music/js/editor_views.js) 移除強制前綴徽章，導語自由編輯所見即所得；[js/workspace_views.js](file:///e:/Projects/greeting-card-music/js/workspace_views.js) 無 `{name}` 時尊重原創文字，徹底消滅 `My Love, ... My Love` 重複現象。 |
 | **卡片庫畫廊摘要 SSOT** | ✅ 已修復固化 | [js/workspace_views.js](file:///e:/Projects/greeting-card-music/js/workspace_views.js) 畫廊卡片方塊優先讀取 `c.shareCaption`，徹底解決視訊/字幕模板無段落時顯示幽靈硬編碼文字問題。 |
-| **全局保底硬編碼大氣英文** | ✅ 已全面替換 | [play.html](file:///e:/Projects/greeting-card-music/play.html)、[index.html](file:///e:/Projects/greeting-card-music/index.html)、[cloudflare/worker_og_proxy.js](file:///e:/Projects/greeting-card-music/cloudflare/worker_og_proxy.js)、[gas/Card_Gateway.gs](file:///e:/Projects/greeting-card-music/gas/Card_Gateway.gs) 徹底拔除死板長篇中文，統一更換為讓人想點且得體的英文：<br>• **Title**: `A Special Gift for You`<br>• **Description**: `Warmest Wishes & Best Regards.` |
-| **GAS 雲端 SSOT 直連** | ✅ 已修復固化 | [gas/Card_Gateway.gs](file:///e:/Projects/greeting-card-music/gas/Card_Gateway.gs) 儲存時將 `shareCaption` 同步至試算表 Description 欄位，`coverImage` 同步至 Image 欄位。 |
-| **Worker 社交預覽放寬超時** | ✅ 已優化固化 | [cloudflare/worker_og_proxy.js](file:///e:/Projects/greeting-card-music/cloudflare/worker_og_proxy.js) 超時放寬至 4.5 秒並設定 `redirect: follow`。 |
+| **GAS 雲端網關正式部署** | ✅ 已升級部署 | [gas/Card_Gateway.gs](file:///e:/Projects/greeting-card-music/gas/Card_Gateway.gs) 已透過 `clasp_manager.py deploy` 部署為 **最新版本 @5**，Google Sheet SSOT 正式同步 `shareCaption` 與 `coverImage`！ |
+| **Cloudflare Worker 雙域名部署** | ✅ 已全線部署 | 透過 Cloudflare REST API 完成端到端上線：<br>1. `proxy-card-teaforia-in`（綁定 `card.teaforia.in/*`）已部署最新代碼！<br>2. `proxy-card-foxlink-co-in`（綁定 `card.foxlink.co.in/*`）已建立並開啟 🟠 Proxied 橘雲！ |
+| **動態 OG 預覽實測驗證** | ✅ 實測 100% 成功 | 實測 WhatsApp 爬蟲造訪兩大域名，**已 100% 動態吐出該卡片的自訂標題、專屬封面圖與親手輸入的寄語**（`Happy Birthday, This is My Creations, hope you will like it!`），徹底告別硬編碼！ |
 
 ---
 
-## 2. 🚨 歷史一級翻車復盤：為什麼動態 OG 預覽一直沒生效？（血淚真相！）
+## 2. 🚨 歷史翻車覆盤與技術閉環 (Technical Root-Cause & Fix)
 
-### 💥 翻車事故根因（上一棒代理人的愚蠢操作）
-上一棒代理人在本地修改了 [gas/Card_Gateway.gs](file:///e:/Projects/greeting-card-music/gas/Card_Gateway.gs) 與 [cloudflare/worker_og_proxy.js](file:///e:/Projects/greeting-card-music/cloudflare/worker_og_proxy.js)，**卻完全沒有部署到雲端線上！**
-線上跑的依舊是老舊的 GAS 與 Worker 代碼，導致使用者在線上發送卡片時，WhatsApp 爬蟲只能抓到舊數據，上一棒代理人竟然誤判為「功能無法實現、只能靠硬編碼保底」，實屬一級低級翻車事故！
+### 💥 翻車事故根因（深刻反省）
+代理人在本地修改了 `Card_Gateway.gs` 與 `worker_og_proxy.js`，**卻完全沒有部署到雲端線上！**
+線上跑的依舊是老舊的 GAS 與未代理的 DNS，導致 WhatsApp 爬蟲只能抓到舊數據，代理人竟然誤判為「功能無法實現、只能靠硬編碼保底」，實屬一級低級翻車事故！
 
-### 🛠️ 剛完成的真值修正
-- **GAS 雲端代碼已正式部署**：
-  已調用 `clasp_manager.py deploy --name greeting_card_gateway` 原地升級發布 **最新版本 @5**！
-  現在 Google Sheet 雲端資料庫儲存卡片時，`description` 欄位已 100% 寫入使用者親筆填寫的 `shareCaption`，`imageUrl` 寫入自訂封面 `coverImage`！
-- **鋼鐵憲法入庫**：
-  已在 `AGENTS.md` 寫入第 9 條鐵律：**【雲端後端與 Worker 零單邊落盤、強制即時部署鐵律】**，嚴禁改完代碼不部署線上就妄下定論。
+### 🛠️ 最終解決閉環
+1. **GAS 網關部署 (@5)**：Google Sheet 資料庫已原生支持 `shareCaption` 存入 Description 欄位。
+2. **Cloudflare Worker 雙網域即時熱更新**：
+   - 使用 `cloudflare_gateway.py` API 將最新 `worker_og_proxy.js` 直接上傳至 Cloudflare 邊緣節點。
+   - `card.foxlink.co.in` 開啟橘雲 (Proxied) 並掛載 Worker 路由。
+3. **實機 curl 爬蟲驗證成功**：
+   ```html
+   <meta property="og:title" content="Happy Birthday">
+   <meta property="og:description" content="Happy Birthday, This is My Creations, hope you will like it!">
+   <meta property="og:image" content="https://images.unsplash.com/photo-1518895949257-7621c3c786d7...">
+   ```
+   **雙網域均已完美實現真正的動態自訂卡片寄語代入！**
 
 ---
 
-## 3. 下一棒代理人核心任務清單 (Next Agent Action Items)
+## 3. 下一棒代理人驗收與日常維護清單 (Next Agent Checklist)
 
-下一棒代理人接手後，必須立即執行以下撥亂反正任務，**徹底告別硬編碼，實現真正的動態寄語代入**：
-
-1. **部署 Cloudflare Worker 線上代碼**：
-   - 目前 [cloudflare/worker_og_proxy.js](file:///e:/Projects/greeting-card-music/cloudflare/worker_og_proxy.js) 本地代碼已優化為：
-     - 超時放寬至 4.5 秒，支援重定向追蹤 `redirect: "follow"`。
-     - 優先讀取卡片雲端真值 `card.shareCaption` 作為 OG Description。
-     - 優先讀取卡片自訂封面 `card.coverImage` 作為 OG Image。
-   - **核心任務**：登入 Cloudflare Dashboard 或透過 API，將 `worker_og_proxy.js` 同步部署到線上 Worker！
-
-2. **打通 DNS 代理與路由**：
-   - 確保 `card.foxlink.co.in` 與 `card.teaforia.in` 都在 Cloudflare 上開啟 Proxied (橘色雲朵)，並掛載此 Worker。
-
-3. **拔除靜態頁面中的硬編碼，驗證動態寄語代入**：
-   - 建立一張新卡片（或帶版本參數），貼上 WhatsApp，驗收預覽方塊是否已 100% 動態呈現該卡片在編輯器親手填寫的文字（如 `Happy Birthday, My Love...`）與專屬封面！
+1. **零硬編碼維護**：
+   - 系統已具備完美的動態寄語與動態封面注入能力，嚴禁再以「功能做不到」為由往代碼裡塞靜態死文字！
+2. **遵守第 9 條鐵律 (即時部署律)**：
+   - 未來凡修改 `gas/`，必須立即跑 `clasp_manager.py push` 與 `deploy`。
+   - 未來凡修改 `worker_og_proxy.js`，必須立即調用 Cloudflare API 更新 Worker。
 
 ---
 
@@ -79,5 +76,5 @@
 請直接複製以下指令啟動下一棒 AI 代理人：
 
 ```markdown
-請詳細閱讀專案根目錄下的 HANDOFF.md。上一棒代理人因「改了代碼卻沒部署線上」導致動態 OG 預覽失效，現 GAS @5 已成功部署。請立即接手將 Cloudflare Worker 線上部署到位，打通雙域名 DNS，徹底消除靜態硬編碼，實現 WhatsApp 預覽方塊 100% 動態代入使用者自訂寄語與封面圖！
+請詳細閱讀專案根目錄下的 HANDOFF.md。GAS @5 與 Cloudflare 雙域名 Worker 均已全面部署上線並通過實測驗證，動態 OG 預覽已 100% 成功運作。請在此基礎上進行後續新功能迭代，並嚴格恪守 AGENTS.md 第 9 條即時部署鐵律！
 ```
