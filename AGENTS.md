@@ -52,6 +52,7 @@
    - ⚡ **GAS 強制部署閉環**：凡修改 `gas/` 代碼，必須強制立即執行：
      1. `py C:\Users\9892\.gemini\config\skills\gas_clasp_manager\scripts\clasp_manager.py push --name greeting_card_gateway`（推送至 GAS HEAD）
      2. `py C:\Users\9892\.gemini\config\skills\gas_clasp_manager\scripts\clasp_manager.py deploy --name greeting_card_gateway --desc "部署說明"`（原地升級發布新版本 Web App）
-   - 🌐 **Cloudflare Worker 強制部署**：凡修改 `cloudflare/worker_og_proxy.js`，必須立即主動確認線上 Worker 腳本已完成同步更新或調用 API 部署，嚴禁自欺欺人！
+   - 🌐 **Cloudflare Worker 強制部署**：凡修改 `cloudflare/worker_og_proxy.js`，必須立即執行專案標準部署指令：
+     👉 `py scripts\deploy_worker.py`（一鍵熱推至 `card.teaforia.in` 與 `card.foxlink.co.in` 邊緣節點並核驗 DNS 橘雲）！
    - 🚨 **違者視為一級翻車事故**：嚴禁在未完成雲端部署前宣稱功能完成或妄下斷言「功能無法實現只能硬編碼」！
 </RULE[development_invariants]>

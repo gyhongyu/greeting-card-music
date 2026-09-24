@@ -66,8 +66,11 @@
 1. **零硬編碼維護**：
    - 系統已具備完美的動態寄語與動態封面注入能力，嚴禁再以「功能做不到」為由往代碼裡塞靜態死文字！
 2. **遵守第 9 條鐵律 (即時部署律)**：
-   - 未來凡修改 `gas/`，必須立即跑 `clasp_manager.py push` 與 `deploy`。
-   - 未來凡修改 `worker_og_proxy.js`，必須立即調用 Cloudflare API 更新 Worker。
+   - 未來凡修改 `gas/`，必須立即跑：
+     `py C:\Users\9892\.gemini\config\skills\gas_clasp_manager\scripts\clasp_manager.py push --name greeting_card_gateway`
+     `py C:\Users\9892\.gemini\config\skills\gas_clasp_manager\scripts\clasp_manager.py deploy --name greeting_card_gateway --desc "部署說明"`
+   - 未來凡修改 `worker_og_proxy.js`，必須立即跑專案一鍵熱推指令：
+     👉 `py scripts\deploy_worker.py`（自動同步部署至 `card.teaforia.in` 與 `card.foxlink.co.in` 並校驗橘雲）！
 
 ---
 
