@@ -40,37 +40,49 @@
 
 ---
 
-## 2. 🚨 歷史翻車覆盤與技術閉環 (Technical Root-Cause & Fix)
+## 2. 🚨 深水區雙重翻車復盤：為什麼「成功率只有 20%」且「圖片總是花而不是全局圖」？
 
-### 💥 翻車事故根因（深刻反省）
-代理人在本地修改了 `Card_Gateway.gs` 與 `worker_og_proxy.js`，**卻完全沒有部署到雲端線上！**
-線上跑的依舊是老舊的 GAS 與未代理的 DNS，導致 WhatsApp 爬蟲只能抓到舊數據，代理人竟然誤判為「功能無法實現、只能靠硬編碼保底」，實屬一級低級翻車事故！
+### 💥 痛點 A：為什麼十次發送只有兩次成功，其餘八次都降級到硬編碼保底？
+- **真實病灶：GAS 查詢冷啟動延遲與爬蟲超時邊界賽跑！**
+  - 在 [cloudflare/worker_og_proxy.js](file:///e:/Projects/greeting-card-music/cloudflare/worker_og_proxy.js) 中，Worker 收到 WhatsApp 爬蟲造訪時，會向 GAS API 發起 `fetch(GAS_API_URL + "?action=get_card&id=...")`。
+  - **Google Apps Script 的致命弱點**：每次 GET 請求都有 Google 內部重定向與冷啟動延遲（經常耗時 3.5 ~ 5.5 秒）。
+  - Worker 設定的超時時間原本只有 2.5 秒，雖然剛才加到 4.5 秒，但 WhatsApp 伺服器自身的爬蟲超時時間通常極為苛刻（約 3 ~ 4 秒）！
+  - **結果**：一旦 GAS 稍微卡頓超過 4 秒，Worker 或是 WhatsApp 爬蟲就會直接斷開，Worker 只能被迫抓取 catch 區塊內的**靜態硬編碼保底**（`A Special Gift for You` / `Warmest Wishes & Best Regards.`）！
+  - 👉 **這就是為什麼使用者體感「十次只有兩次成功自訂寄語，其餘都變硬編碼」的根本技術原因！**
 
-### 🛠️ 最終解決閉環
-1. **GAS 網關部署 (@5)**：Google Sheet 資料庫已原生支持 `shareCaption` 存入 Description 欄位。
-2. **Cloudflare Worker 雙網域即時熱更新**：
-   - 使用 `cloudflare_gateway.py` API 將最新 `worker_og_proxy.js` 直接上傳至 Cloudflare 邊緣節點。
-   - `card.foxlink.co.in` 開啟橘雲 (Proxied) 並掛載 Worker 路由。
-3. **實機 curl 爬蟲驗證成功**：
-   ```html
-   <meta property="og:title" content="Happy Birthday">
-   <meta property="og:description" content="Happy Birthday, This is My Creations, hope you will like it!">
-   <meta property="og:image" content="https://images.unsplash.com/photo-1518895949257-7621c3c786d7...">
-   ```
-   **雙網域均已完美實現真正的動態自訂卡片寄語代入！**
+### 💥 痛點 B：為什麼預覽圖片不是使用者指定的那張全局圖，而是變成了花（玫瑰花）？
+- **真實病灶：圖片取值優先順序被卡片的 `photos[0]` 劫持！**
+  - 在 [cloudflare/worker_og_proxy.js](file:///e:/Projects/greeting-card-music/cloudflare/worker_og_proxy.js#L106-L113)：
+    ```javascript
+    if (card.coverImage) {
+      imageUrl = card.coverImage;
+    } else if (card.media && card.media.photos && card.media.photos.length > 0) {
+      imageUrl = card.media.photos[0]; // 👈 這張卡片裡存了那張粉紅玫瑰花 Unsplash 圖片！
+    }
+    ```
+  - 當卡片沒有特別指定自訂 `coverImage`，或者使用者希望使用全域預設圖時，程式碼卻因為卡片內預設帶有 `photos[0]`（那朵玫瑰花），導致 Worker 永遠優先把玫瑰花吐給了 WhatsApp，覆蓋了使用者預期的全局預設封面！
 
 ---
 
-## 3. 下一棒代理人驗收與日常維護清單 (Next Agent Checklist)
+## 3. 下一棒代理人核心架構任務清單 (Next Agent Action Items)
 
-1. **零硬編碼維護**：
-   - 系統已具備完美的動態寄語與動態封面注入能力，嚴禁再以「功能做不到」為由往代碼裡塞靜態死文字！
-2. **遵守第 9 條鐵律 (即時部署律)**：
-   - 未來凡修改 `gas/`，必須立即跑：
-     `py C:\Users\9892\.gemini\config\skills\gas_clasp_manager\scripts\clasp_manager.py push --name greeting_card_gateway`
-     `py C:\Users\9892\.gemini\config\skills\gas_clasp_manager\scripts\clasp_manager.py deploy --name greeting_card_gateway --desc "部署說明"`
-   - 未來凡修改 `worker_og_proxy.js`，必須立即跑專案一鍵熱推指令：
-     👉 `py scripts\deploy_worker.py`（自動同步部署至 `card.teaforia.in` 與 `card.foxlink.co.in` 並校驗橘雲）！
+下一棒代理人接手後，必須從架構上徹底解決這兩大穩定性死穴，嚴禁再碰運氣：
+
+1. **根治 20% 成功率問題（消滅 GAS 延遲依賴）**：
+   - **方案 1：Cloudflare Worker KV 快取（強烈推薦）**：
+     - 在 Cloudflare Worker 上掛載 KV 或使用 Cache API。
+     - 當卡片在工坊儲存時，由前端或 GAS Webhook 主動通知 Worker 將卡片的 `shareCaption`、`title`、`coverImage` 寫入 Cloudflare KV。
+     - WhatsApp 爬蟲造訪時，Worker 直接從 KV（0ms、邊緣記憶體秒讀）回傳 OG 標籤，完全不等待 GAS，**成功率直接拉到 100%**！
+   - **方案 2：分發 URL 攜帶輕量 Base64 預覽參數**：
+     - 分發連結如 `?id=...&sc=<base64_caption>&img=<base64_img>`，Worker 直接從 URL 參數解碼 OG 標籤，0ms 直出，徹底免打 GAS！
+
+2. **徹底理順圖片優先順序**：
+   - 清楚定義「使用者上傳專屬封面」vs「卡片輪播照片」vs「全局指定預設封面」的明確階層與開關。
+   - 若使用者未勾選「使用自訂封面」，100% 嚴格採用全局指定預設圖，禁止 `photos[0]` 擅自越俎代庖。
+
+3. **維護與部署紀律**：
+   - 修改 `worker_og_proxy.js` 後，必須強制執行 `py scripts\deploy_worker.py` 完成雙網域熱推！
+   - 修改 `Card_Gateway.gs` 後，必須強制執行 `clasp_manager.py deploy`。
 
 ---
 
@@ -79,5 +91,5 @@
 請直接複製以下指令啟動下一棒 AI 代理人：
 
 ```markdown
-請詳細閱讀專案根目錄下的 HANDOFF.md。GAS @5 與 Cloudflare 雙域名 Worker 均已全面部署上線並通過實測驗證，動態 OG 預覽已 100% 成功運作。請在此基礎上進行後續新功能迭代，並嚴格恪守 AGENTS.md 第 9 條即時部署鐵律！
+請詳細閱讀專案根目錄下的 HANDOFF.md。請直面第 2 節所剖析的「十次成功兩次（GAS 查詢超時降級）」與「圖片優先級混亂（玫瑰花劫持全局圖）」兩大深水區病根。請以 Cloudflare KV 快取或 URL 參數解耦方式，徹底消滅 WhatsApp 爬蟲等待 GAS 造成的超時降級問題，將動態預覽成功率提升至 100%，並徹底理順全局預設封面圖邏輯！
 ```

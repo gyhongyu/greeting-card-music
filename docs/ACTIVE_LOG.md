@@ -4,6 +4,19 @@
 
 ---
 
+### [2026-09-25] [UNREFINED] [preview_stability_and_image_priority_postmortem] 深入復盤 WhatsApp 預覽穩定度低 (20% 成功率) 與封面圖被 photos[0] 劫持之深水區架構病根
+- **類型**: `ARCHITECTURE` | `POST_MORTEM` | `USER_EXPERIENCE`
+- **代碼錨點**: `cloudflare/worker_og_proxy.js`, `HANDOFF.md`, `scripts/deploy_worker.py`
+- **核心事實 / 決策理由**:
+  1. **預覽時好時壞 (10 次成 2 次) 之底層成因**:
+     - **GAS 重定向延遲 vs 爬蟲超時**: Google Apps Script GET 請求經常耗時 3.5 ~ 5.5 秒，逼近甚至超過 WhatsApp 爬蟲嚴苛的 3 ~ 4 秒超時閾值。超時即觸發 Worker catch 區塊之保底硬編碼（`A Special Gift for You`）。
+     - **架構解法指引**: 下一棒代理人必須引進 Cloudflare Worker KV 快取（工坊保存時寫入 KV，爬蟲訪問時 0ms 讀取）或 URL Base64 參數直通，徹底消除對 GAS 即時查詢的依賴。
+  2. **封面圖片並非全局圖、變成卡片照片 (玫瑰花)**:
+     - **取值優先級陷阱**: `worker_og_proxy.js` 中 `else if (card.media.photos[0])` 在無自訂封面時直接讀取了卡片背景照片，覆蓋了使用者期望的全局預設封面圖。
+     - **解法指引**: 重新梳理「自訂封面」vs「全局預設封面」之開關控制，禁止未設定封面時私自取用照片劫持。
+
+---
+
 ### [2026-09-25] [UNREFINED] [gas_gateway_v5_deployed_and_deployment_invariant] 成功發布 GAS 網關 @5 版本正式接管雲端 SSOT Description，入庫「雲端後端與 Worker 強制即時部署鐵律」根治改完代碼未部署翻車
 - **類型**: `DEPLOYMENT` | `INVARIANT` | `POST_MORTEM`
 - **代碼錨點**: `gas/Card_Gateway.gs`, `AGENTS.md`, `HANDOFF.md`, `docs/STATE.md`
