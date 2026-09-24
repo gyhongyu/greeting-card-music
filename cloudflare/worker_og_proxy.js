@@ -19,24 +19,26 @@ const GAS_API_URL = "https://script.google.com/macros/s/AKfycbygCbbP4RjhzgtHrkfM
 // 社群爬蟲特徵正則 (嚴格比對 User-Agent)
 const BOT_UA_REGEX = /facebookexternalhit|Facebot|Twitterbot|LinkedInBot|WhatsApp|LineBot|Discordbot|TelegramBot|Slackbot|SkypeUriPreview|Google-Structured-Data-Testing-Tool|baiduspider|bingbot/i;
 
-export default {
-  async fetch(request, env, ctx) {
-    const url = new URL(request.url);
-    const userAgent = request.headers.get("user-agent") || "";
-    const cardId = url.searchParams.get("id");
+addEventListener('fetch', event => {
+  event.respondWith(handleRequest(event.request));
+});
 
-    // 判斷是否為社群爬蟲
-    const isSocialBot = BOT_UA_REGEX.test(userAgent);
+async function handleRequest(request) {
+  const url = new URL(request.url);
+  const userAgent = request.headers.get("user-agent") || "";
+  const cardId = url.searchParams.get("id");
 
-    // 若有帶 cardId 且為社群爬蟲，啟動「邊緣 OG 動態注入」
-    if (isSocialBot && cardId) {
-      return handleBotPreview(request, url, cardId);
-    }
+  // 判斷是否為社群爬蟲
+  const isSocialBot = BOT_UA_REGEX.test(userAgent);
 
-    // 若為普通人類訪客，直接反代透傳至 GitHub Pages 靜態播放器
-    return proxyToGitHubPages(request, url);
+  // 若有帶 cardId 且為社群爬蟲，啟動「邊緣 OG 動態注入」
+  if (isSocialBot && cardId) {
+    return handleBotPreview(request, url, cardId);
   }
-};
+
+  // 若為普通人類訪客，直接反代透傳至 GitHub Pages 靜態播放器
+  return proxyToGitHubPages(request, url);
+}
 
 /**
  * 為社群爬蟲動態產生帶有 Open Graph 標籤的 HTML

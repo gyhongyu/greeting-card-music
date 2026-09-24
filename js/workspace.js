@@ -188,7 +188,7 @@ function CardForgeApp() {
             }
         } else {
             // 後備
-            const fallbackUrl = `${window.location.origin}${window.location.pathname.replace('workspace.html', 'index.html')}?id=${targetCard.id}`;
+            const fallbackUrl = `${window.location.origin}${window.location.pathname.replace('workspace.html', 'play.html')}?id=${targetCard.id}`;
             setCloudShareModal({
                 card: targetCard,
                 shareUrl: fallbackUrl,

@@ -14,8 +14,8 @@ window.CardForgeConfig = {
     // 預設分享網域
     SHARE_BASE_URL: "https://card.teaforia.in",
     FALLBACK_SHARE_URL: (window.location.protocol === 'file:' || !window.location.origin || window.location.origin === 'null')
-        ? "https://card.teaforia.in/index.html"
-        : (window.location.origin + window.location.pathname.replace("workspace.html", "index.html")),
+        ? "https://card.teaforia.in/play.html"
+        : (window.location.origin + window.location.pathname.replace("workspace.html", "play.html")),
     
     // 預設後備媒體 (全局社群分享預覽圖 CDN 直連)
     DEFAULT_AUDIO: "assets/audio/In Love With You.mp3",

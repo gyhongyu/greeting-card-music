@@ -8,29 +8,14 @@
     <meta name="mobile-web-app-capable" content="yes">
     <title>Greeting Card - CardForge</title>
     
-    <!-- 首頁智慧路由：有卡片參數導向 play.html，無參數直接進創作者工坊 workspace.html -->
-    <script>
-        (function() {
-            var params = new URLSearchParams(window.location.search);
-            var isRecipientView = params.has('card') || params.has('id') || params.has('preview');
-            if (isRecipientView) {
-                // 舊版帶參數卡片連結無縫平移至 play.html
-                window.location.replace('play.html' + window.location.search);
-            } else {
-                // 無參數直接進入創作者大畫廊工坊
-                window.location.replace('workspace.html');
-            }
-        })();
-    </script>
-    
-    <!-- Favicon & PWA Icons (帶版本號強制破除瀏覽器頑固快取) -->
+    <!-- 🛡️ 專屬播放器：無任何跳轉工坊邏輯，杜絕死循環 -->
     <link rel="icon" type="image/x-icon" href="favicon.ico?v=2">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32x32.png?v=2">
     <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=2">
     <link rel="manifest" href="manifest.json?v=2">
     <meta name="theme-color" content="#000000">
 
-    <!-- Open Graph / WhatsApp / LINE / Facebook 社群預覽封面 -->
+    <!-- Open Graph / WhatsApp / LINE / Facebook 社群預覽封面 (100% 完整保留) -->
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="CardForge Studio">
     <meta property="og:title" content="CardForge - 沉浸式音樂賀卡">
@@ -120,12 +105,6 @@
     <script src="core/CardEngine.js?v=2"></script>
     <script src="js/workspace_store.js?v=2"></script>
 
-    <!-- 
-      重要說明：
-      在 file:/// 協議下，Babel 無法透過 XHR 讀取外部 JSX 檔案 (會被 Chrome CORS 阻擋)。
-      純 JS 模組 (CardEngine, ParticleEngine, constants, config, gas_client) 走原生 script 標籤載入，
-      頂層 React 視圖路由維持內聯，保證 100% 模組化且零伺服器本機雙擊秒開！
-    -->
     <script type="text/babel">
         // 引用外部已模組化的核心渲染舞台 (core/CardEngine.js)
         const CardEngine = window.CardEngine;
@@ -141,9 +120,7 @@
 
             return (
                 <div className="absolute inset-0 z-30 flex items-center justify-center p-4 select-none pointer-events-auto transition-opacity duration-700">
-                    {/* 極簡微透毛玻璃卡片：僅展示卡片動態標題與收件人 */}
                     <div className="max-w-xs sm:max-w-sm w-full p-6 sm:p-8 rounded-3xl bg-zinc-950/60 backdrop-blur-xl border border-white/10 shadow-2xl flex flex-col items-center text-center space-y-6">
-                        {/* 卡片標題 */}
                         {card.title && (
                             <h1 
                                 className="text-2xl sm:text-3xl font-light text-white tracking-wide clean-title-glow leading-snug"
@@ -153,7 +130,6 @@
                             </h1>
                         )}
 
-                        {/* 收件人姓名/稱謂 */}
                         {card.recipient && (
                             <p 
                                 className="text-sm font-medium tracking-wider"
@@ -163,7 +139,6 @@
                             </p>
                         )}
 
-                        {/* 🌟 極簡解鎖按鈕：未就緒純轉圈圈，就緒切換為播放鍵 */}
                         <div className="pt-2 flex flex-col items-center">
                             <button
                                 type="button"
@@ -215,7 +190,7 @@
             const [isReady, setIsReady] = React.useState(false);
             const audioRef = React.useRef(null);
 
-            // 初始化卡片與模板數據 (精準單卡 + 單模板加載，物理固化 LocalStorage，零計時器)
+            // 初始化卡片與模板數據
             React.useEffect(() => {
                 async function initData() {
                     try {
@@ -229,7 +204,7 @@
                         let targetCard = null;
                         let targetTemplate = null;
 
-                        // 1. 本地快取秒查 (已造訪過者直接 0ms 呈現)
+                        // 1. 本地快取秒查
                         if (cardIdParam) {
                             try {
                                 const rawCard = localStorage.getItem('cardforge_cache_' + cardIdParam);
@@ -240,7 +215,6 @@
                                 }
                             } catch (e) {}
 
-                            // 若本地已有完整快取，直接宣告 Ready
                             if (targetCard && targetTemplate) {
                                 setCurrentCard(targetCard);
                                 setTemplates([targetTemplate]);
@@ -249,7 +223,7 @@
                             }
                         }
 
-                        // 2. 雲端單點精準加載 (只取 1 卡 + 1 模板，零計時器，物理寫入 LocalStorage)
+                        // 2. 雲端單點精準加載
                         if (cardIdParam && window.GasClient) {
                             try {
                                 const cloudCard = await window.GasClient.getCard(cardIdParam);
@@ -273,7 +247,7 @@
                             }
                         }
 
-                        // 3. 本地無參數直接開啟 (預覽模式保底)
+                        // 3. 無卡片參數時的保底載入示範卡片 (絕對不跳轉 workspace.html)
                         if (!cardIdParam) {
                             const { cards: loadedCards, templates: loadedTemplates } = await window.WorkspaceStore.loadInitialData();
                             targetCard = (loadedCards && loadedCards.length > 0) ? loadedCards[0] : null;
@@ -283,7 +257,7 @@
                             setIsReady(true);
                         }
 
-                        // 4. 朋友稱謂自適應解析 (?to=... 或 ?name=...)
+                        // 4. 稱謂解析 (?to=... 或 ?name=...)
                         if (targetCard) {
                             const recipientParam = urlParams.get('to') || urlParams.get('name');
                             if (recipientParam && recipientParam.trim()) {
@@ -316,7 +290,6 @@
                             }
                         }
 
-                        // 5. 注入狀態與解鎖
                         if (targetCard) setCurrentCard(targetCard);
                         if (targetTemplate) {
                             setTemplates([targetTemplate]);
@@ -333,7 +306,6 @@
                 initData();
             }, []);
 
-            // 同步主題 CSS 樣式類別至 body
             React.useEffect(() => {
                 if (!activeTemplateId || templates.length === 0) return;
                 const curTpl = templates.find(t => t.id === activeTemplateId);
@@ -342,13 +314,6 @@
                     body.className = curTpl.theme.styleClass || '';
                 }
             }, [activeTemplateId, templates]);
-
-            const handleSwitchTemplate = (tplId) => {
-                setActiveTemplateId(tplId);
-                const url = new URL(window.location);
-                url.searchParams.set('template', tplId);
-                window.history.replaceState({}, '', url);
-            };
 
             const handleStart = () => {
                 setIsStarted(true);
@@ -369,7 +334,6 @@
                 }
             };
 
-            // 雙向鐵壁同步：以 audio 實體 DOM 的 paused 狀態為最高真理
             const toggleAudio = () => {
                 const audio = audioRef.current;
                 if (!audio) return;
@@ -396,7 +360,6 @@
 
             return (
                 <div className="relative w-screen h-screen overflow-hidden flex items-center justify-center bg-black" style={{ height: '100dvh' }}>
-                    {/* 🎵 音訊 DOM 節點常駐頂層 */}
                     <audio 
                         ref={audioRef} 
                         src={musicUrl} 
@@ -406,7 +369,6 @@
                         onPause={() => setIsPlayingAudio(false)}
                     />
 
-                    {/* 🎬 核心卡片全景渲染舞台 */}
                     <div className="w-full h-full z-10 relative">
                         <CardEngine 
                             card={currentCard} 
@@ -415,7 +377,6 @@
                         />
                     </div>
 
-                    {/* 🎵 音訊控制浮鈕 */}
                     {isStarted && (
                         <AudioControls 
                             isPlayingAudio={isPlayingAudio}
@@ -423,7 +384,6 @@
                         />
                     )}
 
-                    {/* 🌟 方案 A：極簡聲波脈衝解鎖微卡浮層 */}
                     {!isStarted && (
                         <WelcomeGate 
                             card={currentCard} 
