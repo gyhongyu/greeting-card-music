@@ -3,18 +3,18 @@
 ## 0. 🧠 智腦不二過記憶突觸 (Brain Synapse & Anti-Failure DNA)
 
 ### 溯源座標
-- **當前會話 Conversation ID**: `08a7c559-81bd-410d-b9b5-8c0983d5c2eb`
-- **上游會話 Conversation ID**: `562ca413-1c23-47c7-ba6e-1d47418117cf`
+- **當前會話 Conversation ID**: `3756897c-1ce7-4b21-8aba-0b42c06d710c`
+- **上游會話 Conversation ID**: `08a7c559-81bd-410d-b9b5-8c0983d5c2eb`
 
 ### 專案鐵律與血淚禁令 (Invariants & Red Lines)
 1. **⛔ 絕對禁止未授權 Git 推送 (Absolute NO Unsolicited Git Push Law)**：
    - 除非使用者明確下達「推送倉庫」、「git push」、「推到 github」，否則任何代理人嚴禁主動發起 git push！
 2. **⛔ 嚴禁在播放器中使用相對路徑做無參跳轉 (Zero-Relative-Redirect Invariant)**：
-   - `play.html` 內部 100% 絕對禁止出現 `window.location.replace('workspace.html')`！否則在二級路徑或 Cloudflare Worker 代理下必引發每秒數十次連按 F5 級死循環。
-3. **⛔ 嚴禁未做單點視覺驗收 (Spike) 前盲寫批量前端視頻導出**：
-   - 純前端利用 Canvas 2D 覆蓋即時錄製 Three.js 3D WebGL 易產生掉幀、文字兩側裁切與黑屏。複合圖層 (CSS 3D + WebGL) 轉影片屬於深水區，非必要勿硬上。
-4. **⛔ 嚴禁終端命令內嵌代碼落盤 (Zero-Inline-Code-Spawning Law)**：
-   - 檔案操作必須且只能調用專屬工具（如 `replace_file_content`），杜絕終端轉譯引發的編碼截斷災難。
+   - `play.html` 內部 100% 絕對禁止出現 `window.location.replace('workspace.html')`！
+3. **⛔ file:/// 本地雙擊零編譯與 constants.js 同步鐵律**：
+   - 使用者常以 `file:///` 本地雙擊開啟 `workspace.html`。Chrome 安全沙盒會封鎖本地 `fetch('data/templates.json')`。新增模板時，**必須同時在 `js/constants.js` 的 `window.DEFAULT_TEMPLATES` 與 `data/templates.json` 雙向同步登記**，否則本地永遠無法讀取！
+4. **⛔ 終端命令防彈窗與內嵌代碼落盤禁令**：
+   - 檔案操作必須且只能調用專屬工具（如 `replace_file_content`）。
 5. **⛔ 畫廊優先與 workspace.html 行數門禁**：
    - 首頁必須是大畫廊；`workspace.html` 保持純粹組裝，總行數嚴格 ≤ 450 行！
 
@@ -24,40 +24,37 @@
 
 | 模組 / 元件 | 當前真實狀態 | 說明 |
 | :--- | :--- | :--- |
-| **三軌架構** | ✅ 已固化 | 1. `workspace.html`：創作者工坊；2. `index.html`：首頁智慧路由分流器；3. `play.html`：純粹受眾端 3D 播放器（零跳轉，永不死循環）。 |
-| **無狀態純路徑分發** | ✅ 已上線 | 支援 `/p/:cardId/:recipientName`，Worker 邊緣端 302 重定向至 `/play.html?id=...&to=...`，徹底消滅微信氣泡內的 `?` 與 `&` 斷字截斷。 |
-| **社群預覽 (OG Preview)** | ✅ 正常生效 | WhatsApp / LINE / Facebook / Twitter 爬蟲造訪時，維持極速 OG 瓶中信大圖預覽。 |
-| **短影音導出** | 🛑 已乾淨回滾 | 已執行 Git Revert 徹底清除粗糙的 `video_exporter.js` 與按鈕，代碼庫恢復純淨。 |
-| **文檔真理庫** | ✅ 已同步 | `docs/STATE.md` (≤200行) 與 `docs/ACTIVE_LOG.md` 已完成架構憲法與踩坑記錄追加。 |
+| **1:1 視訊播放模板** | ✅ 已固化上線 | `video-square-sky`（天穹奇蹟），正方形視訊 `Miracle_Under_the_Sky.mp4` 帶有外圍平滑羽化遮罩（Feathered Radial Mask），完美融化到底層相片與背景中。 |
+| **電影字幕機 (SRT)** | ✅ 已固化上線 | 新增 `cinematic-subtitles`（🎤 電影字幕 · 原聲同步）版型，純 JS 解析 SRT 時間戳，隨影片/音樂時間軸優雅浮現與淡出。 |
+| **字幕與字級即時連動** | ✅ 已連動 | 電影字幕字級直接綁定右側「內文字體大小 (Body Scale)」拉桿（80%~140%），所見即所得。 |
+| **字幕雲端儲存 (方案1)** | ✅ 架構就緒 | `Card_Gateway.gs` 支援 `upload_subtitle` 存入 Google Drive 專屬資料夾 `CardForge_Subtitles`，卡片僅存短 URL，徹底根除 50,000 字元儲存格上限。 |
+| **音樂音量微調與快速靜音** | ✅ 已上線 | 支援 0%~100% 音量滑桿與一鍵快速靜音，解決背景影片自帶歌曲/語音時與配樂衝突之痛點。 |
+| **遠端倉庫狀態** | ✅ 已同步 | 本次重大更新已遵照指示推送到 GitHub `main` 分支。 |
 
 ---
 
 ## 2. 下一棒核心待辦任務 (Immediate Action Items)
 
-使用者指示：**「做一個能拿視頻當背景的模板」**。
+使用者指示：**「1:1 做完沒問題後，再來做 9:16 和 16:9 的模板」**。
 
 ### 核心任務目標
-以專案根目錄現有之視頻素材 `E:\Projects\greeting-card-music\Miracle_Under_the_Sky.mp4` 為基礎，與使用者共同研究並打造全新的**「視訊背景動態賀卡模板 (Video Background Card Template)」**！
+基於已穩固的視訊圖層與字幕同步技術，規劃並實作：
+1. **9:16 直屏滿版視訊模板**（適合抖音 / TikTok / IG Reels 垂直短影音風格）
+2. **16:9 橫版寬螢幕視訊模板**（適合 YouTube 空拍風景 / 電影寬銀幕風格）
 
 ### 具體行動項 (Action Plan)
-1. **素材與格式盤點**：
-   - 檢驗 `Miracle_Under_the_Sky.mp4` 的編碼（H.264 / AAC）、長度、長寬比（16:9 橫版或 9:16 直版）與檔案大小。
-   - 思考視訊如何在純靜態 / 本地 `file:///` 環境下無 CORS 限制地被 HTML5 `<video>` 標籤平滑循環播放（`autoplay loop muted playsinline`）。
-2. **模板架構設計 (Video Background Shader/Engine)**：
-   - 在 `data/templates.json` 規劃全新模板定義（例如 `video-celestial-sky`）。
-   - 在 [CardEngine.js](file:///e:/Projects/greeting-card-music/core/CardEngine.js) 中新增或擴充視訊背景圖層：
-     - 底層：HTML5 Video 背景層（`object-fit: cover`，自動循環，支援亮度調光遮罩 `dimmer`）。
-     - 中層：3D 粒子流光（星塵 Stardust、流星雨或光暈，透過 Three.js 透明 Canvas 覆蓋在視訊上方）。
-     - 頂層：優雅的文字排版（如星戰爬升或書法詩意排版），文字投影保證在動態視頻背景下依舊清晰銳利。
-3. **性能與行動端邊界防禦 (Pre-Mortem Invariants)**：
-   - **行動端省電與靜音自動播放**：行動端瀏覽器（iOS Safari / 微信）要求背景視訊必須標註 `muted playsinline` 才能自動播放；音訊部分依然由使用者的點擊解鎖鍵（`WelcomeGate`）獨立播放背景音樂。
-   - **檔案大小與加載優化**：評估若日後部署到線上，是否需要將大檔案 mp4 託管至 CDN 或提供壓縮版。
+1. **素材與自適應驗證**：
+   - 探討 9:16 / 16:9 視訊在手機端與 PC 端預覽框架內的自適應行為（滿版裁切或雙層模糊光暈填補）。
+2. **模板庫擴充**：
+   - 登記至 `data/templates.json` 與 `js/constants.js`。
+3. **字幕適配微調**：
+   - 確保在 9:16 直屏與 16:9 橫屏下，電影字幕依然位於視覺舒適區。
 
 ---
 
 ## 3. 驗收啟動指令 (Verification Step)
 
-下一位接棒的 AI 代理人，請以繁體中文向使用者問候，並以極簡大白話表明已掌握 `Miracle_Under_the_Sky.mp4` 視訊背景模板的研發任務，直接調用以下啟動指令展開探討：
+下一位接棒的 AI 代理人，請以繁體中文向使用者問候，直接調用以下啟動指令展開探討：
 
 ```markdown
 請詳細閱讀專案根目錄下的 HANDOFF.md，並依序執行裡面的任務。

@@ -1190,6 +1190,34 @@
                     ) : null
                 ),
 
+                // 背景視訊 (Video Background) 與 預設字幕配置
+                h('div', { className: 'space-y-3 bg-zinc-900/50 p-3 rounded-lg border border-zinc-800' },
+                    h('div', { className: 'flex items-center justify-between' },
+                        h('label', { className: 'block text-zinc-300 font-medium flex items-center gap-1.5' },
+                            h('i', { className: 'fa-solid fa-film text-indigo-400 text-xs' }),
+                            h('span', null, '背景視訊 (Video Background)')
+                        ),
+                        h('span', { className: 'text-[10px] text-zinc-500 font-mono' }, '1:1 正方形羽化')
+                    ),
+                    h('input', {
+                        type: 'text',
+                        value: editingTemplate.bgVideo || '',
+                        placeholder: '視訊路徑 (例: assets/videos/Miracle_Under_the_Sky.mp4 或直連網址)',
+                        onChange: e => setEditingTemplate({ ...editingTemplate, bgVideo: e.target.value }),
+                        className: 'w-full bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1.5 text-white font-mono text-[11px] outline-none focus:border-indigo-400'
+                    }),
+                    h('div', { className: 'space-y-1 pt-1 border-t border-zinc-800/60' },
+                        h('label', { className: 'block text-zinc-400 text-[11px]' }, '預設原聲字幕 (Subtitle SRT)'),
+                        h('input', {
+                            type: 'text',
+                            value: editingTemplate.subtitleUrl || '',
+                            placeholder: '字幕路徑 (例: assets/subtitles/Miracle_Under_the_Sky.srt)',
+                            onChange: e => setEditingTemplate({ ...editingTemplate, subtitleUrl: e.target.value }),
+                            className: 'w-full bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-white font-mono text-[10px] outline-none focus:border-indigo-400 text-zinc-300'
+                        })
+                    )
+                ),
+
                 // 前景粒子特效群
                 h('div', { className: 'space-y-3 bg-zinc-900/50 p-3 rounded-lg border border-zinc-800' },
                     h('div', null,
