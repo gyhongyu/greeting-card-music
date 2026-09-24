@@ -11,7 +11,7 @@
 
     const h = React.createElement;
 
-    function CardEngine({ card, template }) {
+    function CardEngine({ card, template, isStarted = true }) {
         const [currentIndex, setCurrentIndex] = React.useState(0);
         const [isPaused, setIsPaused] = React.useState(false);
 
@@ -130,7 +130,7 @@
         const replayKey = (template && template.replayKey) || 0;
 
         // 4. PURE ELEGANT TITLE (僅在星戰漫遊模式下由頂部全景懸掛)
-        if (!isPoster) {
+        if (isStarted && !isPoster) {
             rootChildren.push(h('header', {
                 key: 'header-title',
                 className: 'absolute top-0 left-0 right-0 z-30 pt-6 pb-4 text-center px-4 pointer-events-none bg-gradient-to-b from-black/75 via-black/20 to-transparent'
@@ -145,8 +145,8 @@
             }, (card && card.title) || '')));
         }
 
-        // 5. DYNAMIC LAYOUT SWITCHER
-        const isScrollLayout = layout === 'star-wars-crawl' || layout === 'cinematic-credits';
+        // 5. DYNAMIC LAYOUT SWITCHER (文字排版層受 isStarted 嚴格約束，點擊播放前嚴禁掛載與倒數動畫)
+        const isScrollLayout = isStarted && (layout === 'star-wars-crawl' || layout === 'cinematic-credits');
         if (isScrollLayout) {
             // 先定義好 isStarWars 與 animClass，供後續 crawlChildren 判斷排版
             const isStarWars = layout === 'star-wars-crawl';
@@ -252,7 +252,7 @@
             }, h('div', {
                 className: isStarWars ? 'w-full py-8 px-4 space-y-7' : 'w-full py-8 px-4 space-y-8'
             }, crawlChildren))));
-        } else if (isPoster) {
+        } else if (isStarted && isPoster) {
             // 🖼️ 滿版動態海報賀卡 (Cinematic Full-bleed Poster) - 徹底打破生硬小方盒！
             const fxClass = `fx-${textRevealFx || 'domino-3d'}`;
             const durationSec = (1.2 / revealSpeed).toFixed(2);

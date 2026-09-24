@@ -4,6 +4,37 @@
 
 ---
 
+### [2026-09-24] [UNREFINED] [minimal_envelope_icon] 換用使用者提供之簡潔紅色信封 (pngegg.png) 作為全套高辨識度 Favicon 與 PWA 圖標庫
+- **類型**: `FEATURE` | `ASSET` | `USER_EXPERIENCE`
+- **代碼錨點**: `pngegg.png`, `favicon.ico`, `assets/icons/`, `apple-touch-icon.png`
+- **核心事實 / 決策理由**:
+  1. **高辨識度極簡視覺**:
+     - 過去使用的漂流瓶圖樣在 16x16 / 32x32 瀏覽器分頁標籤上過於複雜、辨識度受限。
+     - 依使用者要求更換為簡約清晰的立體紅色信封開卡圖樣 (`pngegg.png`)。
+  2. **自動無損邊界裁切與多階圖標生成**:
+     - 透過自動化流程無損裁切透明邊界，置入正方形畫布並保留安全邊距。
+     - 重新生成 `favicon.ico`（多解析度 16x16, 32x32, 48x48）、`apple-touch-icon.png` (180x180)、PWA `icon-192x192.png`、`icon-512x512.png` 與 `icon-maskable-512x512.png`。
+     - 分頁標籤縮圖輪廓醒目俐落，大幅提升品牌識別感。
+
+---
+
+### [2026-09-24] [UNREFINED] [lifecycle_decouple] [crawl_text_sync] 解耦背景畫布與前景文字排版生命週期、根除受眾端開門未點擊文字提前滾動播放
+- **類型**: `BUG_FIX` | `REFACTOR` | `USER_EXPERIENCE`
+- **代碼錨點**: `index.html`, `core/CardEngine.js`
+- **核心事實 / 決策理由**:
+  1. **徹底根除文字在開門按鈕後方搶跑問題**:
+     - 過去為了解除月餅被壓成扁條問題，將 `CardEngine` 置於受眾端頂層全屏預渲染。然而 `CardEngine` 內部之星戰字幕（`anim-star-wars-crawl`）與海報文字動畫在組件掛載第 0 秒即開始計時播放，導致使用者在按解鎖按鈕前文字已滾動甚至結束。
+  2. **引入 `isStarted` 狀態約束與解耦渲染**:
+     - `index.html` 將 `isStarted` 播放狀態傳入 `<CardEngine isStarted={isStarted} />`。
+     - `core/CardEngine.js` 函式簽名接收 `isStarted = true`（預設值為 `true`，以 100% 保持創作者工坊與預覽彈窗之開箱即用與常規可見可編輯）。
+     - 將懸掛大標題（`header-title`）、星戰/電影卷軸滾動容器（`scroll-container-*`）及滿版海報容器（`poster-container-*`）嚴格納入 `if (isStarted)` 判斷。
+     - 底層 3D 全景 Shader（WebGL 月亮、全景背景圖、粒子星塵/月餅）在 `isStarted === false` 時保持流暢運行，確保正圓形無形變；前景文字排版與動畫則嚴格延遲至使用者點擊解鎖按鈕（`isStarted === true`）時才掛載並與音樂同步啟動。
+  3. **門禁核驗**:
+     - `workspace.html` 保持 449 行（嚴格 ≤ 450 行門禁）。
+     - 遵循純 JS 零 JSX 規範。
+
+---
+
 ### [2026-09-24] [UNREFINED] [pwa_icons] [favicon_fix] 全套 PWA 應用圖標、正方形無損裁切 (Aspect Lock) 與 Favicon 404 徹底修復
 - **類型**: `FEATURE` | `ASSET` | `PWA` | `BUG_FIX`
 - **代碼錨點**: `manifest.json`, `favicon.ico`, `assets/icons/`, `workspace.html`, `index.html`
