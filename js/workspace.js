@@ -357,9 +357,11 @@ function CardForgeApp() {
             <header className="h-14 border-b border-zinc-800/80 bg-zinc-950 px-6 flex items-center justify-between sticky top-0 z-30 shadow-md">
                 {/* 左側：品牌 Logo & 名稱 */}
                 <div className="flex items-center gap-3">
-                    <span className="w-8 h-8 rounded-lg bg-gradient-to-tr from-amber-400 via-rose-500 to-indigo-500 flex items-center justify-center text-zinc-950 font-black text-xs shadow">
-                        CF
-                    </span>
+                    <img 
+                        src="assets/icons/favicon-32x32.png" 
+                        alt="CardForge" 
+                        className="w-8 h-8 rounded-lg object-contain shadow drop-shadow-md hover:scale-105 transition-transform" 
+                    />
                     <div>
                         <div className="flex items-center gap-2">
                             <span className="font-bold tracking-wide text-sm text-white">CardForge Studio</span>

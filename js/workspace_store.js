@@ -178,6 +178,20 @@
             this.scheduleDiffSync(null, templates);
         },
 
+        markCardDirty(cardId) {
+            if (cardId) {
+                dirtyCardIds.add(cardId);
+                this._persistDirtyKeys();
+            }
+        },
+
+        markTemplateDirty(tplId) {
+            if (tplId) {
+                dirtyTemplateIds.add(tplId);
+                this._persistDirtyKeys();
+            }
+        },
+
         _persistDirtyKeys() {
             try {
                 localStorage.setItem(STORAGE_KEY_DIRTY_CARDS, JSON.stringify(Array.from(dirtyCardIds)));

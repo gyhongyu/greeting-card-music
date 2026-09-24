@@ -118,7 +118,7 @@ window.GasClient = (function() {
         const fetchPromise = (async () => {
             try {
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 4000);
+                const timeoutId = setTimeout(() => controller.abort(), 20000);
 
                 const res = await fetch(`${config.GAS_API_URL}?action=get_card&id=${encodeURIComponent(cardId)}`, {
                     signal: controller.signal
@@ -159,7 +159,7 @@ window.GasClient = (function() {
     async function listCards() {
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 3500);
+            const timeoutId = setTimeout(() => controller.abort(), 20000);
 
             const res = await fetch(`${config.GAS_API_URL}?action=list_cards`, {
                 signal: controller.signal
@@ -173,7 +173,7 @@ window.GasClient = (function() {
                 }
             }
         } catch (err) {
-            console.warn("[GasClient.listCards] Fallback to local cards", err.message);
+            console.warn("[GasClient.listCards] Fallback to local cards:", err.message);
         }
         return [];
     }
@@ -262,7 +262,7 @@ window.GasClient = (function() {
         const fetchPromise = (async () => {
             try {
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 4000);
+                const timeoutId = setTimeout(() => controller.abort(), 20000);
 
                 const res = await fetch(`${config.GAS_API_URL}?action=get_template&id=${encodeURIComponent(templateId)}`, {
                     signal: controller.signal
@@ -303,7 +303,7 @@ window.GasClient = (function() {
     async function listTemplates() {
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 3500);
+            const timeoutId = setTimeout(() => controller.abort(), 20000);
 
             const res = await fetch(`${config.GAS_API_URL}?action=list_templates`, {
                 signal: controller.signal

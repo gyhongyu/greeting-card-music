@@ -48,25 +48,9 @@
     <script src="js/editor_views.js"></script>
     <!-- file:/// 協議下純 JS 走原生 script，頂層 React 路由維持內聯 -->
     <script type="text/babel">
-        // 引用外部已模組化的核心渲染舞台 (core/CardEngine.js)
-        // 解構外部純 JS 模組化視圖組件 (js/workspace_views.js & js/editor_views.js)
-        const {
-            PreviewModal,
-            CloudShareModal,
-            WorkspaceNavbar,
-            CardsGallery,
-            TemplatesGallery,
-            PasswordLockGate
-        } = window.WorkspaceViews;
-
-        const {
-            CardEditorView,
-            TemplateEditorView
-        } = window.EditorViews;
-
-        // =========================================================================
-        // 5. WORKSPACE APP (創作者工坊主體)
-        // =========================================================================
+        // 引用外部已模組化的核心渲染舞台與視圖組件 (core/CardEngine.js, js/workspace_views.js, js/editor_views.js)
+        const { PreviewModal, CloudShareModal, WorkspaceNavbar, CardsGallery, TemplatesGallery, PasswordLockGate } = window.WorkspaceViews;
+        const { CardEditorView, TemplateEditorView } = window.EditorViews;
         const TEMPLATE_DUMMY_CARD = window.TEMPLATE_DUMMY_CARD;
 
         function CardForgeApp() {
@@ -138,7 +122,11 @@
                                                 map.set(cc.id, cc);
                                             }
                                         });
-                                        return Array.from(map.values());
+                                        const mergedCards = Array.from(map.values());
+                                        if (window.WorkspaceStore) {
+                                            window.WorkspaceStore.saveCardsLocal(mergedCards);
+                                        }
+                                        return mergedCards;
                                     });
                                 }
                             }).catch(() => {});
@@ -150,7 +138,11 @@
                                         cloudTpls.forEach(ct => {
                                             map.set(ct.id, { ...(map.get(ct.id) || {}), ...ct });
                                         });
-                                        return Array.from(map.values());
+                                        const mergedTpls = Array.from(map.values());
+                                        try {
+                                            localStorage.setItem('cardforge_templates', JSON.stringify(mergedTpls));
+                                        } catch (e) {}
+                                        return mergedTpls;
                                     });
                                 }
                             }).catch(() => {});
@@ -189,8 +181,9 @@
                     statusText: '背景差異增量同步已生效'
                 });
 
-                // 立即觸發未發送的增量同步，保證雲端 SSOT 資料完整無損
+                // 確保當前卡片在本地與雲端雙軌持久化
                 if (window.WorkspaceStore) {
+                    window.WorkspaceStore.markCardDirty(targetCard.id);
                     window.WorkspaceStore.forceSyncNow(cards, templates);
                 }
             };

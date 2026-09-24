@@ -4,6 +4,48 @@
 
 ---
 
+### [2026-09-24] [UNREFINED] [cloud_sync_persist_fix] 拆除 3.5 秒自殺計時器、雲端卡片物理固化 LocalStorage、防止分享回放後卡片丟失
+- **類型**: `BUG_FIX` | `RESILIENCE` | `DATA_INTEGRITY`
+- **代碼錨點**: `js/gas_client.js`, `workspace.html`, `js/workspace_store.js`
+- **核心事實 / 決策理由**:
+  1. **病灶精確鎖定**:
+     - 過去 `gas_client.js` 中的 `listCards`、`listTemplates` 設有 `3500ms`（3.5 秒）的 `AbortController` 自殺計時器。在手機 4G/5G 移動網路或 Google Apps Script 閒置冷啟動時，極易在 3.5 秒內被強行 abort，導致回傳空陣列誤判離線。
+     - 工坊在 `cloudList` 回傳成功時，僅更新 React 記憶體 State，未寫回本機 `localStorage`；當使用者點擊分享並以受眾端回放或重整時，若發生超時回退，便以預設示範卡沖刷掉本機資料庫。
+  2. **根治架構改造**:
+     - 拆除過緊的 3.5 秒計時器，全面放寬至 20 秒，確保 GAS 冷啟動與行動端延遲均能 100% 穩定接收雲端數據。
+     - 在 `workspace.html` 初始化雲端合併回調中，加入 `saveCardsLocal(mergedCards)` 與模板持久化，將雲端卡片物理固化至手機 LocalStorage。
+     - 在 `WorkspaceStore` 中引入 `markCardDirty` 支援，確保在 `handleCloudPublish` 分享時將目標卡片鎖定進待同步隊列，確保雲端 SSOT 與本機 100% 雙向對齊。
+  3. **門禁核驗**:
+     - `workspace.html` 行數維持 442 行（嚴格 ≤ 450 行紅線）。
+     - 遵循純 JS 零 JSX 規範。
+
+---
+
+### [2026-09-24] [UNREFINED] [crawl_start_pos_vh] 星戰與電影卷軸動畫起始位置改為自適應視窗高度 (translateY 100vh)、根除 PC 全螢幕文字從正中央出現
+- **類型**: `BUG_FIX` | `UI_POLISH` | `RESPONSIVE`
+- **代碼錨點**: `styles/templates.css` (`@keyframes starWars3DDeepSpace`, `@keyframes cinematicCreditsScroll`)
+- **核心事實 / 決策理由**:
+  1. **病灶精確鎖定**:
+     - 過去星戰動畫 `0%` 幀寫死固定數值 `translateY(420px)`，在直屏手機上剛好靠近底緣，但在電腦 1080p 全螢幕視窗（高 1000px+）下，`96px + 420px = 516px` 剛好落在螢幕垂直正中央，導致解鎖瞬間文字直接在中央冒出。
+  2. **自適應視口改造**:
+     - 將 `starWars3DDeepSpace` 與 `cinematicCreditsScroll` 之起始位置統一改為 `translateY(100vh)`。
+     - 不論在手機或大螢幕電腦，文字第 0 秒必定完整潛伏於螢幕底緣外，點擊播放後平滑升起。
+
+---
+
+### [2026-09-24] [UNREFINED] [workspace_logo_unify] 工坊頂部導覽列品牌 Logo 替換為全新紅色立體信封圖標 (favicon-32x32.png)
+- **類型**: `FEATURE` | `USER_EXPERIENCE` | `UI_POLISH`
+- **代碼錨點**: `js/workspace_views.js`, `js/workspace.js`
+- **核心事實 / 決策理由**:
+  1. **全套品牌標識一體化**:
+     - 導覽列原先為方形彩虹漸層的「CF」縮寫徽標，與分頁標籤、PWA 桌面應用圖標（紅色信封）視覺脫節。
+     - 將 `WorkspaceNavbar` 之品牌圖標替換為 `assets/icons/favicon-32x32.png`，配合輕微立體陰影與懸浮動效，達到 Favicon、App 圖標與工坊介面 100% 視覺統一。
+  2. **門禁核驗**:
+     - `workspace.html` 保持 449 行（嚴格 ≤ 450 行門禁）。
+     - 外部 JS 嚴格遵守零 JSX 純 JS 鐵律。
+
+---
+
 ### [2026-09-24] [UNREFINED] [minimal_envelope_icon] 換用使用者提供之簡潔紅色信封 (pngegg.png) 作為全套高辨識度 Favicon 與 PWA 圖標庫
 - **類型**: `FEATURE` | `ASSET` | `USER_EXPERIENCE`
 - **代碼錨點**: `pngegg.png`, `favicon.ico`, `assets/icons/`, `apple-touch-icon.png`

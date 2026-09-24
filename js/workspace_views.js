@@ -384,9 +384,11 @@
         },
             // Brand Logo
             h('div', { className: 'flex items-center gap-3' },
-                h('span', {
-                    className: 'w-8 h-8 rounded-lg bg-gradient-to-tr from-amber-400 via-rose-500 to-indigo-500 flex items-center justify-center text-zinc-950 font-black text-xs shadow'
-                }, 'CF'),
+                h('img', {
+                    src: 'assets/icons/favicon-32x32.png',
+                    alt: 'CardForge',
+                    className: 'w-8 h-8 rounded-lg object-contain shadow drop-shadow-md hover:scale-105 transition-transform'
+                }),
                 h('div', null,
                     h('div', { className: 'flex items-center gap-2' },
                         h('span', { className: 'font-bold tracking-wide text-sm text-white' }, 'CardForge Studio'),
