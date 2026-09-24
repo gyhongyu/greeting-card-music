@@ -71,12 +71,13 @@ async function handleBotPreview(request, url, cardId, toName = "") {
   let imageUrl = "https://i.ibb.co/YFsSdsjg/share-cover-webp.webp";
 
   try {
-    // 嘗試向 GAS 查詢卡片元數據 (設 2.5 秒超時避免爬蟲等太久)
+    // 嘗試向 GAS 查詢卡片元數據 (Google Apps Script 重定向冷啟動通常需要 2~3.5 秒，放寬至 4.5 秒)
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2500);
+    const timeoutId = setTimeout(() => controller.abort(), 4500);
 
     const gasRes = await fetch(`${GAS_API_URL}?action=get_card&id=${encodeURIComponent(cardId)}`, {
-      signal: controller.signal
+      signal: controller.signal,
+      redirect: "follow"
     });
     clearTimeout(timeoutId);
 

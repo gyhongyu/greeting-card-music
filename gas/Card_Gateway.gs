@@ -256,12 +256,16 @@ function internalSaveCard(sheet, card) {
   const title = card.title || card.name || "未命名賀卡";
   const sender = card.sender || "";
   const recipient = card.recipient || "";
-  const description = (card.paragraphs && card.paragraphs.length > 0)
-    ? card.paragraphs[0].substring(0, 150)
-    : (card.description || "獻上一份溫暖的誠摯心意");
-  const imageUrl = (card.media && card.media.photos && card.media.photos.length > 0)
-    ? card.media.photos[0]
-    : (card.imageUrl || "");
+  const description = (card.shareCaption && card.shareCaption.trim())
+    ? card.shareCaption.trim().replace(/\{name\}[，,：:]?\s*/g, '').substring(0, 150)
+    : ((card.paragraphs && card.paragraphs.length > 0)
+        ? card.paragraphs[0].substring(0, 150)
+        : (card.description || "獻上一份溫暖的誠摯心意"));
+  const imageUrl = (card.coverImage && card.coverImage.trim())
+    ? card.coverImage.trim()
+    : ((card.media && card.media.photos && card.media.photos.length > 0)
+        ? card.media.photos[0]
+        : (card.imageUrl || ""));
   const musicUrl = (card.media && card.media.customMusic) ? card.media.customMusic : (card.musicUrl || "");
   const templateId = card.templateId || "mothers-day";
   const updatedAt = new Date().toISOString();

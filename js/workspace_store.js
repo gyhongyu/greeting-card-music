@@ -358,12 +358,9 @@
                 updatedAt: new Date().toISOString().split('T')[0],
                 title: 'Happy Celebrations',
                 recipient: '親愛的朋友：',
-                paragraphs: [
-                    '在這充滿驚喜與溫暖的特別時刻，為你獻上最真摯的祝福。',
-                    '願你未來的每一步都滿載星光與希望，日日精彩，心想事成！'
-                ],
-                sender: '真摯的祝福者 敬上',
-                shareCaption: '{name}，佳節愉快！這是一張為你特別定製的 3D 星空賀卡，祝你一切順心：',
+                paragraphs: [],
+                sender: '敬上',
+                shareCaption: '{name}，送上一份專屬定製的祝福，願你一切順心：',
                 coverImage: 'https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=1200&q=80',
                 media: {
                     bgMode: 'slideshow',

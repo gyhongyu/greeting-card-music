@@ -4,6 +4,24 @@
 
 ---
 
+### [2026-09-25] [UNREFINED] [share_caption_and_og_preview_dedup_fix] 徹底根除 WhatsApp 分發訊息稱謂重複拼裝問題，確立 shareCaption 為單一寄語真理源，打通 Google Sheet description 與 Cloudflare Worker 社交預覽直連
+- **類型**: `BUG_FIX` | `ARCHITECTURE` | `USER_EXPERIENCE`
+- **代碼錨點**: `js/editor_views.js`, `js/workspace_views.js`, `js/workspace_store.js`, `gas/Card_Gateway.gs`, `cloudflare/worker_og_proxy.js`
+- **核心事實 / 決策理由**:
+  1. **徹底剷除導語稱謂重複強加問題**:
+     - **病灶定位**: 過去在 `editor_views.js` 硬卡了一個左側前綴徽章強行拼接 `${inheritedPrefix}${newBody}`；分發彈窗 `workspace_views.js` 在使用者自填完整內容時又無腦於開頭硬塞 `saluteText`（例如 `My Love ，`），導致使用者在內文打 `Happy Birthday, My Love` 時，前面又被系統擅自加了一次 `My Love`，造成「重複講兩次名字」的困擾。
+     - **根治措施**:
+       - 移除 `editor_views.js` 的強制前綴徽章，讓分享附帶文字（`shareCaption`）完全由使用者自由輸入，所見即所得。
+       - 分發彈窗中，若導語不含 `{name}` 佔位符，代表使用者已寫完整祝福語，系統 100% 尊重原創內容，不再擅自於前綴強加稱謂。
+  2. **確立 shareCaption 為卡片寄語單一真理源 (SSOT)**:
+     - 在畫廊卡片方塊（`workspace_views.js`）中，摘要優先展示卡片的 `shareCaption`，徹底解決視訊/字幕模板（`cinematic-subtitles`）沒有段落時顯示幽靈預設文字的痛點。
+     - 清理 `workspace_store.js` 新建卡片時塞入的冗長幽靈客套假文字。
+  3. **打通 GAS 試算表 description 與 Cloudflare Worker 社交預覽**:
+     - `gas/Card_Gateway.gs` 在 `internalSaveCard` 時，將 Google Sheet 第 5 欄 `description` 改為優先取用乾淨的 `card.shareCaption`，`imageUrl` 優先取用自訂封面 `card.coverImage`。
+     - `cloudflare/worker_og_proxy.js` 探測 GAS 超時放寬至 4.5 秒並設定 `redirect: follow`，確保 WhatsApp 爬蟲 100% 讀取到使用者親筆填寫的自訂寄語與專屬封面圖，杜絕死板保底文字覆蓋。
+
+---
+
 ### [2026-09-25] [UNREFINED] [cloud_only_and_zero_local_html_invariant] 全面終止本地 HTML 開發機制，固化全公網雙網址運作與交接工作清單，鎖死 GAS 雲端 SSOT 為唯一真理源
 - **類型**: `ARCHITECTURE` | `INVARIANT` | `GOVERNANCE`
 - **代碼錨點**: `HANDOFF.md`, `AGENTS.md`, `docs/STATE.md`, `.agents/skills/cardforge_template_manager/SKILL.md`, `scripts/sync_templates.py`

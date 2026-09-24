@@ -803,75 +803,29 @@
                         h('span', { className: 'text-[10px] px-1.5 py-0.5 rounded font-mono bg-sky-950/60 text-sky-300 border border-sky-800/40' }, 'WhatsApp / LINE')
                     ),
                     h('p', { className: 'text-[11px] text-zinc-400 leading-relaxed' },
-                        '分享時自動複製為兩行：第一行為此導語，第二行為專屬賀卡網址。支援 ',
                         h('code', { className: 'text-sky-300 font-mono font-bold' }, '{name}'),
                         ' 朋友稱謂自動置換。'
                     ),
-                    // 社群分享導言：左側自動繼承上方稱謂前綴 + 右側自填祝賀內容
+                    // 社群分享導語：完全由使用者自由編輯，所見即所得
                     (() => {
-                        // 從當前收件人稱謂中提取前綴與稱呼
-                        const rawRec = currentEditingCard.recipient || '親愛的朋友：';
-                        const punctMatch = rawRec.match(/[：:，,！!]$/);
-                        const cleanRec = punctMatch ? rawRec.slice(0, -1) : rawRec;
-                        
-                        // 計算繼承的提示標籤：如「親愛的 {name}，」或「尊敬的 {name}，」
-                        let inheritedPrefix = '{name}，';
-                        if (cleanRec.startsWith('尊敬的')) {
-                            inheritedPrefix = '尊敬的 {name}，';
-                        } else if (cleanRec.startsWith('親愛的')) {
-                            inheritedPrefix = '親愛的 {name}，';
-                        } else if (cleanRec.startsWith('致 ')) {
-                            inheritedPrefix = '致 {name}，';
-                        } else if (cleanRec.startsWith('Dear ')) {
-                            inheritedPrefix = 'Dear {name}, ';
-                        } else if (cleanRec.includes('的')) {
-                            const idx = cleanRec.indexOf('的');
-                            inheritedPrefix = `${cleanRec.slice(0, idx + 1)} {name}，`;
-                        }
-
-                        // 如果現有 shareCaption 開頭已經包含了這個前綴，則抽離出純自填的祝賀內文
-                        let customBody = currentEditingCard.shareCaption || '';
-                        if (customBody.includes('，')) {
-                            const firstComma = customBody.indexOf('，');
-                            // 若前半段含有 {name} 或 前綴，只保留後半段給使用者編輯
-                            if (customBody.slice(0, firstComma).includes('name') || customBody.slice(0, firstComma).includes('的')) {
-                                customBody = customBody.slice(firstComma + 1).trim();
-                            }
-                        } else if (customBody.includes(', ')) {
-                            const firstComma = customBody.indexOf(', ');
-                            if (customBody.slice(0, firstComma).includes('name') || customBody.slice(0, firstComma).includes('Dear')) {
-                                customBody = customBody.slice(firstComma + 2).trim();
-                            }
-                        }
-                        if (!customBody) {
-                            customBody = '中秋節快樂，這是我為你定制的賀卡。';
-                        }
+                        const currentCaption = currentEditingCard.shareCaption !== undefined
+                            ? currentEditingCard.shareCaption
+                            : '{name}，佳節愉快！這是一張為你特別定製的賀卡，祝你一切順心：';
 
                         return h('div', { className: 'space-y-1.5' },
                             h('div', { className: 'flex items-center justify-between' },
                                 h('label', { className: 'block text-zinc-400 text-[11px] font-medium' }, '分享附帶文字 (Share Intro Text)'),
-                                h('span', { className: 'text-[10px] text-sky-400 font-mono' }, '自動繼承上方稱謂前綴')
+                                h('span', { className: 'text-[10px] text-sky-400 font-mono' }, '支援 {name} 自動替換稱呼')
                             ),
-                            h('div', { className: 'flex items-stretch gap-1.5' },
-                                // 1. 左側：自動繼承的前綴徽章 (不可修改，自動聯動)
-                                h('div', {
-                                    className: 'px-2.5 py-2 bg-sky-950/60 border border-sky-800/60 rounded flex items-center justify-center text-sky-300 font-mono text-xs font-semibold shrink-0 select-none shadow-sm',
-                                    title: '自動繼承上方收件人稱謂前綴'
-                                }, inheritedPrefix),
-                                // 2. 右側：自填祝賀內容
-                                h('textarea', {
-                                    rows: 2,
-                                    value: customBody,
-                                    placeholder: '中秋節快樂，這是我為你定制的賀卡。',
-                                    onChange: e => {
-                                        const newBody = e.target.value;
-                                        // 組合出完整 shareCaption 保存在 card 結構中
-                                        const fullCaption = `${inheritedPrefix}${newBody}`;
-                                        updateEditingCard({ shareCaption: fullCaption });
-                                    },
-                                    className: 'flex-1 bg-zinc-900 border border-zinc-800 rounded p-2 text-white outline-none focus:border-sky-400 text-xs font-sans resize-y'
-                                })
-                            )
+                            h('textarea', {
+                                rows: 2,
+                                value: currentCaption,
+                                placeholder: '{name}，佳節愉快！這是一張為你特別定製的賀卡，祝你一切順心：',
+                                onChange: e => {
+                                    updateEditingCard({ shareCaption: e.target.value });
+                                },
+                                className: 'w-full bg-zinc-900 border border-zinc-800 rounded p-2 text-white outline-none focus:border-sky-400 text-xs font-sans resize-y'
+                            })
                         );
                     })(),
                     h('div', { className: 'space-y-1.5' },

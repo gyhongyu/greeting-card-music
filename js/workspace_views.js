@@ -170,7 +170,8 @@
             } else if (rawCaption.includes('{name}')) {
                 formattedCaption = rawCaption.replace(/\{name\}/g, trimmedName || '朋友');
             } else {
-                formattedCaption = `${saluteText}${rawCaption}`;
+                // 使用者自填了完整導語（如 Happy Birthday, My Love...），完全尊重原創，不擅自重複前置稱謂
+                formattedCaption = rawCaption;
             }
 
             // 網址獨立成行並空一行，防止微信/LINE文字標點符號與 URL 黏連引發截斷
@@ -595,7 +596,9 @@
                             h('div', { className: 'mt-3 p-3 rounded-lg bg-zinc-950/70 border border-zinc-800/80 space-y-1.5 text-xs text-zinc-300' },
                                 h('div', { className: 'text-zinc-400 font-medium' }, c.recipient || '致 受贈者：'),
                                 h('div', { className: 'text-zinc-400/90 line-clamp-2 leading-relaxed text-[11px]' },
-                                    c.paragraphs && c.paragraphs[0] ? c.paragraphs[0] : '尚無內文...'
+                                    (c.shareCaption && c.shareCaption.trim())
+                                        ? c.shareCaption.replace(/\{name\}[，,：:]?\s*/g, '').trim()
+                                        : (c.paragraphs && c.paragraphs[0] ? c.paragraphs[0] : '尚無內文...')
                                 )
                             ),
                             h('div', { className: 'mt-3 flex items-center gap-2 text-[11px] text-zinc-400' },
