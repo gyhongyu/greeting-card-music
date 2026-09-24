@@ -147,15 +147,18 @@ async function handleBotPreview(request, url, cardId) {
 }
 
 /**
- * 普通人類訪問：透傳轉發至 GitHub Pages
+ * 普通人類訪問：透傳轉發至 GitHub Pages (重寫 Host 標頭杜絕 GitHub Pages 404)
  */
 async function proxyToGitHubPages(request, url) {
   const targetPath = url.pathname === "/" ? "/index.html" : url.pathname;
   const targetUrl = new URL(`${GITHUB_PAGES_ORIGIN}${targetPath}${url.search}`);
   
+  const forwardHeaders = new Headers(request.headers);
+  forwardHeaders.set("Host", "card.foxlink.co.in");
+
   const modifiedRequest = new Request(targetUrl, {
     method: request.method,
-    headers: request.headers,
+    headers: forwardHeaders,
     redirect: "follow"
   });
 

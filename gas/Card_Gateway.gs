@@ -210,20 +210,25 @@ function handleRequest(e, method) {
           folder = folders.next();
         } else {
           folder = DriveApp.createFolder(folderName);
-          folder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+          folder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.EDIT);
         }
 
         const file = folder.createFile(fileName, content, MimeType.PLAIN_TEXT);
-        file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        // 設定公開鏈結具備編輯權限 (Anyone with link can edit)
+        file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.EDIT);
         const fileId = file.getId();
-        // 永久直連讀取網址 (Direct raw text URL)
+        
+        // 永久直連讀取網址 (Direct raw text URL 用於播放器載入字幕)
         const downloadUrl = "https://drive.google.com/uc?export=download&id=" + fileId;
+        // Google Drive 線上編輯網址 (Direct Edit URL 用於點擊後在 Google Drive 打開編輯)
+        const editUrl = "https://drive.google.com/file/d/" + fileId + "/edit";
 
         responseData = {
           success: true,
           fileId: fileId,
           fileName: fileName,
-          url: downloadUrl
+          url: downloadUrl,
+          editUrl: editUrl
         };
       } catch (driveErr) {
         responseData = { success: false, error: "Drive upload failed: " + driveErr.toString() };

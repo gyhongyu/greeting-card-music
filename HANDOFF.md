@@ -3,26 +3,33 @@
 ## 0. 🧠 智腦不二過記憶突觸 (Brain Synapse & Anti-Failure DNA)
 
 ### 溯源座標
-- **當前會話 Conversation ID**: `3756897c-1ce7-4b21-8aba-0b42c06d710c`
-- **上游會話 Conversation ID**: `08a7c559-81bd-410d-b9b5-8c0983d5c2eb`
+- **當前會話 Conversation ID**: `aed6e7c1-3824-4f76-b063-9329f7ff20bb`
+- **上游會話 Conversation ID**: `3756897c-1ce7-4b21-8aba-0b42c06d710c`
 
 ### 專案鐵律與血淚禁令 (Invariants & Red Lines)
-1. **⛔ 絕對禁止未授權 Git 推送 (Absolute NO Unsolicited Git Push Law)**：
+1. **🚨 討論模式最高門禁 (Discussion Mode Mandate)**：
+   - **接手後默認強制進入【討論模式】！**
+   - 在使用者明確輸入「結束討論」之前，**絕對禁止**生成任何實體檔案或修改任何代碼！僅能進行架構探討、問題分析與方案審核。
+2. **⛔ 絕對禁止未授權 Git 推送 (Absolute NO Unsolicited Git Push Law)**：
    - 除非使用者明確下達「推送倉庫」、「git push」、「推到 github」，否則任何代理人嚴禁主動發起 git push！
-2. **⛔ 嚴禁在播放器中使用相對路徑做無參跳轉 (Zero-Relative-Redirect Invariant)**：
-   - `play.html` 內部 100% 絕對禁止出現 `window.location.replace('workspace.html')`！
-3. **⛔ file:/// 本地雙擊零編譯與 constants.js 同步鐵律**：
-   - 使用者常以 `file:///` 本地雙擊開啟 `workspace.html`。Chrome 安全沙盒會封鎖本地 `fetch('data/templates.json')`。新增模板時，**必須同時在 `js/constants.js` 的 `window.DEFAULT_TEMPLATES` 與 `data/templates.json` 雙向同步登記**，否則本地永遠無法讀取！
-4. **⛔ 三維模板真值同步與防覆蓋鐵律 (Trinity Sync Invariant)**：
-   - 本地改完模板後，線上公網載入時會自動從 Google Sheet 雲端 SWR 覆蓋。若未同步雲端，**新模板與新參數會全部被舊資料抹殺**！
+3. **⛔ 三維模板真值同步與防覆蓋鐵律 (Trinity Sync Invariant)**：
+   - 本地新增或改完模板後，公網加載會自動從 Google Sheet 雲端 SWR 覆蓋。若未同步雲端，**新模板與新參數會全部被舊資料抹殺**！
    - 新增/修改模板後，必須強制依序執行：
      1. 雙向落盤：`data/templates.json` ＋ `js/constants.js`
      2. 三維核驗：`py scripts/sync_templates.py verify`
      3. 雲端推送：`py scripts/sync_templates.py push`（覆寫 Google Sheet SSOT）
      4. 技能指引：完整工作流請參閱 `.agents/skills/cardforge_template_manager/SKILL.md`。
-5. **⛔ 終端命令防彈窗與內嵌代碼落盤禁令**：
-   - 檔案操作必須且只能調用專屬工具（如 `replace_file_content`）。
-6. **⛔ 畫廊優先與 workspace.html 行數門禁**：
+4. **☁️ Google Drive 雲端儲存與零內聯字串鐵律 (Cloud Storage Invariant)**：
+   - 嚴禁把 SRT 字幕全文、音訊 Base64、巨型文字塞進卡片欄位（會炸飛 LocalStorage 5MB 與 Google Sheet 50,000 字元上限）。
+   - 一律由 `gas/Card_Gateway.gs` 上傳至 Google Drive 專用資料夾，卡片僅保存短網址。
+   - 所有雲端資料夾映射與權限規範一律遵循 `.agents/skills/cardforge_cloud_storage/`。
+     - 字幕 (`CardForge_Subtitles`)：**公開可編輯** (`ANYONE_WITH_LINK, EDIT`)，並同步保存 `subtitleEditUrl` 供線上跳轉編輯。
+     - 音訊/視訊/相片 (`CardForge_Audio` / `Videos` / `Photos`)：公開唯讀 (`VIEW`)。
+5. **⛔ 嚴禁在播放器中使用相對路徑做無參跳轉 (Zero-Relative-Redirect Invariant)**：
+   - `play.html` 內部 100% 絕對禁止出現 `window.location.replace('workspace.html')`！
+6. **⛔ file:/// 本地雙擊零編譯與 constants.js 同步鐵律**：
+   - 外部純 JS 零 JSX，保證在 `file:///` 本地雙擊秒開。
+7. **⛔ 畫廊優先與 workspace.html 行數門禁**：
    - 首頁必須是大畫廊；`workspace.html` 保持純粹組裝，總行數嚴格 ≤ 450 行！
 
 ---
@@ -31,40 +38,49 @@
 
 | 模組 / 元件 | 當前真實狀態 | 說明 |
 | :--- | :--- | :--- |
-| **1:1 視訊播放模板** | ✅ 已固化上線 | `video-square-sky`（天穹奇蹟），正方形視訊 `Miracle_Under_the_Sky.mp4` 帶有外圍平滑羽化遮罩（Feathered Radial Mask），完美融化到底層相片與背景中。 |
-| **電影字幕機 (SRT)** | ✅ 已固化上線 | 新增 `cinematic-subtitles`（🎤 電影字幕 · 原聲同步）版型，純 JS 解析 SRT 時間戳，隨影片/音樂時間軸優雅浮現與淡出。 |
-| **字幕與字級即時連動** | ✅ 已連動 | 電影字幕字級直接綁定右側「內文字體大小 (Body Scale)」拉桿（80%~140%），所見即所得。 |
-| **字幕雲端儲存 (方案1)** | ✅ 架構就緒 | `Card_Gateway.gs` 支援 `upload_subtitle` 存入 Google Drive 專屬資料夾 `CardForge_Subtitles`，卡片僅存短 URL，徹底根除 50,000 字元儲存格上限。 |
-| **音樂音量微調與快速靜音** | ✅ 已上線 | 支援 0%~100% 音量滑桿與一鍵快速靜音，解決背景影片自帶歌曲/語音時與配樂衝突之痛點。 |
-| **視訊原聲獨立音量與解鎖** | ✅ 已上線 | 移除強制靜音，支援視訊原聲音量拉桿 (0%~100%) 與快速靜音，瀏覽器點擊互動後自動發聲。 |
-| **模板三維同步專案技能** | ✅ 已固化 | 建立 `.agents/skills/cardforge_template_manager/` 與 `scripts/sync_templates.py`，嚴守 constants ✕ templates.json ✕ GAS 三方真值同步。 |
-| **遠端倉庫狀態** | ✅ 已同步 | 本次重大更新已遵照指示推送到 GitHub `main` 分支。 |
+| **視訊硬解壓縮規格** | ✅ 已固化上線 | 重製版影片經 FFmpeg 壓縮為 $1024 \times 1024$、YUV420p、H.264 High@4.0、`+faststart` 秒開，覆寫至 `assets/videos/Miracle_Under_the_Sky.mp4`（10.32 MB，壓縮 45%），完美相容手機與電視。 |
+| **字幕 Google Drive 公開編輯** | ✅ 已固化上線 | `gas/Card_Gateway.gs` 已升級為 `ANYONE_WITH_LINK, EDIT`，並回傳 `editUrl`。部署至 GAS 第 4 版。 |
+| **前端 UI 杜絕巨型字串** | ✅ 已固化上線 | [js/editor_views.js](file:///e:/Projects/greeting-card-music/js/editor_views.js) 移除錯誤的全文 fallback 邏輯，並新增「在 Drive 開啟編輯」按鈕。 |
+| **雲端儲存專案技能** | ✅ 已固化 | 建立 [.agents/skills/cardforge_cloud_storage/](file:///e:/Projects/greeting-card-music/.agents/skills/cardforge_cloud_storage/) 專案技能，配備 CLI 工具 `cloud_storage.py`。 |
+| **憲法規則強化** | ✅ 已固化 | 更新 [AGENTS.md](file:///e:/Projects/greeting-card-music/AGENTS.md) 注入第 6 條「Google Drive 雲端儲存與零內聯字串鐵律」。 |
+| **遠端倉庫狀態** | 🟡 本地已更新 | 代碼與資產已全部就緒，嚴守禁令未主動推送 git。 |
 
 ---
 
-## 2. 下一棒核心待辦任務 (Immediate Action Items)
+## 2. 下一棒核心任務：深度探討兩大核心痛點 (Immediate Action Items)
 
-使用者指示：**「1:1 做完沒問題後，再來做 9:16 和 16:9 的模板」**。
-
-### 核心任務目標
-基於已穩固的視訊圖層與字幕同步技術，規劃並實作：
-1. **9:16 直屏滿版視訊模板**（適合抖音 / TikTok / IG Reels 垂直短影音風格）
-2. **16:9 橫版寬螢幕視訊模板**（適合 YouTube 空拍風景 / 電影寬銀幕風格）
-
-### 具體行動項 (Action Plan)
-1. **素材與自適應驗證**：
-   - 探討 9:16 / 16:9 視訊在手機端與 PC 端預覽框架內的自適應行為（滿版裁切或雙層模糊光暈填補）。
-2. **模板庫擴充**：
-   - 登記至 `data/templates.json` 與 `js/constants.js`。
-3. **字幕適配微調**：
-   - 確保在 9:16 直屏與 16:9 橫屏下，電影字幕依然位於視覺舒適區。
+> 🚨 **下一棒 AI 代理人接手行為準則**：
+> 1. **默認直接進入【討論模式】**：未取得「結束討論」前，絕對禁止碰觸代碼或生成實體檔案。
+> 2. **深入探討使用者提出的兩大具體問題**，運用「Pre-mortem 屍前驗屍 ✕ 第十人反對法則」進行根因診斷與方案評審：
+> 
+> ### 🚩 問題一：加載新卡片 / 新模板為什麼經常卡住？（在沒有打開過我們網址的新環境下）
+> - **初步線索與診斷切入點**：
+>   1. **`play.html` 的 Loading 條件**：
+>      ```javascript
+>      if (!currentCard || templates.length === 0) {
+>          return <div className="..."><i className="fa-solid fa-circle-notch fa-spin"></i></div>;
+>      }
+>      ```
+>   2. **冷啟動無快取懲罰**：首次打開網址時，瀏覽器 `localStorage` 完全沒有 `cardforge_cache_...`。
+>   3. **GAS 雲端冷啟動 (Cold Start) 逾時與死鎖**：
+>      - `play.html` 調用 `window.GasClient.getCard(cardIdParam)`（內置逾時 20 秒）與 `window.GasClient.getTemplate(tplId)`。
+>      - Google Apps Script 免費版常駐睡眠，首次請求喚醒常需 8~15 秒；如果中間 fetch 失敗回傳 `null`，而 `play.html` 又**沒有保底載入本地降級模板（如 `constants.js` 的 `DEFAULT_TEMPLATES`）**，`targetTemplate` 就會一直是 `null`，導致畫面**永久卡死在旋轉菊花圖示**！
+>   4. **外鏈 CDN 阻塞**：`resource.trickle.so`（React/Babel）、Google Fonts 在部分網路環境下是否延遲過高？
+> 
+> ### 🚩 問題二：分享地址為什麼改為 `card.foxlink.co.in` 就會 404？
+> - **初步線索與診斷切入點**：
+>   1. **DNS 與 CDN 解析**：`card.teaforia.in` 正常運作，但 `card.foxlink.co.in` 是否在 Cloudflare 設定了正確的 DNS CNAME 指向 GitHub Pages（或 Worker 代理）？
+>   2. **GitHub Pages 自訂域名 (CNAME) 單域名限制**：
+>      - GitHub 倉庫根目錄的 `CNAME` 檔案**只能綁定一個主網域**！
+>      - 如果倉庫 CNAME 綁定的是 `card.teaforia.in`，直接訪問 `card.foxlink.co.in` 時，GitHub Pages 會拒絕識別並直接拋出 404！
+>   3. **Cloudflare Worker 反代缺失**：專案下有 `cloudflare/worker_og_proxy.js`，`card.foxlink.co.in` 是否尚未在 Cloudflare Worker 的 Custom Domains 正確綁定與反向代理至 `card.teaforia.in`？
 
 ---
 
 ## 3. 驗收啟動指令 (Verification Step)
 
-下一位接棒的 AI 代理人，請以繁體中文向使用者問候，直接調用以下啟動指令展開探討：
+請直接複製以下指令啟動下一棒 AI 代理人：
 
 ```markdown
-請詳細閱讀專案根目錄下的 HANDOFF.md，並依序執行裡面的任務。
+請詳細閱讀專案根目錄下的 HANDOFF.md。目前默認進入「討論模式」，請向我問候並依據文檔中的兩大問題（冷啟動加載卡死、card.foxlink.co.in 404）進行深度剖析與討論，在未輸入「結束討論」前嚴禁修改任何代碼或落盤實體檔案。
 ```

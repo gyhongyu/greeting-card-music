@@ -40,10 +40,10 @@
     <!-- Three.js (For 3D Particle Planet & Hologram Effects) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
-    <!-- React & Babel -->
-    <script src="https://resource.trickle.so/vendor_lib/unpkg/react@18/umd/react.production.min.js"></script>
-    <script src="https://resource.trickle.so/vendor_lib/unpkg/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://resource.trickle.so/vendor_lib/unpkg/@babel/standalone/babel.min.js"></script>
+    <!-- React & Babel (官方穩定 Anycast CDN，徹底拔除未知的 trickle 鏡像) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
 
     <!-- Custom Styles -->
     <link href="styles/animations.css" rel="stylesheet">
@@ -234,12 +234,24 @@
                                     } catch (e) {}
 
                                     const tplId = templateParam || cloudCard.templateId || 'mid-autumn-moon';
-                                    const cloudTpl = await window.GasClient.getTemplate(tplId);
-                                    if (cloudTpl) {
-                                        targetTemplate = cloudTpl;
-                                        try {
-                                            localStorage.setItem('cardforge_cache_tpl_' + tplId, JSON.stringify(cloudTpl));
-                                        } catch (e) {}
+                                    
+                                    // 🚀 關鍵優化：若為系統官方模板，本地常數庫已有完整樣式/特效，立即秒速加載，免去二次向 GAS 等待引發的卡死！
+                                    if (window.DEFAULT_TEMPLATES && window.DEFAULT_TEMPLATES.length > 0) {
+                                        const localFound = window.DEFAULT_TEMPLATES.find(t => t.id === tplId);
+                                        if (localFound) {
+                                            targetTemplate = localFound;
+                                        }
+                                    }
+
+                                    // 若非本地官方模板（為自訂新模板），才透過 GAS 查詢
+                                    if (!targetTemplate) {
+                                        const cloudTpl = await window.GasClient.getTemplate(tplId);
+                                        if (cloudTpl) {
+                                            targetTemplate = cloudTpl;
+                                            try {
+                                                localStorage.setItem('cardforge_cache_tpl_' + tplId, JSON.stringify(cloudTpl));
+                                            } catch (e) {}
+                                        }
                                     }
                                 }
                             } catch (gasErr) {

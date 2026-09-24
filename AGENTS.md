@@ -27,7 +27,14 @@
      2. `py scripts/sync_templates.py push`（推送至 Google Sheet 覆寫雲端 SSOT，杜絕線上載入時覆蓋本地參數）
    - 🎛️ 介面同步率：凡涉及新參數（如視訊/字幕/字級），必須同時在 `js/editor_views.js` 的 `TemplateEditorView` 補齊輸入欄位。
 
-6. ⛔【不可違背之工程紅線 (Hard Invariants)】：
+6. ☁️【Google Drive 雲端儲存與零內聯字串鐵律 (Cloud Storage Invariant)】：
+   - ⛔ 嚴禁內嵌大字串：大檔案（字幕/音訊/視訊）嚴禁將文字或 base64 塞入卡片欄位；一律經由 `Card_Gateway.gs` 上傳至 Google Drive 專屬資料夾，僅保存短 URL。
+   - 📂 專案技能真理源：所有雲端資料夾映射與權限規範一律遵循 `.agents/skills/cardforge_cloud_storage/`。
+     - 字幕 (`CardForge_Subtitles`)：強制為**公開可編輯** (`ANYONE_WITH_LINK, EDIT`)，並同步保存 `subtitleEditUrl` 供線上跳轉編輯。
+     - 音訊/視訊/相片 (`CardForge_Audio` / `Videos` / `Photos`)：公開唯讀 (`VIEW`)。
+   - 🛠️ 盤點指令：`py .agents\skills\cardforge_cloud_storage\scripts\cloud_storage.py map`。
+
+7. ⛔【不可違背之工程紅線 (Hard Invariants)】：
    - 嚴禁主動發起 `git push`（除非使用者明確授權「推送倉庫/一起修改到位/push」）；嚴禁以 `taskkill` 殺除進程。
    - 🚨 測試邊界：**嚴禁 AI 代理人自行開啟瀏覽器（`browser_subagent`）測試**，全權由使用者手動執行。
    - 畫廊優先：`workspace.html` 首頁必須是大畫廊，嚴禁默認強行進入編輯器。

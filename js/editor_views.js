@@ -290,48 +290,85 @@
                     (currentEditingCard.layout === 'cinematic-subtitles' || currentEditingCard.media?.subtitleUrl) ? (
                         h('div', { className: 'space-y-2 pt-1 border-t border-zinc-800/80' },
                             h('div', { className: 'flex items-center justify-between text-[11px] text-zinc-400' },
-                                h('span', null, 'SRT 字幕檔案 (可上傳至 Google Drive 專屬資料夾或填入直連)'),
-                                h('label', {
-                                    className: 'text-sky-400 hover:text-sky-300 bg-sky-950/60 hover:bg-sky-900/60 border border-sky-700/50 px-2 py-0.5 rounded text-[10px] cursor-pointer flex items-center gap-1 transition-colors'
-                                }, [
-                                    h('i', { key: 'up-icon', className: 'fa-solid fa-cloud-arrow-up text-[9px]' }),
-                                    h('span', { key: 'up-txt' }, '上傳 .srt 檔'),
-                                    h('input', {
-                                        key: 'srt-file-input',
-                                        type: 'file',
-                                        accept: '.srt,.txt',
-                                        className: 'hidden',
-                                        onChange: e => {
-                                            const file = e.target.files && e.target.files[0];
-                                            if (!file) return;
-                                            const reader = new FileReader();
-                                            reader.onload = async (re) => {
-                                                const content = re.target.result;
-                                                if (window.GasClient && window.GasClient.uploadSubtitle) {
-                                                    const res = await window.GasClient.uploadSubtitle(file.name, content);
-                                                    if (res && res.success && res.url) {
-                                                        updateEditingCard({
-                                                            media: { ...(currentEditingCard.media || {}), subtitleUrl: res.url }
-                                                        });
-                                                        alert('字幕已成功上傳至 Google Drive 專屬資料夾！');
+                                h('span', null, 'SRT 字幕檔案 (Google Drive 雲端公開編輯 / 直連讀取)'),
+                                h('div', { className: 'flex items-center gap-1.5' }, [
+                                    // 若已有 Google Drive editUrl 或 subtitleUrl 包含 drive.google.com，顯示跳轉編輯按鈕
+                                    (currentEditingCard.media?.subtitleEditUrl || (typeof currentEditingCard.media?.subtitleUrl === 'string' && currentEditingCard.media.subtitleUrl.includes('drive.google.com'))) ? (
+                                        h('a', {
+                                            key: 'drive-edit-btn',
+                                            href: currentEditingCard.media?.subtitleEditUrl || (
+                                                currentEditingCard.media.subtitleUrl.includes('id=')
+                                                    ? `https://drive.google.com/file/d/${currentEditingCard.media.subtitleUrl.split('id=')[1].split('&')[0]}/edit`
+                                                    : currentEditingCard.media.subtitleUrl
+                                            ),
+                                            target: '_blank',
+                                            rel: 'noopener noreferrer',
+                                            className: 'text-amber-400 hover:text-amber-300 bg-amber-950/50 hover:bg-amber-900/50 border border-amber-600/50 px-2 py-0.5 rounded text-[10px] flex items-center gap-1 transition-colors'
+                                        }, [
+                                            h('i', { key: 'edit-icon', className: 'fa-solid fa-pen-to-square text-[9px]' }),
+                                            h('span', { key: 'edit-txt' }, '在 Drive 開啟編輯')
+                                        ])
+                                    ) : null,
+                                    h('label', {
+                                        key: 'upload-label',
+                                        className: 'text-sky-400 hover:text-sky-300 bg-sky-950/60 hover:bg-sky-900/60 border border-sky-700/50 px-2 py-0.5 rounded text-[10px] cursor-pointer flex items-center gap-1 transition-colors'
+                                    }, [
+                                        h('i', { key: 'up-icon', className: 'fa-solid fa-cloud-arrow-up text-[9px]' }),
+                                        h('span', { key: 'up-txt' }, '上傳 .srt 檔'),
+                                        h('input', {
+                                            key: 'srt-file-input',
+                                            type: 'file',
+                                            accept: '.srt,.txt',
+                                            className: 'hidden',
+                                            onChange: e => {
+                                                const file = e.target.files && e.target.files[0];
+                                                if (!file) return;
+                                                const reader = new FileReader();
+                                                reader.onload = async (re) => {
+                                                    const content = re.target.result;
+                                                    if (!window.GasClient || !window.GasClient.uploadSubtitle) {
+                                                        alert('未檢測到雲端網關 (GasClient)，無法上傳至 Google Drive！');
                                                         return;
                                                     }
-                                                }
-                                                // 若離線或未串 GAS，保底寫入相對路徑或內嵌
-                                                updateEditingCard({
-                                                    media: { ...(currentEditingCard.media || {}), subtitleUrl: content }
-                                                });
-                                            };
-                                            reader.readAsText(file);
-                                        }
-                                    })
+                                                    
+                                                    // 顯示提示
+                                                    const prevTitle = document.title;
+                                                    document.title = '⏳ 上傳字幕中...';
+                                                    try {
+                                                        const res = await window.GasClient.uploadSubtitle(file.name, content);
+                                                        document.title = prevTitle;
+                                                        if (res && res.success && res.url) {
+                                                            updateEditingCard({
+                                                                media: {
+                                                                    ...(currentEditingCard.media || {}),
+                                                                    subtitleUrl: res.url,
+                                                                    subtitleEditUrl: res.editUrl || res.url
+                                                                }
+                                                            });
+                                                            alert('✅ 字幕已成功發布至 Google Drive！已設定為「公開所有人皆可編輯」，您可以直接點擊按鈕開啟編輯！');
+                                                        } else {
+                                                            alert('❌ 上傳至 Google Drive 失敗：' + (res?.error || '未知錯誤'));
+                                                        }
+                                                    } catch (err) {
+                                                        document.title = prevTitle;
+                                                        alert('❌ 上傳發生異常：' + err.message);
+                                                    }
+                                                };
+                                                reader.readAsText(file);
+                                            }
+                                        })
+                                    ])
                                 ])
                             ),
                             h('input', {
                                 type: 'text',
-                                value: currentEditingCard.media?.subtitleUrl !== undefined
-                                    ? currentEditingCard.media.subtitleUrl
-                                    : (currentEditingTemplate?.subtitleUrl || 'assets/subtitles/Miracle_Under_the_Sky.srt'),
+                                value: (function() {
+                                    const val = currentEditingCard.media?.subtitleUrl;
+                                    if (typeof val === 'string' && (val.includes('-->') || val.length > 250)) {
+                                        return '[已檢測到舊格式內嵌字幕，請重新上傳或重置為預設]';
+                                    }
+                                    return val !== undefined ? val : (currentEditingTemplate?.subtitleUrl || 'assets/subtitles/Miracle_Under_the_Sky.srt');
+                                })(),
                                 placeholder: 'SRT 網址或相對路徑 (例: assets/subtitles/Miracle_Under_the_Sky.srt)',
                                 onChange: e => {
                                     updateEditingCard({
@@ -347,7 +384,7 @@
                                         type: 'button',
                                         onClick: () => {
                                             updateEditingCard({
-                                                media: { ...(currentEditingCard.media || {}), subtitleUrl: '' }
+                                                media: { ...(currentEditingCard.media || {}), subtitleUrl: '', subtitleEditUrl: '' }
                                             });
                                         },
                                         className: 'text-zinc-400 hover:text-amber-400 transition-colors'
