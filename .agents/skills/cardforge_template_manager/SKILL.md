@@ -6,13 +6,12 @@ description: CardForge 模板全生命週期治理、三維真值同步 (constan
 # 🎨 CardForge 模板全生命週期治理與雲端同步技能 (cardforge_template_manager)
 
 > [!IMPORTANT]
-> **本專案核心架構痛點與不可違背鐵律**：
-> 1. 本專案採 **雙軌無伺服器 (Serverless & Zero-Build)** 架構，同時支援 `file:///` 本地雙擊開啟與線上 `https://card.teaforia.in` 託管。
-> 2. **三維同步鐵律 (The Trinity Sync Law)**：任何新模板或模板參數改動，**必須且只能** 同時在以下三處保持 100% 絕對一致，缺一不可：
->    - 🌐 **雲端 SSOT**：Google Sheet `Templates_Store`（透過 GAS API 儲存）
->    - 📁 **本地 HTTP 降級**：`data/templates.json`
->    - ⚡ **本地 `file:///` 降級**：`js/constants.js` 的 `window.DEFAULT_TEMPLATES`（Chrome 安全沙盒封鎖本地 fetch，必須由常數檔注入）
-> 3. **防覆蓋鐵律 (Anti-SWR Overwrite Law)**：如果只在本地修改代碼而沒同步 GAS，線上公網加載時會觸發 SWR 快取更新，**自動從雲端舊資料覆蓋本地新參數**，造成「參數全消失」的災難！
+> **本專案核心架構與不可違背鐵律**：
+> 1. **全公網雙網址運作 (Cloud-Only Operations)**：本專案已全面進入生產線上營運，**徹底終止 `file:///` 本地 HTML 開發機制**！所有操作與驗收 100% 透過公網雙網址執行：
+>    - 🍵 `https://card.teaforia.in`
+>    - 🏢 `https://card.foxlink.co.in`
+> 2. **GAS 雲端 SSOT 絕對唯一真理源**：所有模板參數與卡片資料，**100% 必須由 Google Sheet (GAS) 雲端資料庫載入**！
+> 3. **物理剷除本地參數常數 (Strict Zero-Local-Data Law)**：嚴禁在代碼中保留或硬編碼任何卡片與模板展示參數，嚴禁任何 AI 代理人寫本地降級搶佔邏輯！凡只要有機會覆蓋或取代 GAS 雲端真值的本地參數，一律物理級徹底刪除！
 
 ---
 
@@ -70,7 +69,7 @@ py scripts/sync_templates.py push
 ## 💀 屍前驗屍與 5 大翻車防線 (Pre-Mortem & Guardrails)
 
 1. **死因一：只改了 `templates.json`，沒同步 `constants.js`**
-   - 💥 後果：使用者在本地雙擊 `workspace.html`（`file:///`），Chrome 沙盒攔截 fetch，導致新模板完全看不見。
+   - 💥 後果：若代碼引用的常數與 JSON 不同步，會引發定義錯亂。
    - 🛡️ 防線：`py scripts/sync_templates.py verify` 會直接報警告並阻斷。
 
 2. **死因二：只改了本地檔案，沒推送到 GAS**

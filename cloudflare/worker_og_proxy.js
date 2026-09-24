@@ -39,7 +39,7 @@ async function handleRequest(request) {
 
     // 爬蟲造訪：直接動態產生 OG 預覽卡片
     if (isSocialBot) {
-      return handleBotPreview(request, url, cardId);
+      return handleBotPreview(request, url, cardId, recipientName);
     }
 
     // 一般人類/微信瀏覽器：302 重定向至 play.html (帶參數)，保證微信內整條路徑高亮不截斷
@@ -51,10 +51,11 @@ async function handleRequest(request) {
     return Response.redirect(targetUrl.toString(), 302);
   }
 
-  // ━━━ 2. 傳統 QueryString (?id=...) ━━━
+  // ━━━ 2. 傳統 QueryString (?id=...&to=...) ━━━
   const cardId = url.searchParams.get("id");
+  const toName = url.searchParams.get("to") || url.searchParams.get("name") || "";
   if (isSocialBot && cardId) {
-    return handleBotPreview(request, url, cardId);
+    return handleBotPreview(request, url, cardId, toName);
   }
 
   // 普通人類訪客造訪根路徑或其他檔案：透傳至 GitHub Pages
@@ -64,7 +65,7 @@ async function handleRequest(request) {
 /**
  * 為社群爬蟲動態產生帶有 Open Graph 標籤的 HTML
  */
-async function handleBotPreview(request, url, cardId) {
+async function handleBotPreview(request, url, cardId, toName = "") {
   let title = "CardForge - 沉浸式音樂賀卡";
   let description = "為您獻上一份充滿星空、音樂與真摯祝福的專屬多媒體賀卡。";
   let imageUrl = "https://i.ibb.co/YFsSdsjg/share-cover-webp.webp";
@@ -84,11 +85,23 @@ async function handleBotPreview(request, url, cardId) {
       if (data.success && data.card) {
         const card = data.card;
         title = card.title || card.name || title;
-        if (card.paragraphs && card.paragraphs.length > 0) {
+        
+        // 優先讀取自訂社群導語/寄語 (shareCaption)，其次第一段落，再其次 description
+        if (card.shareCaption && card.shareCaption.trim()) {
+          description = card.shareCaption.trim();
+        } else if (card.paragraphs && card.paragraphs.length > 0 && card.paragraphs[0]) {
           description = card.paragraphs[0];
-        } else if (card.description) {
-          description = card.description;
+        } else if (card.description && card.description.trim()) {
+          description = card.description.trim();
         }
+
+        // 若描述中有 {name} 佔位符，且網址帶有 toName，自動智慧替換為好友姓名
+        if (toName && description.includes('{name}')) {
+          description = description.replace(/\{name\}/g, toName);
+        } else if (!toName && description.includes('{name}')) {
+          description = description.replace(/\{name\}[，,：:]?\s*/g, '');
+        }
+
         // 優先使用自訂社群封面 coverImage，其次相片，無則保持全局預設
         if (card.coverImage) {
           imageUrl = card.coverImage;

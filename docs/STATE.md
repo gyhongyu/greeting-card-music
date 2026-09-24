@@ -40,16 +40,18 @@
    - 分發網址支援無狀態純路徑：`/p/:cardId/:recipientName`（同時相容 `/c/` 前綴）。
    - 由 Cloudflare Worker 邊緣端解析後以 HTTP 302 重定向至 `/play.html?id=...&to=...`，保證微信氣泡內 100% 呈現完整單一藍色超連結，根除 `?` 與 `&` 斷字截斷。
 
-7. **本地雙擊零編譯與純 JS 隔離鐵律 (Zero-Build & Zero-CORS Pure JS Invariant)**：
-   - 專案維持純靜態架構，可由使用者在本地以 `file:///` 協議雙擊直接開啟。
-   - **嚴禁引入 Node.js/Webpack/Vite 等構建工具**。
-   - **純邏輯模組化規範**：外部 `.js` 檔案（如 `js/workspace_store.js`, `core/ParticleEngine.js`）**絕對禁止包含 JSX 語法**，以防觸發瀏覽器原生的 `Unexpected token '<'` 語法錯誤。
-   - 資料儲存與 CRUD 一律統一收斂至 `js/workspace_store.js`（`WorkspaceStore`）單一真理源，創作者端與受眾端共享，杜絕代碼重複。
+7. **全公網雙網址運作與零本地 HTML 開發鐵律 (Cloud-Only Operations)**：
+   - ⛔ **本地 HTML 開發機制全面終止**：本專案已全面進入線上雲端生產階段，**嚴禁任何 AI 代理人再以 `file:///` 本地雙擊或本機開發邏輯設計代碼**！
+   - 🌐 **唯一合法雙公網入口**：所有功能、卡片製作與受眾播放，**100% 只會透過以下兩個公網網址進行操作與驗收**：
+     1. 🍵 **Teaforia 官方站點**：`https://card.teaforia.in`（工坊 `workspace.html` 與受眾 `play.html`）
+     2. 🏢 **Foxlink 官方站點**：`https://card.foxlink.co.in`（工坊 `workspace.html` 與受眾 `play.html`）
+   - 資料儲存與 CRUD 一律統一收斂至 `js/workspace_store.js`（`WorkspaceStore`）由 GAS 網關雲端驅動。
 
-8. **👑 GAS 雲端 SSOT 絕對單一真理源與零本地參數覆蓋鐵律 (Strict GAS SSOT Law)**：
+8. **👑 GAS 雲端 SSOT 絕對單一真理源與物理剷除本地參數常數鐵律 (Strict GAS SSOT & Zero-Local-Data Law)**：
    - **GAS 雲端資料庫（Google Sheet SSOT）為全系統唯一絕對單一真理源！**
-   - 嚴禁任何代理人私自以本地寫死常數（`DEFAULT_TEMPLATES`, `DEFAULT_CARDS`）或靜態 JSON 取代/覆蓋受眾端或工坊端從 GAS 查詢到的即時卡片與模板參數。
-   - 本地常數僅作為斷網時的終極兜底，凡只要 GAS 成功返回數據，**100% 強制以 GAS 雲端即時參數為準**！絕不允許本地舊參數覆蓋用戶定制成果。
+   - ⛔ **本地假數據與常數全面剷除**：**絕對禁止在代碼中保留或硬編碼任何卡片參數與模板參數**（如 `DEFAULT_TEMPLATES`、`DEFAULT_CARDS` 中的具體展示參數）！
+   - 所有卡片、模板之視覺特效、字級、仰角、音量、配樂與背景，**100% 必須由 GAS 雲端即時載入**！
+   - 嚴禁任何代理人私自寫 `else { 拿本地常數... }` 的搶佔或降級邏輯！凡只要有機會覆蓋或取代 GAS 雲端真值的本地參數，一律物理級徹底刪除！
 
 ---
 

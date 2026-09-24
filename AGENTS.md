@@ -6,9 +6,12 @@
    - 核心職責：架構重構、底層代碼、單元測試與 Bug 修復。編寫前強制執行「屍前驗屍 ✕ 第十人反對法則」。
    - 知識治理：重大變更單向追加 `docs/ACTIVE_LOG.md`；維持 `docs/STATE.md` 架構真理源 (嚴格 ≤200 行)。
 
-2. 🏛️【雙軌純靜態與零編譯鐵律 (Core Architecture)】：
-   - 雙軌分流：`workspace.html` 為創作者大畫廊工坊；`index.html` 為受眾端 3D 播放器。嚴禁引入 Node/Webpack/Vite。
-   - 外部純 JS 零 JSX 鐵律：外部 `.js` 一律使用原生 `React.createElement` (`h`)，絕對嚴禁出現 `<Tag>` JSX 標籤，保證 `file:///` 本地雙擊秒開。
+2. 🏛️【全公網雙網址運作與零本地 HTML 開發鐵律 (Cloud-Only Operations)】：
+   - ⛔ **本地 HTML 開發機制全面終止**：本專案已全面進入線上雲端生產階段，**嚴禁任何 AI 代理人再以 `file:///` 本地雙擊或本機開發邏輯設計代碼**！
+   - 🌐 **唯一合法雙公網入口**：所有功能、卡片製作與受眾播放，**100% 只會透過以下兩個公網網址進行操作與驗收**：
+     1. 🍵 **Teaforia 官方站點**：`https://card.teaforia.in`（工坊 `workspace.html` 與受眾 `play.html`）
+     2. 🏢 **Foxlink 官方站點**：`https://card.foxlink.co.in`（工坊 `workspace.html` 與受眾 `play.html`）
+   - 雙軌分流：`workspace.html` 為創作者工坊；`play.html` 為受眾端播放器；`index.html` 為智慧分流路由。
    - 單一資料庫與防護：資料持久化統一收斂至 `js/workspace_store.js`；`.phone-frame` 嚴格維持 `overflow: hidden !important` 與 `contain: paint` 防文字溢出遮擋導覽列。
 
 3. 🧱【代碼模組化與行數硬門禁 (Modularization)】：
@@ -20,11 +23,10 @@
    - ✅ 強制無三角函數安全雜湊：所有程序化噪聲/雜湊一律強制採用 Dave Hoskins `hash12` / `hash22` (無 sine 向量混淆演算法：`vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += vec3(dot(p3, p3.yzx + 33.33)); return fract((p3.x + p3.y) * p3.z);`)。
    - 🛡️ 精度與效能守護：片段著色器頭部必須包含 `#ifdef GL_FRAGMENT_PRECISION_HIGH ... precision highp float; ... #else precision mediump float; #endif`；DPR 嚴格限制 `Math.min(devicePixelRatio, 2)` 防行動端發燙崩潰。
 
-5. 🎨【三維模板真值同步與防覆蓋鐵律 (Trinity Sync Invariant)】：
-   - ⛔ 嚴禁單邊落盤：新增或修改任何模板，**絕對嚴禁只改本地檔案或只改單一設定**！必須強制維持三維一致：`data/templates.json` ✕ `js/constants.js` (DEFAULT_TEMPLATES) ✕ Google Sheet SSOT (GAS)。
-   - 🛡️ 防 SWR 覆蓋與驗收儀軌：改動後必須強制執行固定命令核驗與推送：
-     1. `py scripts/sync_templates.py verify`（核驗三方一致性）
-     2. `py scripts/sync_templates.py push`（推送至 Google Sheet 覆寫雲端 SSOT，杜絕線上載入時覆蓋本地參數）
+5. 🎨【模板發布與雲端真值同步鐵律 (Cloud SSOT Sync)】：
+   - ⛔ 嚴禁單邊落盤：新增或修改任何模板，必須強制依序推送至 Google Sheet SSOT (GAS)：
+     1. `py scripts/sync_templates.py verify`（核驗一致性）
+     2. `py scripts/sync_templates.py push`（推送至 Google Sheet 覆寫雲端 SSOT）
    - 🎛️ 介面同步率：凡涉及新參數（如視訊/字幕/字級），必須同時在 `js/editor_views.js` 的 `TemplateEditorView` 補齊輸入欄位。
 
 6. ☁️【Google Drive 雲端儲存與零內聯字串鐵律 (Cloud Storage Invariant)】：
@@ -34,11 +36,10 @@
      - 音訊/視訊/相片 (`CardForge_Audio` / `Videos` / `Photos`)：公開唯讀 (`VIEW`)。
    - 🛠️ 盤點指令：`py .agents\skills\cardforge_cloud_storage\scripts\cloud_storage.py map`。
 
-7. 👑【GAS 雲端 SSOT 絕對單一真理源與零本地參數覆蓋鐵律 (Strict GAS SSOT & Zero-Local-Override Law)】：
-   - ⛔ 嚴禁本地參數搶佔覆蓋：**Google Apps Script (GAS) 雲端資料庫（Google Sheet SSOT）為全系統唯一絕對單一真理源！**
-   - ⛔ 嚴禁任何代理人私自以本地寫死常數（如 `DEFAULT_TEMPLATES`、`DEFAULT_CARDS` 或靜態 JSON）取代/覆蓋受眾端或工坊端從 GAS 查詢到的即時卡片與模板參數！
-   - 🛡️ 降級邊界防禦：本地常數與降級數據**僅允許且只能在斷網（完全無網路）或 GAS 服務徹底崩潰拋錯時**作為緊急安全兜底；凡只要 GAS 成功返回數據，**100% 強制以 GAS 雲端即時參數為準**，絕不允許本地舊參數進行二次覆蓋！
-   - 🚨 違者重懲：任何以「加速」、「避免轉圈」為由擅自將本地靜態模板替換掉用戶精心定制之雲端特效（如將天上掉月餅覆蓋為金桂玉兔）之行為，視同破壞系統憲法之嚴重翻車事故。
+7. 👑【GAS 雲端 SSOT 絕對單一真理源與物理剷除本地參數常數鐵律 (Strict GAS SSOT & Zero-Local-Data Law)】：
+   - ⛔ **本地假數據與常數全面剷除**：**絕對禁止在代碼中保留或硬編碼任何卡片參數與模板參數**（如 `DEFAULT_TEMPLATES`、`DEFAULT_CARDS` 中的具體展示參數）！
+   - ⛔ **嚴禁任何本地代碼覆蓋雲端**：**Google Apps Script (GAS) 雲端資料庫（Google Sheet SSOT）為全系統唯一絕對單一真理源！** 所有卡片、模板之視覺特效、字級、仰角、音量、配樂與背景，**100% 必須由 GAS 雲端即時載入**！
+   - 🚨 **嚴禁後門降級**：嚴禁任何代理人私自寫 `else { 拿本地常數... }` 的搶佔或降級邏輯！凡只要有機會覆蓋或取代 GAS 雲端真值的本地參數，一律視同最高級別翻車事故，必須物理級徹底刪除！
 
 8. ⛔【不可違背之工程紅線 (Hard Invariants)】：
    - 嚴禁主動發起 `git push`（除非使用者明確授權「推送倉庫/一起修改到位/push」）；嚴禁以 `taskkill` 殺除進程。

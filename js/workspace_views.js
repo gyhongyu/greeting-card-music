@@ -134,26 +134,13 @@
             // 純淨姓名：僅傳遞姓名本身，自動過濾空格與標點
             const toVal = recipientName.trim().replace(/[，,：:！!。.、\s]/g, '');
 
-            // 若在自訂網域或線上環境：使用 100% 防微信截斷的無狀態短路徑 /p/:id/:to
-            if (chosenOrigin && (chosenOrigin.includes('teaforia.in') || chosenOrigin.includes('foxlink.co.in'))) {
-                return toVal 
-                    ? `${chosenOrigin}/p/${encodeURIComponent(cardId)}/${encodeURIComponent(toVal)}`
-                    : `${chosenOrigin}/p/${encodeURIComponent(cardId)}`;
-            }
+            // 統一使用乾淨的標準查詢參數 (完全杜絕靜態託管 /p/ 報 404 問題)
+            let baseOrigin = chosenOrigin || (function() {
+                try { return new URL(baseShareUrl).origin; } catch (e) { return 'https://card.foxlink.co.in'; }
+            })();
 
-            // 本地 file:// 或其他環境回退為標準 play.html 查詢參數
-            let urlToUse = baseShareUrl;
-            if (chosenOrigin) {
-                try {
-                    const parsed = new URL(baseShareUrl);
-                    urlToUse = `${chosenOrigin}${parsed.pathname === '/' ? '/play.html' : parsed.pathname}${parsed.search}`;
-                } catch (e) {
-                    urlToUse = baseShareUrl;
-                }
-            }
-            if (!toVal) return urlToUse;
-            const sep = urlToUse.includes('?') ? '&' : '?';
-            return `${urlToUse}${sep}to=${encodeURIComponent(toVal)}`;
+            const targetUrl = `${baseOrigin}/?id=${encodeURIComponent(cardId)}`;
+            return toVal ? `${targetUrl}&to=${encodeURIComponent(toVal)}` : targetUrl;
         }, [baseShareUrl, selectedDomain, recipientName, card.id]);
 
         // 計算兩行式分享訊息 (社群導語首句智能拼接對象稱呼)
@@ -318,20 +305,37 @@
                         h('div', {
                             className: 'p-2.5 bg-zinc-900/90 rounded border border-zinc-800 text-zinc-200 font-mono text-[11px] whitespace-pre-wrap leading-relaxed select-all'
                         }, fullShareMessage),
-                        h('div', { className: 'flex flex-wrap items-center gap-2 pt-1' },
+                        h('div', { className: 'grid grid-cols-2 gap-2 pt-1' },
                             h('button', {
                                 onClick: handleCopyFullMessage,
-                                className: 'flex-1 py-2 px-3 bg-amber-400 hover:bg-amber-300 text-zinc-950 font-bold rounded text-xs flex items-center justify-center gap-1.5 shadow transition-all active:scale-95'
+                                className: 'py-2 px-2.5 bg-amber-400 hover:bg-amber-300 text-zinc-950 font-bold rounded text-xs flex items-center justify-center gap-1.5 shadow transition-all active:scale-95'
                             },
                                 h('i', { className: 'fa-solid fa-copy' }),
-                                h('span', null, '一鍵複製【導語 + 網址】')
+                                h('span', null, '一鍵複製【導語+網址】')
                             ),
                             h('button', {
                                 onClick: handleOpenWhatsApp,
-                                className: 'py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded text-xs flex items-center gap-1.5 shadow transition-all active:scale-95'
+                                className: 'py-2 px-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded text-xs flex items-center justify-center gap-1.5 shadow transition-all active:scale-95'
                             },
                                 h('i', { className: 'fa-brands fa-whatsapp text-sm' }),
-                                h('span', null, '發送 WhatsApp')
+                                h('span', null, '發送【導語+網址】')
+                            ),
+                            h('button', {
+                                onClick: handleCopyUrlOnly,
+                                className: 'py-2 px-2.5 bg-zinc-800 hover:bg-zinc-700 text-amber-300 font-semibold rounded text-xs flex items-center justify-center gap-1.5 border border-zinc-700 shadow transition-all active:scale-95'
+                            },
+                                h('i', { className: 'fa-solid fa-link' }),
+                                h('span', null, '僅複製【純網址】')
+                            ),
+                            h('button', {
+                                onClick: () => {
+                                    const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(finalShareUrl)}`;
+                                    window.open(waUrl, '_blank');
+                                },
+                                className: 'py-2 px-2.5 bg-emerald-800 hover:bg-emerald-700 text-emerald-100 font-semibold rounded text-xs flex items-center justify-center gap-1.5 border border-emerald-600/40 shadow transition-all active:scale-95'
+                            },
+                                h('i', { className: 'fa-brands fa-whatsapp text-sm' }),
+                                h('span', null, '發送【純網址】')
                             )
                         )
                     ),

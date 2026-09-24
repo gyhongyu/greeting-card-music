@@ -91,7 +91,6 @@ def verify_templates():
         missing_in_constants = [tid for tid in local_ids if tid not in constants_text]
         if missing_in_constants:
             print(f"⚠️ [警告] constants.js 缺少以下模板 ID: {missing_in_constants}")
-            print("   (在 file:/// 雙擊協議下，缺少 constants.js 登記會導致模板消失！)")
         else:
             print("✅ constants.js 已完整登記所有本地模板 ID。")
     

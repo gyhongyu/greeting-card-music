@@ -4,6 +4,23 @@
 
 ---
 
+### [2026-09-25] [UNREFINED] [cloud_only_and_zero_local_html_invariant] 全面終止本地 HTML 開發機制，固化全公網雙網址運作與交接工作清單，鎖死 GAS 雲端 SSOT 為唯一真理源
+- **類型**: `ARCHITECTURE` | `INVARIANT` | `GOVERNANCE`
+- **代碼錨點**: `HANDOFF.md`, `AGENTS.md`, `docs/STATE.md`, `.agents/skills/cardforge_template_manager/SKILL.md`, `scripts/sync_templates.py`
+- **核心事實 / 決策理由**:
+  1. **徹底終結本地 HTML 開發機制**:
+     - 本專案已全面進入線上雲端生產階段，不再需要相容早期本機 `file:///` 雙擊秒開的過渡期開發邏輯。
+     - 確立所有代理人禁止再去搞本地 HTML 開發機制，100% 只會透過公網雙網址進行操作與驗收：
+       - `https://card.teaforia.in`
+       - `https://card.foxlink.co.in`
+  2. **全面固化至交接工作清單 (HANDOFF.md)**:
+     - 在 `HANDOFF.md` 清楚記錄歷史教訓（受「相容本地 HTML」影響而硬塞本地常數，導致線上覆蓋雲端定制效果）。
+     - 明確指派下一棒代理人核心任務：全面清查專案所有代碼檔案（`play.html`、`workspace_store.js`、`constants.js`、`workspace_views.js` 等），徹底拔除所有以本地參數取代 GAS 的邏輯，達到 100% 全防堵。
+  3. **規則與技能全面固化**:
+     - `AGENTS.md`、`docs/STATE.md`、`cardforge_template_manager/SKILL.md` 與 `sync_templates.py` 已全數移除 `file:///` 描述，嚴守 GAS 雲端 SSOT 為絕對單一真理源。
+
+---
+
 ### [2026-09-25] [UNREFINED] [strict_gas_ssot_and_video_unstarted_sync] 確立 GAS 雲端 SSOT 絕對單一真理源與零本地參數覆蓋鐵律，修復背後視訊未點播放即偷跑缺陷，全面同步 mid-autumn-moon「天上掉月餅」真實規格
 - **類型**: `BUG_FIX` | `ARCHITECTURE` | `INVARIANT` | `POST_MORTEM`
 - **代碼錨點**: `core/CardEngine.js`, `play.html`, `js/constants.js`, `AGENTS.md`, `docs/STATE.md`
