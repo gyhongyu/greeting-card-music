@@ -4,6 +4,24 @@
 
 ---
 
+### [2026-09-24] [UNREFINED] [template_typography_width_scale_fix] 全面移除懸停/點擊暫停機制、解除字級 !important 暴力覆蓋、加入 flexShrink:0 徹底解鎖板面寬度與字級拉桿
+- **類型**: `BUG_FIX` | `REFACTOR` | `USER_EXPERIENCE`
+- **代碼錨點**: `styles/templates.css`, `core/CardEngine.js`
+- **核心事實 / 決策理由**:
+  1. **病灶精確鎖定**:
+     - **字級拉桿失效**：`styles/templates.css` 中 `@media (min-width: 768px)` 下的 `.anim-star-wars-crawl p` 帶有全域 `font-size: clamp(...) !important`，將 `CardEngine.js` 的行內 `fontSizeScale` 暴力抹殺覆蓋。
+     - **寬度邊界拉桿失效**：星戰滾動容器為 Flexbox 佈局，子板面預設 `flex-shrink: 1` 且受限於固定 `min-width`，當使用者拉大 `crawlWidthScale`（如 190%）時，被 Flex 容器強制壓回手機 350px 寬度內，造成寬度死鎖。
+     - **懸停/點擊卡死受眾端**：原本設計的鼠標懸停暫停與點擊鎖定機制，導致受眾端回放時極易誤觸停住，產生卡死錯覺。
+  2. **徹底根除改造**:
+     - **全面移除暫停機制**：從 `styles/templates.css` 與 `core/CardEngine.js` 中徹底拔除 `:hover`、`.is-paused` 與 `isPaused` 狀態及點擊監聽，保證受眾端播放 100% 流暢連續。
+     - **解除字級覆蓋並強化直連**：移除 CSS 中的全域 `!important` 規則；在 `CardEngine.js` 中直接為每一個 `<p>` 段落綁定行內 `fontSize: calc(1.2rem * ${fontSizeScale})`，確保 80%~140% 拉桿像素級實時響應。
+     - **解鎖板面寬度自適應**：在 `boardStyle` 注入 `flexShrink: 0` 並設置 `width: ${crawlWidthScale}%`（上限 880px），徹底釋放 100%（框內收納）至 240%（突破邊界）的視覺延展自由度。
+  3. **門禁核驗**:
+     - `workspace.html` 保持 442 行（嚴格 ≤ 450 行門禁）。
+     - 外部 JS 保持原生純 JS 零 JSX 規範。
+
+---
+
 ### [2026-09-24] [UNREFINED] [mobile_shader_hash_upgrade] 根治行動端 WebGL 月亮碎裂多邊形、升級 Dave Hoskins 無 Sine 雜湊演算法與固化 Shader 移動端鐵律
 - **類型**: `BUG_FIX` | `ARCHITECTURE` | `MOBILE_COMPATIBILITY`
 - **代碼錨點**: `core/BackdropShader.js`, `AGENTS.md`

@@ -13,7 +13,6 @@
 
     function CardEngine({ card, template, isStarted = true }) {
         const [currentIndex, setCurrentIndex] = React.useState(0);
-        const [isPaused, setIsPaused] = React.useState(false);
 
         const photos = (card && card.media && card.media.photos && card.media.photos.length > 0)
             ? card.media.photos
@@ -166,12 +165,16 @@
                 }, card.recipient));
             }
 
-            // Paragraphs (星戰正統：兩端對齊 text-align: justify，每一行文字舒展頂格，不再居中縮水成細長條)
+            // Paragraphs (星戰正統：兩端對齊 text-align: justify，字級直連 fontSizeScale)
             if (card && card.paragraphs) {
                 const paragraphsElements = card.paragraphs.map((p, idx) => h('p', {
                     key: idx,
                     className: 'whitespace-pre-line leading-relaxed font-light tracking-wide clean-text-shadow text-white/95',
-                    style: isStarWars ? { textAlign: 'justify', textJustify: 'inter-character' } : {}
+                    style: {
+                        ...(isStarWars ? { textAlign: 'justify', textJustify: 'inter-character' } : {}),
+                        fontSize: `calc(1.2rem * ${fontSizeScale})`,
+                        lineHeight: 1.8
+                    }
                 }, p));
                 crawlChildren.push(h('div', {
                     key: 'paragraphs',
@@ -222,11 +225,11 @@
                 perspectiveOrigin: '50% 85%'
             } : {};
 
-            // 星戰板面寬度自適應：手機直屏維持自訂比例，PC 寬螢幕強制上限 820px，徹底杜絕拉伸至 3400px 造成字體飛出畫面
+            // 星戰板面寬度自適應：flexShrink 0 徹底釋放拉桿自由度，手機直屏維持自訂比例，PC 寬螢幕強制上限 880px
             const boardStyle = isStarWars ? {
-                width: `min(${crawlWidthScale}%, 820px)`,
-                minWidth: 'min(92%, 600px)',
-                maxWidth: '820px',
+                width: `${crawlWidthScale}%`,
+                maxWidth: '880px',
+                flexShrink: 0,
                 fontFamily: fontFamily,
                 '--crawl-duration': `${crawlDurationSec}s`,
                 '--crawl-angle': `${crawlAngle}deg`
@@ -238,14 +241,13 @@
             };
 
             const boardClasses = isStarWars 
-                ? `mx-auto px-4 text-white ${animClass} ${isPaused ? 'is-paused' : ''}`
-                : `w-full max-w-2xl px-6 md:px-8 text-center text-white ${animClass} ${isPaused ? 'is-paused' : ''}`;
+                ? `mx-auto px-4 text-white ${animClass}`
+                : `w-full max-w-2xl px-6 md:px-8 text-center text-white ${animClass}`;
 
             rootChildren.push(h('div', {
                 key: `scroll-container-${layout}`,
-                className: 'absolute inset-x-0 top-24 bottom-6 z-20 flex justify-center items-start overflow-hidden cursor-pointer crawl-mask-container',
-                style: container3DStyle,
-                onClick: () => setIsPaused(!isPaused)
+                className: 'absolute inset-x-0 top-24 bottom-6 z-20 flex justify-center items-start overflow-hidden crawl-mask-container',
+                style: container3DStyle
             }, h('div', {
                 className: boardClasses,
                 style: boardStyle

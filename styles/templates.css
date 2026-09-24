@@ -32,11 +32,6 @@
   will-change: transform, opacity;
 }
 
-.anim-star-wars-crawl:hover,
-.anim-star-wars-crawl.is-paused {
-  animation-play-state: paused;
-}
-
 /* 2. 🎬 電影卷軸 · 典雅信箋平直滾動 (Cinematic Credits / Poetic Scroll)
    - 平直等速、文字不扭曲變形、閱讀體驗最純粹
    - 起點設為 480px，第 0 秒第一行字立刻在下緣浮現，不用乾等
@@ -65,11 +60,6 @@
 .anim-cinematic-credits {
   animation: cinematicCreditsScroll var(--crawl-duration, 44s) linear infinite;
   will-change: transform, opacity;
-}
-
-.anim-cinematic-credits:hover,
-.anim-cinematic-credits.is-paused {
-  animation-play-state: paused;
 }
 
 /* 2. Ken Burns Subtle Cinematic Breathe */
@@ -140,14 +130,9 @@
     text-align: right !important;
   }
 
-  /* 星戰 3D 升空 PC 桌面大螢幕文字自適應放大，告別 100% 縮放時文字像螞蟻或飛出螢幕 */
-  .anim-star-wars-crawl p,
-  .anim-star-wars-crawl div {
-    font-size: clamp(22px, 1.8vw, 28px) !important;
-    line-height: 1.8 !important;
-  }
+  /* 星戰 3D 升空字元間距微調，字級完全交由模板 theme.fontSizeScale 行內動態控制 */
   .anim-star-wars-crawl .clean-text-shadow {
-    letter-spacing: 0.04em !important;
+    letter-spacing: 0.04em;
   }
 }
 
