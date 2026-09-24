@@ -20,7 +20,14 @@
    - ✅ 強制無三角函數安全雜湊：所有程序化噪聲/雜湊一律強制採用 Dave Hoskins `hash12` / `hash22` (無 sine 向量混淆演算法：`vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += vec3(dot(p3, p3.yzx + 33.33)); return fract((p3.x + p3.y) * p3.z);`)。
    - 🛡️ 精度與效能守護：片段著色器頭部必須包含 `#ifdef GL_FRAGMENT_PRECISION_HIGH ... precision highp float; ... #else precision mediump float; #endif`；DPR 嚴格限制 `Math.min(devicePixelRatio, 2)` 防行動端發燙崩潰。
 
-5. ⛔【不可違背之工程紅線 (Hard Invariants)】：
+5. 🎨【三維模板真值同步與防覆蓋鐵律 (Trinity Sync Invariant)】：
+   - ⛔ 嚴禁單邊落盤：新增或修改任何模板，**絕對嚴禁只改本地檔案或只改單一設定**！必須強制維持三維一致：`data/templates.json` ✕ `js/constants.js` (DEFAULT_TEMPLATES) ✕ Google Sheet SSOT (GAS)。
+   - 🛡️ 防 SWR 覆蓋與驗收儀軌：改動後必須強制執行固定命令核驗與推送：
+     1. `py scripts/sync_templates.py verify`（核驗三方一致性）
+     2. `py scripts/sync_templates.py push`（推送至 Google Sheet 覆寫雲端 SSOT，杜絕線上載入時覆蓋本地參數）
+   - 🎛️ 介面同步率：凡涉及新參數（如視訊/字幕/字級），必須同時在 `js/editor_views.js` 的 `TemplateEditorView` 補齊輸入欄位。
+
+6. ⛔【不可違背之工程紅線 (Hard Invariants)】：
    - 嚴禁主動發起 `git push`（除非使用者明確授權「推送倉庫/一起修改到位/push」）；嚴禁以 `taskkill` 殺除進程。
    - 🚨 測試邊界：**嚴禁 AI 代理人自行開啟瀏覽器（`browser_subagent`）測試**，全權由使用者手動執行。
    - 畫廊優先：`workspace.html` 首頁必須是大畫廊，嚴禁默認強行進入編輯器。

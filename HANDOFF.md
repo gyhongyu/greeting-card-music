@@ -13,9 +13,16 @@
    - `play.html` 內部 100% 絕對禁止出現 `window.location.replace('workspace.html')`！
 3. **⛔ file:/// 本地雙擊零編譯與 constants.js 同步鐵律**：
    - 使用者常以 `file:///` 本地雙擊開啟 `workspace.html`。Chrome 安全沙盒會封鎖本地 `fetch('data/templates.json')`。新增模板時，**必須同時在 `js/constants.js` 的 `window.DEFAULT_TEMPLATES` 與 `data/templates.json` 雙向同步登記**，否則本地永遠無法讀取！
-4. **⛔ 終端命令防彈窗與內嵌代碼落盤禁令**：
+4. **⛔ 三維模板真值同步與防覆蓋鐵律 (Trinity Sync Invariant)**：
+   - 本地改完模板後，線上公網載入時會自動從 Google Sheet 雲端 SWR 覆蓋。若未同步雲端，**新模板與新參數會全部被舊資料抹殺**！
+   - 新增/修改模板後，必須強制依序執行：
+     1. 雙向落盤：`data/templates.json` ＋ `js/constants.js`
+     2. 三維核驗：`py scripts/sync_templates.py verify`
+     3. 雲端推送：`py scripts/sync_templates.py push`（覆寫 Google Sheet SSOT）
+     4. 技能指引：完整工作流請參閱 `.agents/skills/cardforge_template_manager/SKILL.md`。
+5. **⛔ 終端命令防彈窗與內嵌代碼落盤禁令**：
    - 檔案操作必須且只能調用專屬工具（如 `replace_file_content`）。
-5. **⛔ 畫廊優先與 workspace.html 行數門禁**：
+6. **⛔ 畫廊優先與 workspace.html 行數門禁**：
    - 首頁必須是大畫廊；`workspace.html` 保持純粹組裝，總行數嚴格 ≤ 450 行！
 
 ---
@@ -29,6 +36,8 @@
 | **字幕與字級即時連動** | ✅ 已連動 | 電影字幕字級直接綁定右側「內文字體大小 (Body Scale)」拉桿（80%~140%），所見即所得。 |
 | **字幕雲端儲存 (方案1)** | ✅ 架構就緒 | `Card_Gateway.gs` 支援 `upload_subtitle` 存入 Google Drive 專屬資料夾 `CardForge_Subtitles`，卡片僅存短 URL，徹底根除 50,000 字元儲存格上限。 |
 | **音樂音量微調與快速靜音** | ✅ 已上線 | 支援 0%~100% 音量滑桿與一鍵快速靜音，解決背景影片自帶歌曲/語音時與配樂衝突之痛點。 |
+| **視訊原聲獨立音量與解鎖** | ✅ 已上線 | 移除強制靜音，支援視訊原聲音量拉桿 (0%~100%) 與快速靜音，瀏覽器點擊互動後自動發聲。 |
+| **模板三維同步專案技能** | ✅ 已固化 | 建立 `.agents/skills/cardforge_template_manager/` 與 `scripts/sync_templates.py`，嚴守 constants ✕ templates.json ✕ GAS 三方真值同步。 |
 | **遠端倉庫狀態** | ✅ 已同步 | 本次重大更新已遵照指示推送到 GitHub `main` 分支。 |
 
 ---

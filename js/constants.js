@@ -35,6 +35,7 @@ window.DEFAULT_TEMPLATES = [
         bgVideo: 'assets/videos/Miracle_Under_the_Sky.mp4',
         subtitleUrl: 'assets/subtitles/Miracle_Under_the_Sky.srt',
         videoFit: 'square-feather',
+        videoVolume: 80,
         crawlSpeed: 42,
         bgDimmer: 0.88,
         bgBlur: 0,
@@ -57,47 +58,155 @@ window.DEFAULT_TEMPLATES = [
         id: 'mothers-day',
         name: '典雅溫情 · 櫻花信箋',
         category: 'personal',
-        description: '3D 落櫻花瓣輕盈飄落翻轉。純情浪漫首選。',
+        description: '3D Canvas 真實落櫻花瓣輕盈飄落翻轉、溫暖生活照輪播。純情浪漫、親情摯愛首選。',
         layout: 'cinematic-credits',
         bgShader: 'none',
         crawlSpeed: 44,
-        theme: { primaryColor: '#f472b6', accentColor: '#fbbf24', bgColor: '#14050b' },
-        effects: { particleType: 'sakura-canvas', particleDensity: 30 }
+        bgDimmer: 0.95,
+        bgBlur: 0,
+        theme: {
+            primaryColor: '#f472b6',
+            accentColor: '#fb7185',
+            bgColor: '#14050b',
+            textColor: '#ffffff',
+            titleColor: '#ffffff',
+            fontFamily: "'Cormorant Garamond', 'Noto Serif TC', serif",
+            styleClass: 'theme-mothers-day'
+        },
+        effects: {
+            particleType: 'sakura-canvas',
+            particleDensity: 30
+        },
+        defaultMusic: 'assets/audio/In Love With You.mp3'
     },
     {
-        id: 'birthday-aurora',
-        name: '星夜極光 · 歡慶誕生',
-        category: 'birthday',
-        description: '極光流轉背景與璀璨金光星塵，適合生日驚喜。',
-        layout: 'star-wars-crawl',
+        id: 'obsidian-silk',
+        name: '黑金尊爵 · 絲綢流光 (Indo-Phoenix A)',
+        category: 'business',
+        description: 'WebGL 原生暗黑金流光絲綢 Shader ✕ 金光升騰星塵 (Rising Stardust)。高管、主權基金與旗艦夥伴尊榮之選。',
+        layout: 'cinematic-poster',
+        textRevealFx: 'domino-3d',
+        revealSpeed: 0.8,
         bgShader: 'silk-smoke',
-        crawlSpeed: 38,
-        theme: { primaryColor: '#38bdf8', accentColor: '#facc15', bgColor: '#030712' },
-        effects: { particleType: 'rising-stardust', particleDensity: 40 }
+        crawlSpeed: 48,
+        bgDimmer: 0.92,
+        bgBlur: 0,
+        theme: {
+            primaryColor: '#c9a96e',
+            accentColor: '#e6ca92',
+            bgColor: '#09090b',
+            textColor: '#ecebe6',
+            titleColor: '#c9a96e',
+            fontFamily: "'Cormorant Garamond', serif",
+            styleClass: 'theme-obsidian-gold'
+        },
+        effects: {
+            particleType: 'rising-stardust',
+            particleDensity: 35
+        },
+        defaultMusic: 'assets/audio/In Love With You.mp3'
     },
     {
-        id: 'cosmic-vortex',
-        name: '星際奇航 · 宇宙黑洞',
-        category: 'festival',
-        description: '浩瀚星軌與黑洞引力渦流，充滿未來科技與深邃感。',
+        id: 'mission-control',
+        name: '星際軌道 · 衛星巡航 (Indo-Phoenix B)',
+        category: 'business',
+        description: 'Three.js 3D 粒子星球 ✕ 橢圓軌道衛星光跡巡航 (Orbital Satellites)。SpaceX x Anduril 硬核深空科技風。',
+        layout: 'cinematic-poster',
+        textRevealFx: 'fire-shimmer',
+        revealSpeed: 1.0,
+        bgShader: 'particle-orbit',
+        crawlSpeed: 40,
+        bgDimmer: 0.9,
+        bgBlur: 0,
+        theme: {
+            primaryColor: '#4fd1c5',
+            accentColor: '#c9a96e',
+            bgColor: '#050a14',
+            textColor: '#e2e8f0',
+            titleColor: '#4fd1c5',
+            fontFamily: "'Jost', sans-serif",
+            styleClass: 'theme-mission-control'
+        },
+        effects: {
+            particleType: 'orbital-satellites',
+            particleDensity: 25
+        },
+        defaultMusic: 'assets/audio/In Love With You.mp3'
+    },
+    {
+        id: 'hologram-cyber',
+        name: '黑洞引力 · 全息星雲 (Indo-Phoenix C)',
+        category: 'business',
+        description: 'Three.js 賽博點雲 ✕ 黑洞奇異點渦流吸聚 (Blackhole Vortex)。象徵強大凝聚力與未來前瞻視野。',
         layout: 'star-wars-crawl',
         bgShader: 'hologram',
+        crawlSpeed: 38,
+        bgDimmer: 0.9,
+        bgBlur: 0,
+        theme: {
+            primaryColor: '#35e0ff',
+            accentColor: '#8b7bff',
+            bgColor: '#06070b',
+            textColor: '#f8fafc',
+            titleColor: '#35e0ff',
+            fontFamily: "'Jost', sans-serif",
+            styleClass: 'theme-hologram'
+        },
+        effects: {
+            particleType: 'blackhole-vortex',
+            particleDensity: 30
+        },
+        defaultMusic: 'assets/audio/In Love With You.mp3'
+    },
+    {
+        id: 'festive-red',
+        name: '盛典金紅 · 璀璨流星雨',
+        category: 'festive',
+        description: '絳紅天鵝絨背景 ✕ 劃破夜空的長尾璀璨流星雨 (Meteor Shower)。祈願新程宏圖大展、吉祥如意。',
+        layout: 'star-wars-crawl',
+        bgShader: 'none',
         crawlSpeed: 42,
-        theme: { primaryColor: '#a855f7', accentColor: '#38bdf8', bgColor: '#05030a' },
-        effects: { particleType: 'blackhole-vortex', particleDensity: 50 }
+        bgDimmer: 0.95,
+        bgBlur: 0,
+        theme: {
+            primaryColor: '#fbbf24',
+            accentColor: '#ef4444',
+            bgColor: '#150204',
+            textColor: '#ffffff',
+            titleColor: '#ffffff',
+            fontFamily: "'Noto Serif TC', serif",
+            styleClass: 'theme-festive-red'
+        },
+        effects: {
+            particleType: 'meteor-shower',
+            particleDensity: 25
+        },
+        defaultMusic: 'assets/audio/In Love With You.mp3'
     },
     {
         id: 'mid-autumn-moon',
         name: '月夕清輝 · 金桂玉兔',
         category: 'festive',
         description: '3D 超級明月月暈 ✕ 祥雲繾綣流動 Shader ✕ 漫天飄落旋轉金桂花瓣。中秋團聚、千里嬋娟極致詩意之選。',
-        layout: 'cinematic-poster',
-        textRevealFx: 'fire-shimmer',
-        revealSpeed: 0.8,
+        layout: 'star-wars-crawl',
         bgShader: 'lunar-clouds',
         crawlSpeed: 40,
-        theme: { primaryColor: '#f59e0b', accentColor: '#fef08a', bgColor: '#030611', textColor: '#f8fafc', titleColor: '#fbbf24', fontFamily: "'Noto Serif TC', serif" },
-        effects: { particleType: 'osmanthus-petals', particleDensity: 38 }
+        bgDimmer: 0.88,
+        bgBlur: 0,
+        theme: {
+            primaryColor: '#f59e0b',
+            accentColor: '#fef08a',
+            bgColor: '#030611',
+            textColor: '#f8fafc',
+            titleColor: '#fbbf24',
+            fontFamily: "'Noto Serif TC', 'Cormorant Garamond', serif",
+            styleClass: 'theme-mid-autumn'
+        },
+        effects: {
+            particleType: 'osmanthus-petals',
+            particleDensity: 38
+        },
+        defaultMusic: 'assets/audio/In Love With You.mp3'
     },
     {
         id: 'mid-autumn-lantern',
@@ -107,8 +216,22 @@ window.DEFAULT_TEMPLATES = [
         layout: 'cinematic-credits',
         bgShader: 'golden-mooncake',
         crawlSpeed: 38,
-        theme: { primaryColor: '#fbbf24', accentColor: '#f97316', bgColor: '#080512', textColor: '#ffffff', titleColor: '#fde047', fontFamily: "'Noto Serif TC', serif" },
-        effects: { particleType: 'sky-lanterns', particleDensity: 30 }
+        bgDimmer: 0.9,
+        bgBlur: 0,
+        theme: {
+            primaryColor: '#fbbf24',
+            accentColor: '#f97316',
+            bgColor: '#080512',
+            textColor: '#ffffff',
+            titleColor: '#fde047',
+            fontFamily: "'Noto Serif TC', 'DFKai-SB', serif",
+            styleClass: 'theme-festive-gold'
+        },
+        effects: {
+            particleType: 'sky-lanterns',
+            particleDensity: 30
+        },
+        defaultMusic: 'assets/audio/In Love With You.mp3'
     }
 ];
 

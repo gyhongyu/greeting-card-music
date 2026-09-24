@@ -194,6 +194,37 @@
             }, photoElements));
         }
 
+        // 視訊音量計算 (預設 80%，若為 0 則靜音)
+        const videoVolumeRaw = (card && card.media && card.media.videoVolume !== undefined)
+            ? Number(card.media.videoVolume)
+            : ((template && template.videoVolume !== undefined) ? Number(template.videoVolume) : 80);
+        const videoVolumeNormalized = Math.max(0, Math.min(100, videoVolumeRaw)) / 100;
+        const isVideoMuted = videoVolumeRaw === 0;
+
+        // 當使用者在頁面上產生點擊互動時，自動嘗試解除靜音發聲 (遵循瀏覽器 Autoplay 規範)
+        React.useEffect(() => {
+            const videoEl = videoElementRef.current;
+            if (!videoEl) return;
+
+            videoEl.volume = videoVolumeNormalized;
+            videoEl.muted = isVideoMuted;
+
+            const handleUserInteract = () => {
+                if (videoEl && !isVideoMuted) {
+                    videoEl.muted = false;
+                    videoEl.volume = videoVolumeNormalized;
+                    videoEl.play().catch(() => {});
+                }
+            };
+
+            window.addEventListener('click', handleUserInteract, { once: true });
+            window.addEventListener('touchstart', handleUserInteract, { once: true });
+            return () => {
+                window.removeEventListener('click', handleUserInteract);
+                window.removeEventListener('touchstart', handleUserInteract);
+            };
+        }, [videoVolumeNormalized, isVideoMuted]);
+
         // 2.5 VIDEO BACKGROUND LAYER (1:1 視訊播放 ✕ 邊緣羽化融化特效)
         if (bgVideo) {
             rootChildren.push(h('div', {
@@ -206,7 +237,7 @@
                     src: encodeURI(bgVideo),
                     autoPlay: true,
                     loop: true,
-                    muted: true,
+                    muted: isVideoMuted,
                     playsInline: true,
                     preload: 'auto',
                     className: 'video-square-element',

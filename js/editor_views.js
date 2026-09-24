@@ -544,7 +544,46 @@
                                 className: 'text-zinc-400 hover:text-amber-400 transition-colors'
                             }, '清除自訂')
                         ) : null
-                    )
+                    ),
+
+                    // 🎚️ 視訊原聲音量拉桿與一鍵靜音 (Video Volume Slider & Mute Toggle)
+                    (currentEditingCard.media?.customVideo || currentEditingTemplate?.bgVideo) ? (
+                        h('div', { className: 'pt-2 border-t border-zinc-800/80 space-y-1.5' },
+                            h('div', { className: 'flex items-center justify-between text-xs' },
+                                h('span', { className: 'text-zinc-400 flex items-center gap-1.5 text-[11px]' },
+                                    h('i', { className: `fa-solid ${Number(currentEditingCard.media?.videoVolume ?? (currentEditingTemplate?.videoVolume ?? 80)) === 0 ? 'fa-volume-xmark text-rose-400' : 'fa-volume-high text-sky-400'}` }),
+                                    h('span', null, '視訊原聲音量')
+                                ),
+                                h('div', { className: 'flex items-center gap-2' },
+                                    h('button', {
+                                        type: 'button',
+                                        onClick: () => {
+                                            const curVol = Number(currentEditingCard.media?.videoVolume ?? (currentEditingTemplate?.videoVolume ?? 80));
+                                            const newVol = curVol === 0 ? 80 : 0;
+                                            updateEditingCard({
+                                                media: { ...(currentEditingCard.media || {}), videoVolume: newVol }
+                                            });
+                                        },
+                                        className: `px-1.5 py-0.5 rounded text-[10px] border transition-colors ${Number(currentEditingCard.media?.videoVolume ?? (currentEditingTemplate?.videoVolume ?? 80)) === 0 ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' : 'bg-zinc-800 text-zinc-400 border-zinc-700 hover:text-white'}`
+                                    }, Number(currentEditingCard.media?.videoVolume ?? (currentEditingTemplate?.videoVolume ?? 80)) === 0 ? '已靜音' : '快速靜音'),
+                                    h('span', { className: 'text-sky-400 font-mono text-[11px] w-8 text-right' }, `${currentEditingCard.media?.videoVolume !== undefined ? currentEditingCard.media.videoVolume : (currentEditingTemplate?.videoVolume ?? 80)}%`)
+                                )
+                            ),
+                            h('input', {
+                                type: 'range',
+                                min: 0,
+                                max: 100,
+                                step: 5,
+                                value: currentEditingCard.media?.videoVolume !== undefined ? currentEditingCard.media.videoVolume : (currentEditingTemplate?.videoVolume ?? 80),
+                                onChange: e => {
+                                    updateEditingCard({
+                                        media: { ...(currentEditingCard.media || {}), videoVolume: Number(e.target.value) }
+                                    });
+                                },
+                                className: 'w-full accent-sky-400 h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer'
+                            })
+                        )
+                    ) : null
                 ),
 
                 // 背景配樂 (支援下拉選單、自訂路徑、音量拉桿與一鍵靜音)
@@ -1215,7 +1254,39 @@
                             onChange: e => setEditingTemplate({ ...editingTemplate, subtitleUrl: e.target.value }),
                             className: 'w-full bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-white font-mono text-[10px] outline-none focus:border-indigo-400 text-zinc-300'
                         })
-                    )
+                    ),
+                    // 🎚️ 模板預設視訊原聲音量
+                    editingTemplate.bgVideo ? (
+                        h('div', { className: 'pt-2 border-t border-zinc-800/60 space-y-1.5' },
+                            h('div', { className: 'flex items-center justify-between text-xs' },
+                                h('span', { className: 'text-zinc-400 flex items-center gap-1.5 text-[11px]' },
+                                    h('i', { className: `fa-solid ${Number(editingTemplate.videoVolume ?? 80) === 0 ? 'fa-volume-xmark text-rose-400' : 'fa-volume-high text-indigo-400'}` }),
+                                    h('span', null, '預設原聲音量')
+                                ),
+                                h('div', { className: 'flex items-center gap-2' },
+                                    h('button', {
+                                        type: 'button',
+                                        onClick: () => {
+                                            const curVol = Number(editingTemplate.videoVolume ?? 80);
+                                            const newVol = curVol === 0 ? 80 : 0;
+                                            setEditingTemplate({ ...editingTemplate, videoVolume: newVol });
+                                        },
+                                        className: `px-1.5 py-0.5 rounded text-[10px] border transition-colors ${Number(editingTemplate.videoVolume ?? 80) === 0 ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' : 'bg-zinc-800 text-zinc-400 border-zinc-700 hover:text-white'}`
+                                    }, Number(editingTemplate.videoVolume ?? 80) === 0 ? '已靜音' : '快速靜音'),
+                                    h('span', { className: 'text-indigo-400 font-mono text-[11px] w-8 text-right' }, `${editingTemplate.videoVolume !== undefined ? editingTemplate.videoVolume : 80}%`)
+                                )
+                            ),
+                            h('input', {
+                                type: 'range',
+                                min: 0,
+                                max: 100,
+                                step: 5,
+                                value: editingTemplate.videoVolume !== undefined ? editingTemplate.videoVolume : 80,
+                                onChange: e => setEditingTemplate({ ...editingTemplate, videoVolume: Number(e.target.value) }),
+                                className: 'w-full accent-indigo-500 h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer'
+                            })
+                        )
+                    ) : null
                 ),
 
                 // 前景粒子特效群

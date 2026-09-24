@@ -9,6 +9,7 @@
     "bgVideo": "assets/videos/Miracle_Under_the_Sky.mp4",
     "subtitleUrl": "assets/subtitles/Miracle_Under_the_Sky.srt",
     "videoFit": "square-feather",
+    "videoVolume": 80,
     "crawlSpeed": 42,
     "bgDimmer": 0.88,
     "bgBlur": 0,
