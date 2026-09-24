@@ -66,8 +66,8 @@ async function handleRequest(request) {
  * 為社群爬蟲動態產生帶有 Open Graph 標籤的 HTML
  */
 async function handleBotPreview(request, url, cardId, toName = "") {
-  let title = "CardForge - 沉浸式音樂賀卡";
-  let description = "為您獻上一份充滿星空、音樂與真摯祝福的專屬多媒體賀卡。";
+  let title = "A Special Gift for You";
+  let description = "Warmest Wishes & Best Regards.";
   let imageUrl = "https://i.ibb.co/YFsSdsjg/share-cover-webp.webp";
 
   try {

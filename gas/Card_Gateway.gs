@@ -253,14 +253,14 @@ function internalSaveCard(sheet, card) {
   const cardId = card.id || ("c_" + Date.now().toString(36) + Math.random().toString(36).substr(2, 4));
   card.id = cardId;
 
-  const title = card.title || card.name || "未命名賀卡";
+  const title = card.title || card.name || "A Special Gift for You";
   const sender = card.sender || "";
   const recipient = card.recipient || "";
   const description = (card.shareCaption && card.shareCaption.trim())
     ? card.shareCaption.trim().replace(/\{name\}[，,：:]?\s*/g, '').substring(0, 150)
     : ((card.paragraphs && card.paragraphs.length > 0)
         ? card.paragraphs[0].substring(0, 150)
-        : (card.description || "獻上一份溫暖的誠摯心意"));
+        : (card.description || "Warmest Wishes & Best Regards."));
   const imageUrl = (card.coverImage && card.coverImage.trim())
     ? card.coverImage.trim()
     : ((card.media && card.media.photos && card.media.photos.length > 0)
