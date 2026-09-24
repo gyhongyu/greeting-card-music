@@ -32,6 +32,15 @@
         const bgVideo = (card && card.media && card.media.customVideo) || (template && template.bgVideo) || null;
         const videoFit = (template && template.videoFit) || 'square-feather';
 
+        // 🎬 資產動態版本號機制 (Cache-Busting)：同檔名更新時 100% 破除手機頑固快取
+        const assetVersion = (card && (card.updatedAt || card.id)) || (template && (template.updatedAt || template.id)) || '1';
+        const withCacheBust = React.useCallback((rawUrl) => {
+            if (!rawUrl || typeof rawUrl !== 'string') return '';
+            if (rawUrl.startsWith('data:') || rawUrl.startsWith('blob:')) return rawUrl;
+            const sep = rawUrl.includes('?') ? '&' : '?';
+            return `${encodeURI(rawUrl)}${sep}v=${encodeURIComponent(assetVersion)}`;
+        }, [assetVersion]);
+
         // 🎬 電影字幕支援 (Cinematic Subtitles)
         const subtitleSource = (card && card.media && card.media.subtitleUrl) 
             || (template && template.subtitleUrl) 
@@ -88,14 +97,14 @@
             if (subtitleSource.includes('-->')) {
                 setParsedSubtitles(parseSRTText(subtitleSource));
             } else {
-                fetch(subtitleSource)
+                fetch(withCacheBust(subtitleSource))
                     .then(r => r.ok ? r.text() : '')
                     .then(txt => {
                         if (txt) setParsedSubtitles(parseSRTText(txt));
                     })
                     .catch(e => console.warn('Failed to load SRT:', e));
             }
-        }, [subtitleSource, parseSRTText]);
+        }, [subtitleSource, parseSRTText, withCacheBust]);
 
         // 時間同步監聽 (Time Sync Listener)
         React.useEffect(() => {
@@ -235,7 +244,7 @@
                 h('video', {
                     key: 'video-element',
                     ref: videoElementRef,
-                    src: encodeURI(bgVideo),
+                    src: withCacheBust(bgVideo),
                     autoPlay: false, // 🛡️ 嚴禁無條件自動播放，由 isStarted 嚴格守衛
                     loop: true,
                     muted: isVideoMuted,

@@ -226,8 +226,14 @@ body.theme-festive-gold {
 }
 
 .video-square-element {
-  width: 100vmin;
-  height: 100vmin;
+  /* 
+   * 🛡️ 短邊自適應鐵律 (Contain Short Edge 1:1)：
+   * 直屏 (9:16) 時：受 max-width: 100% 約束，左右貼齊手機邊緣，高度 1:1 等於寬度，上下自然留白透出底圖！
+   * 橫屏 (16:9) 時：受 max-height: 100% 約束，上下貼齊螢幕邊緣，寬度 1:1 等於高度，左右自然留白！
+   * 徹底杜絕 100vmin 在 PC 編輯器模擬框裡將寬度 350px 撐爆至 1080px 滿版失控的 BUG。
+   */
+  width: auto;
+  height: auto;
   max-width: 100%;
   max-height: 100%;
   aspect-ratio: 1 / 1;

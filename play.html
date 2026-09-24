@@ -373,7 +373,8 @@
             const rawMusicUrl = (currentCard.media && currentCard.media.customMusic) 
                 ? currentCard.media.customMusic 
                 : (activeTemplate.defaultMusic || 'assets/audio/In Love With You.mp3');
-            const musicUrl = rawMusicUrl ? encodeURI(rawMusicUrl) : '';
+            const assetVersion = (currentCard && (currentCard.updatedAt || currentCard.id)) || (activeTemplate && (activeTemplate.updatedAt || activeTemplate.id)) || '1';
+            const musicUrl = rawMusicUrl ? `${encodeURI(rawMusicUrl)}${rawMusicUrl.includes('?') ? '&' : '?'}v=${encodeURIComponent(assetVersion)}` : '';
 
             return (
                 <div className="relative w-screen h-screen overflow-hidden flex items-center justify-center bg-black" style={{ height: '100dvh' }}>
