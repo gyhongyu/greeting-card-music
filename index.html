@@ -130,16 +130,16 @@
         // 2. CHILD COMPONENTS (受眾端子組件)
         // =========================================================================
         
-        // 開門封面遮罩 (方案 A：極簡深色微透玻璃 ＋ 聲波脈衝無語言直覺解鎖按鈕)
-        function WelcomeGate({ card, template, onStart }) {
+        // 開門封面遮罩 (方案 A：極簡深色微透玻璃 ＋ 聲波脈衝直覺解鎖按鈕)
+        function WelcomeGate({ card, template, onStart, isReady = true }) {
             const primaryColor = template.theme?.primaryColor || '#c9a96e';
             const fontFamily = template.theme?.fontFamily || 'inherit';
 
             return (
                 <div className="absolute inset-0 z-30 flex items-center justify-center p-4 select-none pointer-events-auto transition-opacity duration-700">
-                    {/* 極簡微透毛玻璃卡片：僅展示卡片動態標題與收件人，零寫死中文字 */}
+                    {/* 極簡微透毛玻璃卡片：僅展示卡片動態標題與收件人 */}
                     <div className="max-w-xs sm:max-w-sm w-full p-6 sm:p-8 rounded-3xl bg-zinc-950/60 backdrop-blur-xl border border-white/10 shadow-2xl flex flex-col items-center text-center space-y-6">
-                        {/* 卡片標題 (支援使用者自訂英文/中文) */}
+                        {/* 卡片標題 */}
                         {card.title && (
                             <h1 
                                 className="text-2xl sm:text-3xl font-light text-white tracking-wide clean-title-glow leading-snug"
@@ -149,7 +149,7 @@
                             </h1>
                         )}
 
-                        {/* 收件人姓名/稱謂 (若有自訂則優雅呈現) */}
+                        {/* 收件人姓名/稱謂 */}
                         {card.recipient && (
                             <p 
                                 className="text-sm font-medium tracking-wider"
@@ -159,21 +159,25 @@
                             </p>
                         )}
 
-                        {/* 🌟 方案 A：極簡聲波呼吸光環直覺解鎖按鈕 (零文字，任何語言通殺) */}
+                        {/* 🌟 極簡解鎖按鈕：未就緒純轉圈圈，就緒切換為播放鍵 */}
                         <div className="pt-2 flex flex-col items-center">
                             <button
                                 type="button"
-                                onClick={onStart}
-                                title="Play / Open"
-                                aria-label="Play / Open"
-                                className="w-16 h-16 sm:w-18 sm:h-18 rounded-full flex items-center justify-center text-zinc-950 shadow-2xl transition-all duration-300 active:scale-90 cursor-pointer pulse-soundwave-btn group"
+                                onClick={isReady ? onStart : undefined}
+                                disabled={!isReady}
+                                title={isReady ? "Play / Open" : "Loading..."}
+                                aria-label={isReady ? "Play / Open" : "Loading..."}
+                                className={`w-16 h-16 sm:w-18 sm:h-18 rounded-full flex items-center justify-center text-zinc-950 shadow-2xl transition-all duration-300 ${isReady ? 'active:scale-90 cursor-pointer pulse-soundwave-btn group' : 'cursor-wait opacity-90'}`}
                                 style={{
                                     backgroundColor: primaryColor,
                                     color: template.theme?.bgColor || '#09090b'
                                 }}
                             >
-                                {/* 播放 ▶️ 與 信封 ✉️ 意象 */}
-                                <i className="fa-solid fa-play text-xl sm:text-2xl pl-1 group-hover:scale-110 transition-transform"></i>
+                                {isReady ? (
+                                    <i className="fa-solid fa-play text-xl sm:text-2xl pl-1 group-hover:scale-110 transition-transform"></i>
+                                ) : (
+                                    <i className="fa-solid fa-circle-notch fa-spin text-xl sm:text-2xl"></i>
+                                )}
                             </button>
                         </div>
                     </div>
@@ -181,7 +185,7 @@
             );
         }
 
-        // 音訊控制浮鈕 (受眾端極簡半透明藥丸鈕，不論本地預覽或受眾皆純淨無色票)
+        // 音訊控制浮鈕 (受眾端極簡半透明藥丸鈕)
         function AudioControls({ isPlayingAudio, onToggleAudio }) {
             return (
                 <button
@@ -204,15 +208,13 @@
             const [isStarted, setIsStarted] = React.useState(false);
             const [isPlayingAudio, setIsPlayingAudio] = React.useState(false);
             const [isPreviewMode, setIsPreviewMode] = React.useState(false);
+            const [isReady, setIsReady] = React.useState(false);
             const audioRef = React.useRef(null);
 
-            // 初始化卡片與模板數據 (透過 WorkspaceStore 與 GasClient SSOT)
+            // 初始化卡片與模板數據 (精準單卡 + 單模板加載，物理固化 LocalStorage，零計時器)
             React.useEffect(() => {
                 async function initData() {
                     try {
-                        const { cards: loadedCards, templates: loadedTemplates } = await window.WorkspaceStore.loadInitialData();
-                        setTemplates(loadedTemplates || []);
-
                         const urlParams = new URLSearchParams(window.location.search);
                         const cardIdParam = urlParams.get('id') || urlParams.get('card');
                         const templateParam = urlParams.get('template');
@@ -221,77 +223,69 @@
                         setIsPreviewMode(previewParam === '1' || previewParam === 'true');
 
                         let targetCard = null;
+                        let targetTemplate = null;
 
-                        // =========================================================
-                        // 🔍 超詳細 DEBUG 監控面板 (Console 實時透視)
-                        // =========================================================
-                        console.group("%c🎴 CardForge 播放器卡片加載追蹤", "color: #38bdf8; font-weight: bold; font-size: 13px;");
-                        console.log("%c[1] 網址參數解析:", "color: #fbbf24; font-weight: bold;", {
-                            "卡片ID (id)": cardIdParam,
-                            "模板ID (template)": templateParam,
-                            "收件人 (to/name)": urlParams.get('to') || urlParams.get('name'),
-                            "預覽模式 (preview)": isPreviewMode
-                        });
-
-                        // 1. 本地優先：優先從工坊 LocalStorage 陣列中尋找（0ms 秒開，支援尚未發布到雲端的本地草稿）
-                        if (cardIdParam && loadedCards && loadedCards.length > 0) {
-                            targetCard = loadedCards.find(c => c.id === cardIdParam) || null;
-                            if (targetCard) console.log("%c[2] 命中本地 LocalStorage 畫廊卡片:", "color: #4ade80;", targetCard);
-                        }
-
-                        // 2. 次級快取：檢查單卡持久化快取 (cardforge_cache_${id})
-                        if (!targetCard && cardIdParam) {
+                        // 1. 本地快取秒查 (已造訪過者直接 0ms 呈現)
+                        if (cardIdParam) {
                             try {
-                                const raw = localStorage.getItem('cardforge_cache_' + cardIdParam);
-                                if (raw) {
-                                    targetCard = JSON.parse(raw);
-                                    console.log("%c[2] 命中單卡快取 (cardforge_cache):", "color: #4ade80;", targetCard);
+                                const rawCard = localStorage.getItem('cardforge_cache_' + cardIdParam);
+                                if (rawCard) targetCard = JSON.parse(rawCard);
+                                if (targetCard && targetCard.templateId) {
+                                    const rawTpl = localStorage.getItem('cardforge_cache_tpl_' + targetCard.templateId);
+                                    if (rawTpl) targetTemplate = JSON.parse(rawTpl);
                                 }
                             } catch (e) {}
-                        }
 
-                        // 3. 雲端 SSOT 查詢（若本地完全找不到該卡，或非本地預覽模式時向 GAS 查詢最新版本）
-                        if (!targetCard && cardIdParam && window.GasClient) {
-                            console.log("%c[3] 本地無此卡，正在向 Google 雲端總帳發起查詢... (ID: " + cardIdParam + ")", "color: #38bdf8;");
-                            console.log("   🔗 雲端請求端點:", window.CardForgeConfig?.GAS_API_URL);
-                            try {
-                                targetCard = await window.GasClient.getCard(cardIdParam, (updatedCard) => {
-                                    if (updatedCard) {
-                                        console.log("%c[3-SWR] 雲端背景異步更新完成:", "color: #a855f7;", updatedCard);
-                                        setCurrentCard(updatedCard);
-                                        if (updatedCard.templateId && !templateParam) {
-                                            setActiveTemplateId(updatedCard.templateId);
-                                        }
-                                    }
-                                });
-                                if (targetCard) {
-                                    console.log("%c[3] 🎉 雲端查詢成功！獲取到卡片:", "color: #4ade80; font-weight: bold;", targetCard);
-                                } else {
-                                    console.warn("%c[3] ⚠️ 雲端查詢未獲取到資料 (targetCard 為 null)", "color: #f87171;");
-                                }
-                            } catch (gasErr) {
-                                console.error("%c[3] ❌ 雲端查詢拋出異常:", "color: #ef4444;", gasErr);
+                            // 若本地已有完整快取，直接宣告 Ready
+                            if (targetCard && targetTemplate) {
+                                setCurrentCard(targetCard);
+                                setTemplates([targetTemplate]);
+                                setActiveTemplateId(targetTemplate.id);
+                                setIsReady(true);
                             }
                         }
 
-                        // 4. 若仍未找到且存在示範卡片，以第一張卡片保底
-                        if (!targetCard) {
-                            targetCard = (loadedCards && loadedCards.length > 0) ? loadedCards[0] : null;
-                            console.warn("%c[4] 🚨 觸發【示範卡片保底機制】！原因：本地與雲端均未找到此卡", "color: #fb923c; font-weight: bold; background: #431407; padding: 2px 6px; border-radius: 4px;");
-                            console.log("   👉 當前保底卡片:", targetCard?.name || targetCard?.title, targetCard);
-                        } else {
-                            console.log("%c[4] ✅ 成功鎖定目標卡片 (未觸發保底):", "color: #4ade80; font-weight: bold;", targetCard.title);
+                        // 2. 雲端單點精準加載 (只取 1 卡 + 1 模板，零計時器，物理寫入 LocalStorage)
+                        if (cardIdParam && window.GasClient) {
+                            try {
+                                const cloudCard = await window.GasClient.getCard(cardIdParam);
+                                if (cloudCard) {
+                                    targetCard = cloudCard;
+                                    try {
+                                        localStorage.setItem('cardforge_cache_' + cardIdParam, JSON.stringify(cloudCard));
+                                    } catch (e) {}
+
+                                    const tplId = templateParam || cloudCard.templateId || 'mid-autumn-moon';
+                                    const cloudTpl = await window.GasClient.getTemplate(tplId);
+                                    if (cloudTpl) {
+                                        targetTemplate = cloudTpl;
+                                        try {
+                                            localStorage.setItem('cardforge_cache_tpl_' + tplId, JSON.stringify(cloudTpl));
+                                        } catch (e) {}
+                                    }
+                                }
+                            } catch (gasErr) {
+                                console.warn('[CardPlayerApp] GAS 精準加載異常:', gasErr);
+                            }
                         }
 
-                        // 5. 🎯 專屬朋友稱謂自適應解析 (URL Parameter ?to=... 或 ?name=...)
+                        // 3. 本地無參數直接開啟 (預覽模式保底)
+                        if (!cardIdParam) {
+                            const { cards: loadedCards, templates: loadedTemplates } = await window.WorkspaceStore.loadInitialData();
+                            targetCard = (loadedCards && loadedCards.length > 0) ? loadedCards[0] : null;
+                            targetTemplate = (loadedTemplates && loadedTemplates.length > 0) ? loadedTemplates[0] : null;
+                            setTemplates(loadedTemplates || []);
+                            if (targetTemplate) setActiveTemplateId(targetTemplate.id);
+                            setIsReady(true);
+                        }
+
+                        // 4. 朋友稱謂自適應解析 (?to=... 或 ?name=...)
                         if (targetCard) {
                             const recipientParam = urlParams.get('to') || urlParams.get('name');
                             if (recipientParam && recipientParam.trim()) {
-                                const cleanParam = recipientParam.trim().slice(0, 40); // 40 字元防溢出邊界防禦
+                                const cleanParam = recipientParam.trim().slice(0, 40);
                                 const baseRecipient = targetCard.recipient || '親愛的朋友：';
                                 let newRecipient = '';
-                                
-                                // 判斷傳入參數是否已經是完整的禮貌稱謂 (例如: "Dear Danny," 或 "尊敬的 王總：" 或 結尾有標點)
                                 const hasSalutationPrefix = /^(Dear|尊敬的|親愛的|致)\s*/i.test(cleanParam);
                                 const hasTrailingPunct = /[：:，,！!]$/.test(cleanParam);
 
@@ -315,46 +309,18 @@
                                     ...targetCard,
                                     recipient: newRecipient
                                 };
-                                console.log("%c[5] 稱謂計算完成:", "color: #38bdf8;", newRecipient);
                             }
                         }
 
-                        setCurrentCard(targetCard);
-                        const effectiveTemplateId = templateParam || (targetCard ? targetCard.templateId : 'mothers-day');
-                        setActiveTemplateId(effectiveTemplateId);
-
-                        // 6. 模板雲端動態 SWR 同步 (確保預設或自訂模板在工坊修改後，公網受眾端能即時吃到最新規格)
-                        if (effectiveTemplateId && window.GasClient) {
-                            console.log("%c[6-TPL] 正在向雲端 SSOT 請求模板最新規格 (" + effectiveTemplateId + ")...", "color: #a855f7;");
-                            window.GasClient.getTemplate(effectiveTemplateId, (cloudTpl) => {
-                                if (cloudTpl) {
-                                    setTemplates(prev => {
-                                        const idx = prev.findIndex(t => t.id === cloudTpl.id);
-                                        if (idx >= 0) {
-                                            const updated = [...prev];
-                                            updated[idx] = cloudTpl;
-                                            return updated;
-                                        }
-                                        return [...prev, cloudTpl];
-                                    });
-                                }
-                            }).then(cloudTpl => {
-                                if (cloudTpl) {
-                                    setTemplates(prev => {
-                                        const idx = prev.findIndex(t => t.id === cloudTpl.id);
-                                        if (idx >= 0) {
-                                            const updated = [...prev];
-                                            updated[idx] = cloudTpl;
-                                            return updated;
-                                        }
-                                        return [...prev, cloudTpl];
-                                    });
-                                    console.log("%c[6-TPL] 🎉 雲端最新模板覆蓋成功:", "color: #4ade80;", cloudTpl.name);
-                                }
-                            }).catch(() => {});
+                        // 5. 注入狀態與解鎖
+                        if (targetCard) setCurrentCard(targetCard);
+                        if (targetTemplate) {
+                            setTemplates([targetTemplate]);
+                            setActiveTemplateId(targetTemplate.id);
                         }
-                        console.log("%c[7] 最終渲染模板 (Template ID):", "color: #fbbf24; font-weight: bold;", effectiveTemplateId);
-                        console.groupEnd();
+                        if (targetCard && targetTemplate) {
+                            setIsReady(true);
+                        }
 
                     } catch (err) {
                         console.error('Failed to init card player data:', err);
@@ -412,9 +378,8 @@
 
             if (!currentCard || templates.length === 0) {
                 return (
-                    <div className="flex h-screen items-center justify-center text-zinc-400">
-                        <i className="fa-solid fa-spinner fa-spin text-2xl mr-3"></i>
-                        <span>載入專屬賀卡中...</span>
+                    <div className="flex h-screen items-center justify-center bg-black text-zinc-400 select-none">
+                        <i className="fa-solid fa-circle-notch fa-spin text-3xl text-amber-400/80"></i>
                     </div>
                 );
             }
@@ -423,12 +388,11 @@
             const rawMusicUrl = (currentCard.media && currentCard.media.customMusic) 
                 ? currentCard.media.customMusic 
                 : (activeTemplate.defaultMusic || 'assets/audio/In Love With You.mp3');
-            // 安全編碼音訊路徑，防止中文檔名在公網 CDN / 靜態託管載入 404
             const musicUrl = rawMusicUrl ? encodeURI(rawMusicUrl) : '';
 
             return (
                 <div className="relative w-screen h-screen overflow-hidden flex items-center justify-center bg-black" style={{ height: '100dvh' }}>
-                    {/* 🎵 音訊 DOM 節點常駐頂層，掛載原生事件即時反向同步 React isPlayingAudio 狀態 */}
+                    {/* 🎵 音訊 DOM 節點常駐頂層 */}
                     <audio 
                         ref={audioRef} 
                         src={musicUrl} 
@@ -438,7 +402,7 @@
                         onPause={() => setIsPlayingAudio(false)}
                     />
 
-                    {/* 🎬 核心卡片全景渲染舞台 (全景背景、Shader、月亮、粒子自第一秒起鋪滿 100vw x 100vh 視窗) */}
+                    {/* 🎬 核心卡片全景渲染舞台 */}
                     <div className="w-full h-full z-10 relative">
                         <CardEngine 
                             card={currentCard} 
@@ -447,7 +411,7 @@
                         />
                     </div>
 
-                    {/* 🎵 音訊控制浮鈕 (解鎖音訊後常駐右上角) */}
+                    {/* 🎵 音訊控制浮鈕 */}
                     {isStarted && (
                         <AudioControls 
                             isPlayingAudio={isPlayingAudio}
@@ -455,12 +419,13 @@
                         />
                     )}
 
-                    {/* 🌟 方案 A：極簡聲波脈衝解鎖微卡浮層 (點擊後解鎖音訊並平滑消失，底層 3D 畫布零重置零中斷) */}
+                    {/* 🌟 方案 A：極簡聲波脈衝解鎖微卡浮層 */}
                     {!isStarted && (
                         <WelcomeGate 
                             card={currentCard} 
                             template={activeTemplate} 
                             onStart={handleStart} 
+                            isReady={isReady}
                         />
                     )}
                 </div>

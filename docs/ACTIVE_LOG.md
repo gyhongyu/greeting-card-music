@@ -4,6 +4,24 @@
 
 ---
 
+### [2026-09-24] [UNREFINED] [button_loading_gate_precision_cache] 引入受眾端播放按鈕 Loading Gate、單點精準加載 (1卡1模板) 物理固化 LocalStorage 並徹底拆除超時計時器
+- **類型**: `BUG_FIX` | `ARCHITECTURE` | `RESILIENCE`
+- **代碼錨點**: `index.html`, `data/templates.json`
+- **核心事實 / 決策理由**:
+  1. **病灶精確鎖定**:
+     - 在完全沒有安裝 PWA 或首次造訪的設備（如 iOS Safari）上，因 `localStorage` 為空，受眾端搶先讀取 `data/templates.json` 的硬編碼舊預設（`mid-autumn-moon` 之前被定義為 `cinematic-poster`），導致開門第 0 秒被滿版海報文字搶跑上屏；數秒後雲端非同步請求抵達才重新變臉為星戰，破壞體驗。
+  2. **根治架構改造**:
+     - **純粹按鈕轉圈 Loading Gate**：受眾端開門微卡按鈕增加 `isReady` 狀態。在雲端資料未確認前，按鈕內部純轉圈圈（Loading Spinner），無多餘文字、禁止點擊；一旦資料就緒，平滑變為播放鍵。
+     - **單點精準加載 (1 卡 + 1 模板)**：受眾端不遍歷全量列表，只依網址 `?id=...` 精準查詢該卡與該模板，極速返回。
+     - **物理固化 LocalStorage**：雲端返回的瞬間，立即寫入 `localStorage.setItem('cardforge_cache_' + id)` 與 `cardforge_cache_tpl_${tplId}`。收件人日後再次開啟時直接命中快取，0ms 秒開。
+     - **徹底拆除超時計時器 (Zero Timeout)**：堅持雲端 SSOT 真理源，未確認前持續轉圈，絕不擅自用錯誤的硬編碼降級版型去敷衍播放。
+     - **靜態備份真值對齊**：同步將 `data/templates.json` 裡的 `mid-autumn-moon` 預設版型修正為 `star-wars-crawl`。
+  3. **門禁核驗**:
+     - `workspace.html` 保持 441 行（嚴格 ≤ 450 行門禁）。
+     - 本地暫存提交，準備與上一輪 OG 圖標籤合併推送到遠端。
+
+---
+
 ### [2026-09-24] [UNREFINED] [og_image_preview_fix] 受眾端首頁補齊全套 Open Graph / Twitter Card 預覽圖標籤，並升級 Cloudflare 邊緣動態代理
 - **類型**: `FEATURE` | `SOCIAL_PREVIEW` | `BUG_FIX`
 - **代碼錨點**: `index.html`, `cloudflare/worker_og_proxy.js`
