@@ -235,22 +235,22 @@
 
                                     const tplId = templateParam || cloudCard.templateId || 'mid-autumn-moon';
                                     
-                                    // 🚀 關鍵優化：若為系統官方模板，本地常數庫已有完整樣式/特效，立即秒速加載，免去二次向 GAS 等待引發的卡死！
-                                    if (window.DEFAULT_TEMPLATES && window.DEFAULT_TEMPLATES.length > 0) {
-                                        const localFound = window.DEFAULT_TEMPLATES.find(t => t.id === tplId);
-                                        if (localFound) {
-                                            targetTemplate = localFound;
-                                        }
-                                    }
+                                    // 👑 雲端 SSOT 絕對優先鐵律：嚴禁以本地寫死常數直接覆蓋用戶在雲端定制的最新模板參數！
+                                    // 1. 優先從雲端 GAS 獲取該模板的最新真實配置 (例如天上掉月餅 falling-mooncakes)
+                                    let cloudTpl = null;
+                                    try {
+                                        cloudTpl = await window.GasClient.getTemplate(tplId);
+                                    } catch (e) {}
 
-                                    // 若非本地官方模板（為自訂新模板），才透過 GAS 查詢
-                                    if (!targetTemplate) {
-                                        const cloudTpl = await window.GasClient.getTemplate(tplId);
-                                        if (cloudTpl) {
-                                            targetTemplate = cloudTpl;
-                                            try {
-                                                localStorage.setItem('cardforge_cache_tpl_' + tplId, JSON.stringify(cloudTpl));
-                                            } catch (e) {}
+                                    if (cloudTpl) {
+                                        targetTemplate = cloudTpl;
+                                        try {
+                                            localStorage.setItem('cardforge_cache_tpl_' + tplId, JSON.stringify(cloudTpl));
+                                        } catch (e) {}
+                                    } else {
+                                        // 僅在 GAS 雲端無此模板或斷網失敗時，才允許本地模板庫作為安全降級
+                                        if (window.DEFAULT_TEMPLATES && window.DEFAULT_TEMPLATES.length > 0) {
+                                            targetTemplate = window.DEFAULT_TEMPLATES.find(t => t.id === tplId) || window.DEFAULT_TEMPLATES[0];
                                         }
                                     }
                                 }

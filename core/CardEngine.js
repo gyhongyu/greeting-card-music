@@ -201,7 +201,7 @@
         const videoVolumeNormalized = Math.max(0, Math.min(100, videoVolumeRaw)) / 100;
         const isVideoMuted = videoVolumeRaw === 0;
 
-        // 當使用者在頁面上產生點擊互動時，自動嘗試解除靜音發聲 (遵循瀏覽器 Autoplay 規範)
+        // 🎬 視訊與開門狀態 (isStarted) 嚴格同步：未開門前絕不偷跑，開門後平滑起跑
         React.useEffect(() => {
             const videoEl = videoElementRef.current;
             if (!videoEl) return;
@@ -209,21 +209,22 @@
             videoEl.volume = videoVolumeNormalized;
             videoEl.muted = isVideoMuted;
 
-            const handleUserInteract = () => {
-                if (videoEl && !isVideoMuted) {
-                    videoEl.muted = false;
-                    videoEl.volume = videoVolumeNormalized;
-                    videoEl.play().catch(() => {});
+            if (isStarted) {
+                // 點擊開門後立即從頭/播放
+                const p = videoEl.play();
+                if (p && typeof p.catch === 'function') {
+                    p.catch(err => {
+                        console.log('[CardEngine] Video autoplay hindered, waiting for user gesture:', err);
+                    });
                 }
-            };
-
-            window.addEventListener('click', handleUserInteract, { once: true });
-            window.addEventListener('touchstart', handleUserInteract, { once: true });
-            return () => {
-                window.removeEventListener('click', handleUserInteract);
-                window.removeEventListener('touchstart', handleUserInteract);
-            };
-        }, [videoVolumeNormalized, isVideoMuted]);
+            } else {
+                // 開門前強制暫停在開頭第 0 秒靜態幀
+                videoEl.pause();
+                try {
+                    videoEl.currentTime = 0;
+                } catch (e) {}
+            }
+        }, [isStarted, videoVolumeNormalized, isVideoMuted]);
 
         // 2.5 VIDEO BACKGROUND LAYER (1:1 視訊播放 ✕ 邊緣羽化融化特效)
         if (bgVideo) {
@@ -235,7 +236,7 @@
                     key: 'video-element',
                     ref: videoElementRef,
                     src: encodeURI(bgVideo),
-                    autoPlay: true,
+                    autoPlay: false, // 🛡️ 嚴禁無條件自動播放，由 isStarted 嚴格守衛
                     loop: true,
                     muted: isVideoMuted,
                     playsInline: true,

@@ -34,7 +34,13 @@
      - 音訊/視訊/相片 (`CardForge_Audio` / `Videos` / `Photos`)：公開唯讀 (`VIEW`)。
    - 🛠️ 盤點指令：`py .agents\skills\cardforge_cloud_storage\scripts\cloud_storage.py map`。
 
-7. ⛔【不可違背之工程紅線 (Hard Invariants)】：
+7. 👑【GAS 雲端 SSOT 絕對單一真理源與零本地參數覆蓋鐵律 (Strict GAS SSOT & Zero-Local-Override Law)】：
+   - ⛔ 嚴禁本地參數搶佔覆蓋：**Google Apps Script (GAS) 雲端資料庫（Google Sheet SSOT）為全系統唯一絕對單一真理源！**
+   - ⛔ 嚴禁任何代理人私自以本地寫死常數（如 `DEFAULT_TEMPLATES`、`DEFAULT_CARDS` 或靜態 JSON）取代/覆蓋受眾端或工坊端從 GAS 查詢到的即時卡片與模板參數！
+   - 🛡️ 降級邊界防禦：本地常數與降級數據**僅允許且只能在斷網（完全無網路）或 GAS 服務徹底崩潰拋錯時**作為緊急安全兜底；凡只要 GAS 成功返回數據，**100% 強制以 GAS 雲端即時參數為準**，絕不允許本地舊參數進行二次覆蓋！
+   - 🚨 違者重懲：任何以「加速」、「避免轉圈」為由擅自將本地靜態模板替換掉用戶精心定制之雲端特效（如將天上掉月餅覆蓋為金桂玉兔）之行為，視同破壞系統憲法之嚴重翻車事故。
+
+8. ⛔【不可違背之工程紅線 (Hard Invariants)】：
    - 嚴禁主動發起 `git push`（除非使用者明確授權「推送倉庫/一起修改到位/push」）；嚴禁以 `taskkill` 殺除進程。
    - 🚨 測試邊界：**嚴禁 AI 代理人自行開啟瀏覽器（`browser_subagent`）測試**，全權由使用者手動執行。
    - 畫廊優先：`workspace.html` 首頁必須是大畫廊，嚴禁默認強行進入編輯器。

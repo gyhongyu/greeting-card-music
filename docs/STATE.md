@@ -46,6 +46,11 @@
    - **純邏輯模組化規範**：外部 `.js` 檔案（如 `js/workspace_store.js`, `core/ParticleEngine.js`）**絕對禁止包含 JSX 語法**，以防觸發瀏覽器原生的 `Unexpected token '<'` 語法錯誤。
    - 資料儲存與 CRUD 一律統一收斂至 `js/workspace_store.js`（`WorkspaceStore`）單一真理源，創作者端與受眾端共享，杜絕代碼重複。
 
+8. **👑 GAS 雲端 SSOT 絕對單一真理源與零本地參數覆蓋鐵律 (Strict GAS SSOT Law)**：
+   - **GAS 雲端資料庫（Google Sheet SSOT）為全系統唯一絕對單一真理源！**
+   - 嚴禁任何代理人私自以本地寫死常數（`DEFAULT_TEMPLATES`, `DEFAULT_CARDS`）或靜態 JSON 取代/覆蓋受眾端或工坊端從 GAS 查詢到的即時卡片與模板參數。
+   - 本地常數僅作為斷網時的終極兜底，凡只要 GAS 成功返回數據，**100% 強制以 GAS 雲端即時參數為準**！絕不允許本地舊參數覆蓋用戶定制成果。
+
 ---
 
 ## 🗺️ 3. 模組職責地圖 (Architecture Map)

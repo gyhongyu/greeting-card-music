@@ -4,6 +4,22 @@
 
 ---
 
+### [2026-09-25] [UNREFINED] [strict_gas_ssot_and_video_unstarted_sync] 確立 GAS 雲端 SSOT 絕對單一真理源與零本地參數覆蓋鐵律，修復背後視訊未點播放即偷跑缺陷，全面同步 mid-autumn-moon「天上掉月餅」真實規格
+- **類型**: `BUG_FIX` | `ARCHITECTURE` | `INVARIANT` | `POST_MORTEM`
+- **代碼錨點**: `core/CardEngine.js`, `play.html`, `js/constants.js`, `AGENTS.md`, `docs/STATE.md`
+- **核心事實 / 決策理由**:
+  1. **禁止本地參數搶佔覆蓋 (Strict GAS SSOT & Anti-Override)**:
+     - **踩坑復盤**: 先前為追求冷啟動秒開，在 `play.html` 擅自以 `window.DEFAULT_TEMPLATES` 取代 GAS 查詢。導致使用者在工坊將 `mid-autumn-moon` 改為「天上掉月餅 (falling-mooncakes)」並發布至雲端後，受眾端竟被本地寫死的舊版常數（金桂玉兔 osmanthus-petals）殘酷覆蓋！
+     - **根治措施**:
+       - 嚴格確立 GAS 為唯一真理源，`play.html` 必須強制以 GAS 雲端查詢返回之模板為主。
+       - 本地常數 `constants.js` 與 `data/templates.json` 同步校準最新雲端真實值（falling-mooncakes），徹底杜絕常數舊值背刺。
+       - 在 `AGENTS.md`、`docs/STATE.md` 注入鋼鐵憲法第 7/8 條，嚴禁任何 AI 代理人以本地寫死常數或靜態參數覆蓋用戶定制成果！
+  2. **視訊播放與開門狀態 (isStarted) 嚴格綁定**:
+     - **病灶**: `core/CardEngine.js` 視訊標籤原設 `autoPlay: true` 且未監聽 `isStarted`，導致受眾在尚未點擊中間圓形開門解鎖按鈕前，背後視訊已在靜音狀態下偷跑數十秒。
+     - **修復**: 拔除 `autoPlay: true`，在 `useEffect` 中將 `isStarted` 作為播放唯一守衛。未開門前強制暫停在開頭第 0 秒靜態幀，點擊開門瞬間視訊、配樂與字幕三軌同步起跑。
+
+---
+
 ### [2026-09-24] [UNREFINED] [cinematic_subtitles_and_drive_storage] 實作原聲同步「電影字幕機 (Cinematic Subtitles)」版型、純 JS SRT 解析器與 Google Drive 專屬資料夾 (CardForge_Subtitles) 雲端儲存通道
 - **類型**: `FEATURE` | `ARCHITECTURE` | `USER_EXPERIENCE`
 - **代碼錨點**: `core/CardEngine.js`, `styles/templates.css`, `js/constants.js`, `data/templates.json`, `js/editor_views.js`, `gas/Card_Gateway.gs`, `js/gas_client.js`

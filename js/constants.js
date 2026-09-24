@@ -189,8 +189,10 @@ window.DEFAULT_TEMPLATES = [
         category: 'festive',
         description: '3D 超級明月月暈 ✕ 祥雲繾綣流動 Shader ✕ 漫天飄落旋轉金桂花瓣。中秋團聚、千里嬋娟極致詩意之選。',
         layout: 'star-wars-crawl',
+        textRevealFx: 'fire-shimmer',
+        revealSpeed: 0.8,
         bgShader: 'lunar-clouds',
-        crawlSpeed: 40,
+        crawlSpeed: 80,
         bgDimmer: 0.88,
         bgBlur: 0,
         theme: {
@@ -200,13 +202,19 @@ window.DEFAULT_TEMPLATES = [
             textColor: '#f8fafc',
             titleColor: '#fbbf24',
             fontFamily: "'Noto Serif TC', 'Cormorant Garamond', serif",
-            styleClass: 'theme-mid-autumn'
+            styleClass: 'theme-mid-autumn',
+            fontSizeScale: 1.1,
+            titleSize: 36
         },
         effects: {
-            particleType: 'osmanthus-petals',
-            particleDensity: 38
+            particleType: 'falling-mooncakes',
+            particleDensity: 28,
+            particleSpeed: 0.7,
+            particleOpacity: 0.85
         },
-        defaultMusic: 'assets/audio/In Love With You.mp3'
+        defaultMusic: 'assets/audio/In Love With You.mp3',
+        crawlAngle: 18,
+        crawlWidthScale: 130
     },
     {
         id: 'mid-autumn-lantern',
