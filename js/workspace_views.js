@@ -125,11 +125,12 @@
                 }
             }
 
-            const toVal = computedFullRecipient || recipientName.trim();
+            // 純淨 URL 參數：僅傳遞姓名本身，避免逗號 %2C 與空格 %20 造成微信等社群軟體截斷
+            const toVal = recipientName.trim();
             if (!toVal) return urlToUse;
             const sep = urlToUse.includes('?') ? '&' : '?';
             return `${urlToUse}${sep}to=${encodeURIComponent(toVal)}`;
-        }, [baseShareUrl, selectedDomain, computedFullRecipient, recipientName]);
+        }, [baseShareUrl, selectedDomain, recipientName]);
 
         // 計算兩行式分享訊息 (社群導語首句智能拼接對象稱呼)
         const fullShareMessage = React.useMemo(() => {
@@ -161,7 +162,8 @@
                 formattedCaption = `${saluteText}${rawCaption}`;
             }
 
-            return `${formattedCaption}\n${finalShareUrl}`;
+            // 網址獨立成行並空一行，防止微信/LINE文字標點符號與 URL 黏連引發截斷
+            return `${formattedCaption}\n\n${finalShareUrl}`;
         }, [card.shareCaption, recipientPrefix, recipientName, finalShareUrl]);
 
         // 複製純網址
