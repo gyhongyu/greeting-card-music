@@ -4,6 +4,24 @@
 
 ---
 
+### [2026-09-24] [UNREFINED] [three_tier_player_isolation_and_wechat_clean_path] 受眾端播放器獨立為 play.html、根除首頁跳轉死循環、上線無狀態純路徑 /p/:id/:to 並固化前端影音錄製避坑指南
+- **類型**: `ARCHITECTURE` | `BUG_FIX` | `REFACTOR` | `POST_MORTEM`
+- **代碼錨點**: `play.html`, `index.html`, `cloudflare/worker_og_proxy.js`, `js/workspace_views.js`
+- **核心事實 / 決策理由**:
+  1. **病灶精確鎖定 (死循環與微信截斷)**:
+     - 原 `index.html` 既充當首頁跳轉器又充當受眾播放器，其內部 `window.location.replace('workspace.html')` 使用相對路徑。當使用者在自訂網域或虛擬子路徑訪問時，觸發每秒數十次的死循環跳轉。
+     - 微信聊天對話框對包含 `?id=...&to=...` 的長網址存在嚴格斷字截斷，導致中文或帶標點姓名丟失。
+  2. **根治架構改造 (三軌分離 + 無狀態路徑)**:
+     - **三軌職責分離**: 建立 `play.html` 作為純粹受眾播放器（100% 移除任何跳轉工坊代碼，永不死循環）；`index.html` 純作路由分流；`workspace.html` 純作工坊。
+     - **微信友善無狀態純路徑**: 支援 `/p/:cardId/:recipientName`，Cloudflare Worker 邊緣端收到後 302 重定向至 `/play.html?id=...&to=...`，保證微信氣泡內 100% 呈現單一完整藍色高亮。
+  3. **重大踩坑復盤 (純前端 3D 影音錄製)**:
+     - **教訓**: 試圖在純前端透過 Canvas 2D 覆蓋即時錄製 Three.js 3D 賀卡生成 MP4，因缺少離屏 WebGL 複合渲染管線，導致輸出畫面黑屏、文字兩側裁切且無 3D 特效。
+     - **避坑原則**: 嚴禁在未通過單點視覺驗收 (Spike) 前盲寫批量前端視頻導出；複合圖層 (CSS 3D + WebGL) 轉影片為深水區，已果斷執行 Git Revert 徹底清理。
+  4. **門禁核驗**:
+     - `workspace.html` 嚴格維持 ≤ 450 行門禁。
+
+---
+
 ### [2026-09-24] [UNREFINED] [button_loading_gate_precision_cache] 引入受眾端播放按鈕 Loading Gate、單點精準加載 (1卡1模板) 物理固化 LocalStorage 並徹底拆除超時計時器
 - **類型**: `BUG_FIX` | `ARCHITECTURE` | `RESILIENCE`
 - **代碼錨點**: `index.html`, `data/templates.json`

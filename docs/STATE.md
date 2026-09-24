@@ -29,11 +29,18 @@
 4. **邊緣社交預覽 (Edge OG Injection)**：
    - 透過 Cloudflare Worker 探測 LINE / FB / WhatsApp 爬蟲，動態注入 `<meta property="og:...">`，確保分享連結 100% 呈現卡片專屬圖文預覽。
 
-5. **受眾端純淨極致沉浸 (Audience Player Isolation)**：
-   - `index.html` 專門用於受眾點擊分享連結（`?id=xxx`）時全螢幕播放，嚴禁混入任何後台編輯控制元件。
+5. **受眾端純淨播放器物理隔離 (Audience Player Isolation & Zero-Loop)**：
+   - 雙軌升級三軌架構：
+     - `workspace.html`：純粹創作者工坊（大畫廊與編輯器）。
+     - `index.html`：首頁智慧路由分流器（有卡片參數自動無縫跳轉 `play.html`，無參數進入 `workspace.html`）。
+     - `play.html`：**受眾端專用 3D 播放器**。內建完整 OG 社群預覽標籤，**內部 100% 絕對禁止出現任何 `replace('workspace.html')` 跳轉代碼**，徹底根除二級路徑反代引發的死循環狂閃。
    - 具備離線降級容災能力（Fallback to `data/cards.json`），確保永不白屏。
 
-6. **本地雙擊零編譯與純 JS 隔離鐵律 (Zero-Build & Zero-CORS Pure JS Invariant)**：
+6. **微信友好無狀態路徑轉發 (Stateless Clean Path Forwarding)**：
+   - 分發網址支援無狀態純路徑：`/p/:cardId/:recipientName`（同時相容 `/c/` 前綴）。
+   - 由 Cloudflare Worker 邊緣端解析後以 HTTP 302 重定向至 `/play.html?id=...&to=...`，保證微信氣泡內 100% 呈現完整單一藍色超連結，根除 `?` 與 `&` 斷字截斷。
+
+7. **本地雙擊零編譯與純 JS 隔離鐵律 (Zero-Build & Zero-CORS Pure JS Invariant)**：
    - 專案維持純靜態架構，可由使用者在本地以 `file:///` 協議雙擊直接開啟。
    - **嚴禁引入 Node.js/Webpack/Vite 等構建工具**。
    - **純邏輯模組化規範**：外部 `.js` 檔案（如 `js/workspace_store.js`, `core/ParticleEngine.js`）**絕對禁止包含 JSX 語法**，以防觸發瀏覽器原生的 `Unexpected token '<'` 語法錯誤。
