@@ -301,7 +301,7 @@ window.BackdropShader = (function () {
             "float fbm(vec2 p){float v=0.;float a=.5;",
             " for(int i=0;i<4;i++){v+=a*noise(p);p=p*2.02+vec2(7.3,13.1);a*=.5;}return v;}",
             "void main(){",
-            " vec2 uv = (gl_FragCoord.xy - 0.5 * u_res) / min(u_res.x, u_res.y);",
+            " vec2 uv = (gl_FragCoord.xy - 0.5 * u_res) / u_res.y;",
             " float t = u_time * 0.15 * u_speed;",
             " // Deep night sky background",
             " vec3 bg = mix(vec3(0.015, 0.02, 0.05), vec3(0.04, 0.05, 0.12), uv.y + 0.5);",
@@ -353,9 +353,10 @@ window.BackdropShader = (function () {
 
         function resize() {
             const s = getContainerSize(canvas);
-            canvas.width = s.width;
-            canvas.height = s.height;
-            gl.viewport(0, 0, s.width, s.height);
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            canvas.width = s.width * dpr;
+            canvas.height = s.height * dpr;
+            gl.viewport(0, 0, canvas.width, canvas.height);
         }
         resize();
         window.addEventListener("resize", resize);

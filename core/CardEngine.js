@@ -392,7 +392,7 @@
                     '--reveal-duration': `${durationSec}s`
                 }
             }, h('div', {
-                className: 'w-full max-w-xl mx-auto space-y-3.5 text-center sm:text-left poster-content-stage',
+                className: 'w-full max-w-xl mx-auto space-y-4 text-center poster-content-stage',
                 style: { fontFamily: fontFamily }
             }, posterChildren)));
         }

@@ -116,23 +116,28 @@
    注意：必須限定在 #app-body 下生效，嚴禁覆蓋工作台編輯器內的字型大小拖放滑桿！ */
 @media (min-width: 768px) {
   #app-body .poster-content-stage {
-    max-width: 720px !important;
-    padding-top: 2rem !important;
+    max-width: 640px !important;
+    padding-top: 1rem !important;
+    text-align: center !important;
   }
   #app-body .poster-content-stage h1 {
-    font-size: clamp(48px, 4.2vw, 68px) !important;
-    letter-spacing: 0.05em !important;
+    font-size: clamp(38px, 3.6vw, 54px) !important;
+    letter-spacing: 0.08em !important;
+    text-align: center !important;
   }
   #app-body .poster-content-stage h2 {
-    font-size: clamp(24px, 2.2vw, 32px) !important;
-    padding-top: 1.25rem !important;
+    font-size: clamp(20px, 1.8vw, 26px) !important;
+    padding-top: 0.75rem !important;
+    text-align: center !important;
   }
   #app-body .poster-content-stage p {
-    font-size: clamp(18px, 1.5vw, 24px) !important;
-    line-height: 1.85 !important;
+    font-size: clamp(16px, 1.3vw, 20px) !important;
+    line-height: 1.9 !important;
+    text-align: center !important;
   }
   #app-body .poster-content-stage .poster-sender-box p {
-    font-size: clamp(20px, 1.8vw, 28px) !important;
+    font-size: clamp(16px, 1.4vw, 22px) !important;
+    text-align: right !important;
   }
 
   /* 星戰 3D 升空 PC 桌面大螢幕文字自適應放大，告別 100% 縮放時文字像螞蟻或飛出螢幕 */

@@ -351,9 +351,11 @@
             }
 
             const activeTemplate = templates.find(t => t.id === activeTemplateId) || templates[0];
-            const musicUrl = (currentCard.media && currentCard.media.customMusic) 
+            const rawMusicUrl = (currentCard.media && currentCard.media.customMusic) 
                 ? currentCard.media.customMusic 
                 : (activeTemplate.defaultMusic || 'assets/audio/In Love With You.mp3');
+            // 安全編碼音訊路徑，防止中文檔名在公網 CDN / 靜態託管載入 404
+            const musicUrl = rawMusicUrl ? encodeURI(rawMusicUrl) : '';
 
             return (
                 <div className="relative w-screen h-screen overflow-hidden flex items-center justify-center bg-black" style={{ height: '100dvh' }}>
