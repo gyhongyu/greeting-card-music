@@ -4,6 +4,20 @@
 
 ---
 
+### [2026-09-25] [UNREFINED] [gas_gateway_v5_deployed_and_deployment_invariant] 成功發布 GAS 網關 @5 版本正式接管雲端 SSOT Description，入庫「雲端後端與 Worker 強制即時部署鐵律」根治改完代碼未部署翻車
+- **類型**: `DEPLOYMENT` | `INVARIANT` | `POST_MORTEM`
+- **代碼錨點**: `gas/Card_Gateway.gs`, `AGENTS.md`, `HANDOFF.md`, `docs/STATE.md`
+- **核心事實 / 決策理由**:
+  1. **GAS 網關 v5 原地升級成功部署**:
+     - 調用 `clasp_manager.py deploy --name greeting_card_gateway` 完成部署，最新版本號晉升至 `@5`。
+     - Google Sheet 試算表第 5 欄 `description` 與第 6 欄 `imageUrl` 正式與卡片 `shareCaption`、`coverImage` 全面打通，消滅幽靈文字。
+  2. **入庫 AGENTS.md 第 9 條鐵律 (雲端後端與 Worker 強制即時部署律)**:
+     - 嚴懲「改了代碼卻未部署線上即妄下結論功能無法實現」之一級翻車事故，強制凡修改 `gas/` 或 `cloudflare/` 必須當場完成部署閉環。
+  3. **交接文檔全面復盤與修正**:
+     - 在 `HANDOFF.md` 清楚記錄此翻車事故，指引下一棒代理人將 Cloudflare Worker 正式部署上線，打通全流程動態寄語代入。
+
+---
+
 ### [2026-09-25] [UNREFINED] [share_caption_and_og_preview_dedup_fix] 徹底根除 WhatsApp 分發訊息稱謂重複拼裝問題，確立 shareCaption 為單一寄語真理源，打通 Google Sheet description 與 Cloudflare Worker 社交預覽直連
 - **類型**: `BUG_FIX` | `ARCHITECTURE` | `USER_EXPERIENCE`
 - **代碼錨點**: `js/editor_views.js`, `js/workspace_views.js`, `js/workspace_store.js`, `gas/Card_Gateway.gs`, `cloudflare/worker_og_proxy.js`

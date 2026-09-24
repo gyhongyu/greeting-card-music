@@ -46,4 +46,12 @@
    - 🚨 測試邊界：**嚴禁 AI 代理人自行開啟瀏覽器（`browser_subagent`）測試**，全權由使用者手動執行。
    - 畫廊優先：`workspace.html` 首頁必須是大畫廊，嚴禁默認強行進入編輯器。
    - 🚨 討論模式門禁：接手或提示詞若提及【討論模式】，在使用者輸入「結束討論」前，絕對禁止修改代碼或落盤實體檔案！
+
+9. 🚀【雲端後端與 Worker 零單邊落盤、強制即時部署鐵律 (Strict Immediate Deployment Law)】：
+   - ⛔ **嚴禁本地改完不部署**：凡修改 `gas/Card_Gateway.gs` 或 `cloudflare/worker_og_proxy.js`，**絕對嚴禁僅在本地 git commit 了事！改了不部署線上等於零！**
+   - ⚡ **GAS 強制部署閉環**：凡修改 `gas/` 代碼，必須強制立即執行：
+     1. `py C:\Users\9892\.gemini\config\skills\gas_clasp_manager\scripts\clasp_manager.py push --name greeting_card_gateway`（推送至 GAS HEAD）
+     2. `py C:\Users\9892\.gemini\config\skills\gas_clasp_manager\scripts\clasp_manager.py deploy --name greeting_card_gateway --desc "部署說明"`（原地升級發布新版本 Web App）
+   - 🌐 **Cloudflare Worker 強制部署**：凡修改 `cloudflare/worker_og_proxy.js`，必須立即主動確認線上 Worker 腳本已完成同步更新或調用 API 部署，嚴禁自欺欺人！
+   - 🚨 **違者視為一級翻車事故**：嚴禁在未完成雲端部署前宣稱功能完成或妄下斷言「功能無法實現只能硬編碼」！
 </RULE[development_invariants]>
