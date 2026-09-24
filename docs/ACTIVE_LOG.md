@@ -789,8 +789,30 @@
        - `右側自填祝賀內文`：創作者只需專注填寫賀詞核心句（例如 `中秋節快樂，這是我為你定制的賀卡。`），不再需要手打 `{name}` 語法。
 - **防禦手段 / 測試背書**:
   - `workspace.html` 總行數嚴格保持 437 行（≤450 行）。
-  - `node -c js/editor_views.js` 語法校驗通過。
 
+---
 
-
-
+### [2026-09-24] [UNREFINED] [runtime] [player] 賀卡回放停頓移除、字型縮放解鎖、受眾端旋轉加載閘門與社群純淨分享
+- **類型**: `BUG_FIX` | `ARCHITECTURE` | `UI_UX`
+- **代碼錨點**: `styles/templates.css`, `core/CardEngine.js`, `index.html`, `js/workspace_views.js`, `workspace.html`
+- **核心事實 / 決策理由**:
+  1. **字型排版滑桿與停頓徹底修復**:
+     - 解決星戰漫遊模式下鼠標懸停/點擊停頓邏輯（徹底移除 `is-paused` 與 `:hover` 規則），賀卡回放持續順暢不鎖死。
+     - 拔除全局 CSS 對字級大小的 `!important` 覆蓋，解鎖字級縮放 (`fontSizeScale`) 與寬度縮放 (`widthScale`) 滑桿即時調校。
+  2. **社群分享 Open Graph 預覽圖支援**:
+     - 在 `index.html` 補齊 `og:image`、`og:title`、`og:description` 與 Twitter Card 標籤，綁定 ImgBB 高畫質封面 (`https://i.ibb.co/YFsSdsjg/share-cover-webp.webp`)。
+     - 同步校準 `cloudflare/worker_og_proxy.js`。
+  3. **受眾端播放器冷啟動精準加載閘門 (WelcomeGate Loading Spinner)**:
+     - 徹底移除前端所有「超時自動降等回退為硬編碼預設海報」的脆弱計時器邏輯。
+     - 受眾首次打開連結時，開場播放鍵呈現純旋轉圈圈（Loading Spinner），精準並行抓取該卡片（1 卡）與其對應模板（1 模）的最新雲端 SSOT 資料並立即落盤至 `localStorage`。
+     - 資料就緒後解鎖播放鍵，徹底杜絕冷啟動 iPhone 看到硬編碼海報後突然跳轉星戰的視覺撕裂。
+  4. **全域快取破除 (`?v=2` / `?v=3`) 與紅包圖標**:
+     - 解決瀏覽器對 SQLite Favicon 與 Disk JS 的頑固快取，為 `workspace.html` 與 `index.html` 內的所有圖標與外部腳本注入版本後綴。
+     - 導覽列正式切換為紅包圖標 (`assets/icons/favicon-32x32.png`)。
+  5. **純淨收件人姓名傳遞與微信斷行防呆清洗**:
+     - 修復長參數中包含 `%20`（空格）與 `%2C`（逗號）導致微信 Android 氣泡正則解析中斷的重大通訊 BUG。
+     - 網址 `to=` 僅傳遞收件人純名字（`to=Danny`），自動剔除逗號、冒號與空格防呆；受眾端播放器自適應智慧還原英文 `Dear Danny,` 或中文 `親愛的 Danny：`。
+     - 分享訊息導語與網址之間空行隔離（`\n\n`），徹底消除標點符號與 URL 黏連。
+- **防禦手段 / 測試背書**:
+  - `workspace.html` 維持 441 行，嚴格恪守 ≤ 450 行架構憲法。
+  - 受眾端 WhatsApp / LINE / 微信端對端發送測試，超連結 100% 完整高亮。
