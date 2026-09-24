@@ -126,11 +126,13 @@ async function handleBotPreview(request, url, cardId, toName = "") {
   <title>${escapeHtml(title)}</title>
   
   <!-- Open Graph / Facebook / LINE / WhatsApp -->
+  <meta property="og:site_name" content="CardForge Studio">
   <meta property="og:type" content="website">
   <meta property="og:url" content="${escapeHtml(targetPlayUrl)}">
   <meta property="og:title" content="${escapeHtml(title)}">
   <meta property="og:description" content="${escapeHtml(description)}">
   <meta property="og:image" content="${escapeHtml(imageUrl)}">
+  <meta property="og:image:secure_url" content="${escapeHtml(imageUrl)}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
 
