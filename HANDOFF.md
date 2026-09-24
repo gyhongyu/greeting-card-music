@@ -1,77 +1,64 @@
 # 📋 專案工作交接文檔 (HANDOFF.md)
 
 ## 0. 🧠 智腦不二過記憶突觸 (Brain Synapse & Anti-Failure DNA)
-- **當前交接會話 ID**: `562ca413-1c23-47c7-ba6e-1d47418117cf`
-- **關鍵上游會話 ID**: `a2dec505-68de-45cb-9fab-0f67e4097f67`
-- **不可違背之工程紅線 (Hard Invariants)**:
-  1. ⛔ **接手後強制默認進入【討論模式】**：使用者在對話中輸入「結束討論」前，絕對禁止修改代碼或落盤實體檔案！
-  2. ⛔ **嚴禁主動發起 `git push`**（除非使用者在對話明確下達「推送倉庫」）。
-  3. ⛔ **嚴禁在終端機內嵌代碼落盤**（禁止 `py -c`、`node -e` 或 `echo` 寫入程式檔案，必須使用專屬工具）。
-  4. ⛔ **嚴禁使用 `browser_subagent` 開啟瀏覽器測試**，驗收全權交由使用者手動執行。
-  5. ⛔ **`workspace.html` 總行數嚴格 ≤ 450 行**，超長模組必須抽離外部純 JS（無 JSX）。
-  6. ⛔ **外部純 JS 零 JSX 鐵律**：外部 `.js` 一律使用原生 `React.createElement` (`h`)，絕對嚴禁出現 `<Tag>` JSX 標籤，保證 `file:///` 本地雙擊秒開。
-  7. ⛔ **嚴禁為了避坑而閹割核心價值**：絕對保證「同一張卡片、傳不同人不同參數（`?id=...&to=...`）」之客製化核心靈魂，嚴禁私自移除收件人客製功能。
+
+### 溯源座標
+- **當前會話 Conversation ID**: `08a7c559-81bd-410d-b9b5-8c0983d5c2eb`
+- **上游會話 Conversation ID**: `562ca413-1c23-47c7-ba6e-1d47418117cf`
+
+### 專案鐵律與血淚禁令 (Invariants & Red Lines)
+1. **⛔ 絕對禁止未授權 Git 推送 (Absolute NO Unsolicited Git Push Law)**：
+   - 除非使用者明確下達「推送倉庫」、「git push」、「推到 github」，否則任何代理人嚴禁主動發起 git push！
+2. **⛔ 嚴禁在播放器中使用相對路徑做無參跳轉 (Zero-Relative-Redirect Invariant)**：
+   - `play.html` 內部 100% 絕對禁止出現 `window.location.replace('workspace.html')`！否則在二級路徑或 Cloudflare Worker 代理下必引發每秒數十次連按 F5 級死循環。
+3. **⛔ 嚴禁未做單點視覺驗收 (Spike) 前盲寫批量前端視頻導出**：
+   - 純前端利用 Canvas 2D 覆蓋即時錄製 Three.js 3D WebGL 易產生掉幀、文字兩側裁切與黑屏。複合圖層 (CSS 3D + WebGL) 轉影片屬於深水區，非必要勿硬上。
+4. **⛔ 嚴禁終端命令內嵌代碼落盤 (Zero-Inline-Code-Spawning Law)**：
+   - 檔案操作必須且只能調用專屬工具（如 `replace_file_content`），杜絕終端轉譯引發的編碼截斷災難。
+5. **⛔ 畫廊優先與 workspace.html 行數門禁**：
+   - 首頁必須是大畫廊；`workspace.html` 保持純粹組裝，總行數嚴格 ≤ 450 行！
 
 ---
 
 ## 1. 系統現況與已固化基線 (System Baseline)
 
-在當前會話中，以下重大功能已 100% 修復並已推送到遠端倉庫（`origin/main`）：
-1. **星戰文字回放停頓解除 & 字級縮放解鎖**：
-   - 移除了 `styles/templates.css` 與 `core/CardEngine.js` 上的懸停/點擊停頓邏輯（移除 `is-paused` 與 `:hover` 規則）。
-   - 拔除全局 CSS 對字級大小的 `!important` 覆蓋，解鎖字級縮放 (`fontSizeScale`) 與寬度縮放 (`widthScale`) 滑桿即時調校。
-2. **社群 Open Graph 預覽圖支援**：
-   - 在 `index.html` 補齊 `og:image`、`og:title`、`og:description` 與 Twitter Card 標籤，綁定 ImgBB 高畫質封面 (`https://i.ibb.co/YFsSdsjg/share-cover-webp.webp`)。
-   - `cloudflare/worker_og_proxy.js` 同步更新支援優先採用自訂封面。
-3. **受眾端播放鍵旋轉加載閘門 (WelcomeGate Loading Spinner)**：
-   - 徹底移除前端所有「超時自動降等回退為硬編碼預設海報」的脆弱計時器邏輯。
-   - 受眾首次打開連結時，開場播放鍵呈現純旋轉圈圈（Loading Spinner），精準並行抓取該卡片（1 卡）與其對應模板（1 模）的最新雲端 SSOT 資料並立即落盤至 `localStorage`，就緒後解鎖播放鍵，徹底杜絕冷啟動 iPhone 看到硬編碼海報後突然跳轉星戰的視覺撕裂。
-4. **全域快取破除 (`?v=2` / `?v=3`) 與紅包圖標**:
-   - 為 `workspace.html` 與 `index.html` 內的所有圖標與外部腳本注入版本後綴，徹底擊穿瀏覽器對 SQLite Favicon 與 Disk JS 的頑固快取，紅包圖標順利上線。
-5. **純淨收件人姓名傳遞與微信斷行防呆清洗**:
-   - 網址 `to=` 僅傳遞收件人純名字（`to=Danny`），自動剔除逗號、冒號與空格防呆；受眾端播放器自適應智慧還原英文 `Dear Danny,` 或中文 `親愛的 Danny：`。
-   - 分享訊息導語與網址之間雙換行隔離（`\n\n`），徹底消除標點符號與 URL 黏連。
+| 模組 / 元件 | 當前真實狀態 | 說明 |
+| :--- | :--- | :--- |
+| **三軌架構** | ✅ 已固化 | 1. `workspace.html`：創作者工坊；2. `index.html`：首頁智慧路由分流器；3. `play.html`：純粹受眾端 3D 播放器（零跳轉，永不死循環）。 |
+| **無狀態純路徑分發** | ✅ 已上線 | 支援 `/p/:cardId/:recipientName`，Worker 邊緣端 302 重定向至 `/play.html?id=...&to=...`，徹底消滅微信氣泡內的 `?` 與 `&` 斷字截斷。 |
+| **社群預覽 (OG Preview)** | ✅ 正常生效 | WhatsApp / LINE / Facebook / Twitter 爬蟲造訪時，維持極速 OG 瓶中信大圖預覽。 |
+| **短影音導出** | 🛑 已乾淨回滾 | 已執行 Git Revert 徹底清除粗糙的 `video_exporter.js` 與按鈕，代碼庫恢復純淨。 |
+| **文檔真理庫** | ✅ 已同步 | `docs/STATE.md` (≤200行) 與 `docs/ACTIVE_LOG.md` 已完成架構憲法與踩坑記錄追加。 |
 
 ---
 
-## 2. 🚨 最新致命現象與死因復盤 (The WeChat Android Bug)
+## 2. 下一棒核心待辦任務 (Immediate Action Items)
 
-### 現象說明（參見使用者最新截圖）
-- **電腦版微信（PC）正常，但發到手機版微信（Android）再次翻車**：
-  在手機微信聊天室發送：
-  `https://card.foxlink.co.in?id=c_mue9uxxt&to=Danny`
-  手機微信的文字氣泡中：
-  - 前半部 `https://card.foxlink.co.in` 高亮為深藍色超連結；
-  - 後半部 `?id=c_mue9uxxt&to=Danny` **完全變成黑色普通文字（根本沒被當成網址）**！
-  - 當收件人點擊時，瀏覽器開啟了沒有任何參數的 `https://card.foxlink.co.in`。
-  - 受眾端 `index.html` 頂部代碼：
-    ```javascript
-    if (!isRecipientView) { window.location.replace('workspace.html'); }
-    ```
-    因為偵測不到卡片參數，**暴力將受眾轉址進了創作者工坊（`workspace.html`）**，受眾端赫然看見「君子密碼鎖」！
+使用者指示：**「做一個能拿視頻當背景的模板」**。
 
----
+### 核心任務目標
+以專案根目錄現有之視頻素材 `E:\Projects\greeting-card-music\Miracle_Under_the_Sky.mp4` 為基礎，與使用者共同研究並打造全新的**「視訊背景動態賀卡模板 (Video Background Card Template)」**！
 
-## 3. 下一棒核心待辦任務 (Immediate Action Items)
-
-> ⚠️ **接手首要動作**：
-> 嚴格保持在【討論模式】！先與使用者進行方案架構探討，切勿擅自改動代碼。
-
-### 核心攻堅：研究能不能壓縮成短網址 / 偽靜態路徑，不會被手機微信截斷
-1. **方向 A：偽靜態路徑路由 (Path-based Clean URL，推薦)**：
-   - 微信手機端之所以截斷，是因其正則引擎極度排斥 `?`、`&`、`=` 等 QueryString 符號。
-   - 如果網址形式為無問號的乾淨路徑：
-     👉 `https://card.foxlink.co.in/c/mue9uxxt/Danny` 或 `https://card.teaforia.in/c/mue9uxxt/Danny`
-     手機微信會 100% 將其當作連續的完整 URL 高亮，絕無截斷可能。
-   - 實現方式：可由已存在的 Cloudflare Worker（`proxy-card-teaforia-in` 或 `worker_og_proxy.js`）在邊緣層進行 URL Rewrite，無損轉譯為前端所需參數。
-2. **方向 B：極簡短網址壓縮服務 (Short URL Hash)**：
-   - 評估利用 Cloudflare Worker + KV 或短代碼重定向，生成如 `https://card.teaforia.in/s/m9uxxt` 等超短網址。
-3. **方向 C：受眾端首頁無參防禦升級（消滅外跳密碼鎖的次生災難）**：
-   - 審視 `index.html`：若使用者不幸訪問無參網址，**絕對嚴禁跳轉到創作者工坊（`workspace.html`）**！
-   - 應直接原地展示當季示範賀卡（如中秋明月卡），或顯示溫馨提示，確保受眾體驗永遠不崩潰。
+### 具體行動項 (Action Plan)
+1. **素材與格式盤點**：
+   - 檢驗 `Miracle_Under_the_Sky.mp4` 的編碼（H.264 / AAC）、長度、長寬比（16:9 橫版或 9:16 直版）與檔案大小。
+   - 思考視訊如何在純靜態 / 本地 `file:///` 環境下無 CORS 限制地被 HTML5 `<video>` 標籤平滑循環播放（`autoplay loop muted playsinline`）。
+2. **模板架構設計 (Video Background Shader/Engine)**：
+   - 在 `data/templates.json` 規劃全新模板定義（例如 `video-celestial-sky`）。
+   - 在 [CardEngine.js](file:///e:/Projects/greeting-card-music/core/CardEngine.js) 中新增或擴充視訊背景圖層：
+     - 底層：HTML5 Video 背景層（`object-fit: cover`，自動循環，支援亮度調光遮罩 `dimmer`）。
+     - 中層：3D 粒子流光（星塵 Stardust、流星雨或光暈，透過 Three.js 透明 Canvas 覆蓋在視訊上方）。
+     - 頂層：優雅的文字排版（如星戰爬升或書法詩意排版），文字投影保證在動態視頻背景下依舊清晰銳利。
+3. **性能與行動端邊界防禦 (Pre-Mortem Invariants)**：
+   - **行動端省電與靜音自動播放**：行動端瀏覽器（iOS Safari / 微信）要求背景視訊必須標註 `muted playsinline` 才能自動播放；音訊部分依然由使用者的點擊解鎖鍵（`WelcomeGate`）獨立播放背景音樂。
+   - **檔案大小與加載優化**：評估若日後部署到線上，是否需要將大檔案 mp4 託管至 CDN 或提供壓縮版。
 
 ---
 
-## 4. 驗收啟動指令 (Verification Step)
+## 3. 驗收啟動指令 (Verification Step)
 
-請下一棒代理人仔細閱讀本文件，並嚴格遵循不變量進入討論。
+下一位接棒的 AI 代理人，請以繁體中文向使用者問候，並以極簡大白話表明已掌握 `Miracle_Under_the_Sky.mp4` 視訊背景模板的研發任務，直接調用以下啟動指令展開探討：
+
+```markdown
+請詳細閱讀專案根目錄下的 HANDOFF.md，並依序執行裡面的任務。
+```
