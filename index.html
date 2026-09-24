@@ -19,6 +19,13 @@
         })();
     </script>
     
+    <!-- Favicon & PWA Icons -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+
     <!-- Fonts & Tailwind -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -108,35 +115,51 @@
         // 2. CHILD COMPONENTS (受眾端子組件)
         // =========================================================================
         
-        // 開門封面遮罩 (解鎖 Web Audio 與進入全螢幕)
+        // 開門封面遮罩 (方案 A：極簡深色微透玻璃 ＋ 聲波脈衝無語言直覺解鎖按鈕)
         function WelcomeGate({ card, template, onStart }) {
+            const primaryColor = template.theme?.primaryColor || '#c9a96e';
+            const fontFamily = template.theme?.fontFamily || 'inherit';
+
             return (
-                <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center relative z-20 bg-black">
-                    <ParticleEngine effect={template.effects} />
-                    
-                    <div className="max-w-md w-full p-8 md:p-10 rounded-2xl bg-zinc-900/80 backdrop-blur-2xl border border-white/15 shadow-2xl space-y-6">
-                        <h1 className="text-3xl md:text-4xl font-light text-white" style={{ fontFamily: template.theme?.fontFamily }}>
-                            {card.title || '一份特別的祝福'}
-                        </h1>
-                        <p className="text-sm text-zinc-400">
-                            {card.recipient ? `致 ${card.recipient}` : '請點擊開啟專屬沉浸式卡片'}
-                        </p>
-                        
-                        <button
-                            onClick={onStart}
-                            className="w-full py-3.5 px-6 rounded-xl font-medium tracking-wide transition-all duration-300 transform active:scale-95 shadow-lg flex items-center justify-center gap-2 group"
-                            style={{
-                                backgroundColor: template.theme?.primaryColor || '#c9a96e',
-                                color: template.theme?.bgColor || '#09090b'
-                            }}
-                        >
-                            <i className="fa-solid fa-envelope-open text-sm group-hover:scale-110 transition-transform"></i>
-                            <span>開啟賀卡與音樂體驗</span>
-                        </button>
-                        
-                        <div className="text-[11px] text-zinc-500 flex items-center justify-center gap-1.5 pt-2">
-                            <i className="fa-solid fa-headphones text-[10px]"></i>
-                            <span>佩戴耳機或開啟聲音體驗最佳</span>
+                <div className="absolute inset-0 z-30 flex items-center justify-center p-4 select-none pointer-events-auto transition-opacity duration-700">
+                    {/* 極簡微透毛玻璃卡片：僅展示卡片動態標題與收件人，零寫死中文字 */}
+                    <div className="max-w-xs sm:max-w-sm w-full p-6 sm:p-8 rounded-3xl bg-zinc-950/60 backdrop-blur-xl border border-white/10 shadow-2xl flex flex-col items-center text-center space-y-6">
+                        {/* 卡片標題 (支援使用者自訂英文/中文) */}
+                        {card.title && (
+                            <h1 
+                                className="text-2xl sm:text-3xl font-light text-white tracking-wide clean-title-glow leading-snug"
+                                style={{ fontFamily: fontFamily }}
+                            >
+                                {card.title}
+                            </h1>
+                        )}
+
+                        {/* 收件人姓名/稱謂 (若有自訂則優雅呈現) */}
+                        {card.recipient && (
+                            <p 
+                                className="text-sm font-medium tracking-wider"
+                                style={{ color: primaryColor, fontFamily: fontFamily }}
+                            >
+                                {card.recipient}
+                            </p>
+                        )}
+
+                        {/* 🌟 方案 A：極簡聲波呼吸光環直覺解鎖按鈕 (零文字，任何語言通殺) */}
+                        <div className="pt-2 flex flex-col items-center">
+                            <button
+                                type="button"
+                                onClick={onStart}
+                                title="Play / Open"
+                                aria-label="Play / Open"
+                                className="w-16 h-16 sm:w-18 sm:h-18 rounded-full flex items-center justify-center text-zinc-950 shadow-2xl transition-all duration-300 active:scale-90 cursor-pointer pulse-soundwave-btn group"
+                                style={{
+                                    backgroundColor: primaryColor,
+                                    color: template.theme?.bgColor || '#09090b'
+                                }}
+                            >
+                                {/* 播放 ▶️ 與 信封 ✉️ 意象 */}
+                                <i className="fa-solid fa-play text-xl sm:text-2xl pl-1 group-hover:scale-110 transition-transform"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -400,34 +423,29 @@
                         onPause={() => setIsPlayingAudio(false)}
                     />
 
-                    {!isStarted ? (
+                    {/* 🎬 核心卡片全景渲染舞台 (全景背景、Shader、月亮、粒子自第一秒起鋪滿 100vw x 100vh 視窗) */}
+                    <div className="w-full h-full z-10 relative">
+                        <CardEngine 
+                            card={currentCard} 
+                            template={activeTemplate} 
+                        />
+                    </div>
+
+                    {/* 🎵 音訊控制浮鈕 (解鎖音訊後常駐右上角) */}
+                    {isStarted && (
+                        <AudioControls 
+                            isPlayingAudio={isPlayingAudio}
+                            onToggleAudio={toggleAudio}
+                        />
+                    )}
+
+                    {/* 🌟 方案 A：極簡聲波脈衝解鎖微卡浮層 (點擊後解鎖音訊並平滑消失，底層 3D 畫布零重置零中斷) */}
+                    {!isStarted && (
                         <WelcomeGate 
                             card={currentCard} 
                             template={activeTemplate} 
                             onStart={handleStart} 
                         />
-                    ) : (
-                        <React.Fragment>
-                            {/* 全景背景氛圍層 (若有特效粒子，鋪滿整個 100vw/100vh 視窗) */}
-                            <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-                                {window.ParticleEngine && (
-                                    <ParticleEngine effect={activeTemplate.effects || {}} />
-                                )}
-                            </div>
-
-                            <AudioControls 
-                                isPlayingAudio={isPlayingAudio}
-                                onToggleAudio={toggleAudio}
-                            />
-
-                            {/* 🎬 核心卡片全景渲染舞台 */}
-                            <div className="w-full h-full z-10 relative">
-                                <CardEngine 
-                                    card={currentCard} 
-                                    template={activeTemplate} 
-                                />
-                            </div>
-                        </React.Fragment>
                     )}
                 </div>
             );

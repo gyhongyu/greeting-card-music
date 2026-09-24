@@ -4,6 +4,38 @@
 
 ---
 
+### [2026-09-24] [UNREFINED] [pwa_icons] [favicon_fix] 全套 PWA 應用圖標、正方形無損裁切 (Aspect Lock) 與 Favicon 404 徹底修復
+- **類型**: `FEATURE` | `ASSET` | `PWA` | `BUG_FIX`
+- **代碼錨點**: `manifest.json`, `favicon.ico`, `assets/icons/`, `workspace.html`, `index.html`
+- **核心事實 / 決策理由**:
+  1. **無損焦點正方形居中裁切**:
+     - 避免直接縮放將 1024x541 橫圖擠壓變形，以漂流瓶與發光木塞黃金焦點（541x541）進行 1:1 正圓無損裁切。
+  2. **工業級全階 PWA 圖標庫建置**:
+     - 生成 `favicon.ico`（含 16, 32, 48 多分辨率內聯）。
+     - 生成 `apple-touch-icon.png` (180x180)。
+     - 生成 Android/PWA `icon-192x192.png`, `icon-512x512.png` 與帶安全邊界的 `icon-maskable-512x512.png`。
+  3. **PWA Manifest 與頁面關聯**:
+     - 建立標準 `manifest.json`；在 `workspace.html` 與 `index.html` 中注入圖標與 manifest 關聯，徹底消滅瀏覽器 `favicon.ico 404` 紅字報錯，並支援手機一鍵添加到主螢幕以 App 模式啟動。
+  4. **門禁核驗**:
+     - `workspace.html` 保持 449 行（嚴格 ≤ 450 行門禁）。
+
+---
+
+### [2026-09-24] [UNREFINED] [entry_scheme_a] [aspect_ratio_fix] 受眾端入口頁方案 A 純視覺直覺解鎖、統一全景單一 3D 畫布與月餅扁平變形根治
+- **類型**: `FEATURE` | `REFACTOR` | `USER_EXPERIENCE` | `BUG_FIX`
+- **代碼錨點**: `index.html`, `styles/animations.css`
+- **核心事實 / 決策理由**:
+  1. **徹底消滅「開門畫面月餅被壓扁」與「左右兩大黑框」病灶**:
+     - 過去 `WelcomeGate` 內嵌了獨立且被窄小容器限制寬高的 Canvas，透視相機錯誤使用窄直屏 Aspect 投影到全螢幕，導致月餅水平受擠壓成扁條。
+     - 改為 **單一全域 3D 渲染舞台架構**：底層 `CardEngine`（Shader、月亮、粒子）從頁面載入第一秒起鋪滿 `100vw x 100vh`，解鎖前後共享同一底層實例，月餅 100% 保持立體正圓形，電腦端兩側突兀黑邊徹底消失。
+  2. **方案 A 國際化「純視覺直覺解鎖」落地**:
+     - 移除寫死的「開啟賀卡與音樂體驗」、「佩戴耳機...」等中文依賴，改為國際化微透深色毛玻璃卡片（動態呈現賀卡自訂英文/中文標題與收件人）。
+     - 搭載 **金屬光澤聲波脈衝呼吸圖標按鈕 (`pulse-soundwave-btn`)**：結合播放 ▶️ 與信封 ✉️ 意象，帶水波紋向外擴散動態，零語言障礙，全人類憑視覺直覺一鍵解鎖 Web Audio。
+  3. **受眾體驗絲滑平移**:
+     - 點擊按鈕瞬間解鎖音樂，浮層自然淡出，卡片內容升空，底層 3D 動態無中斷無重啟。
+
+---
+
 ### [2026-09-24] [UNREFINED] [editor_local_draft] [cloud_push_on_save] 編輯器改動改為純本地草稿隔離、按「保存並返回卡片庫」才一次性同步雲端、根除 GAS 404 舊網址殘留
 - **類型**: `BUG_FIX` | `REFACTOR` | `USER_EXPERIENCE` | `RESILIENCE`
 - **代碼錨點**: `js/gas_client.js`, `js/workspace_store.js`, `js/workspace_views.js`, `js/editor_views.js`, `workspace.html`

@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CardForge Studio - 所見即所得賀卡與模板工坊</title>
 
+    <!-- Favicon & PWA Icons -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#07080c">
+
     <!-- Fonts & Tailwind -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -39,13 +46,7 @@
     <script src="js/image_uploader.js"></script>
     <script src="js/workspace_views.js"></script>
     <script src="js/editor_views.js"></script>
-
-    <!-- 
-      重要說明：
-      在 file:/// 協議下，Babel 無法透過 XHR 讀取外部 JSX 檔案 (會被 Chrome CORS 阻擋)。
-      純 JS 模組 (ParticleEngine, constants, config, gas_client, workspace_views, editor_views) 走原生 script 標籤載入，
-      頂層 React 視圖路由維持內聯，保證 100% 模組化且零伺服器本機雙擊秒開！
-    -->
+    <!-- file:/// 協議下純 JS 走原生 script，頂層 React 路由維持內聯 -->
     <script type="text/babel">
         // 引用外部已模組化的核心渲染舞台 (core/CardEngine.js)
         // 解構外部純 JS 模組化視圖組件 (js/workspace_views.js & js/editor_views.js)
