@@ -44,8 +44,8 @@
     <script src="js/gas_client.js?v=2"></script>
     <script src="js/workspace_store.js?v=2"></script>
     <script src="js/image_uploader.js?v=2"></script>
-    <script src="js/workspace_views.js?v=4"></script>
-    <script src="js/editor_views.js?v=3"></script>
+    <script src="js/workspace_views.js?v=5"></script>
+    <script src="js/editor_views.js?v=4"></script>
     <!-- file:/// 協議下純 JS 走原生 script，頂層 React 路由維持內聯 -->
     <script type="text/babel">
         // 引用外部已模組化的核心渲染舞台與視圖組件 (core/CardEngine.js, js/workspace_views.js, js/editor_views.js)
@@ -63,6 +63,7 @@
             const [templates, setTemplates] = React.useState([]);
             const [editingCardId, setEditingCardId] = React.useState(null);
             const [editingTemplate, setEditingTemplate] = React.useState(null);
+            const [editBackup, setEditBackup] = React.useState(null); // 🛡️ 編輯前快照備份，支援不保存退出完全還原
 
             const [previewModalCard, setPreviewModalCard] = React.useState(null);
             const [cloudShareModal, setCloudShareModal] = React.useState(null);
@@ -303,11 +304,39 @@
                 if (window.WorkspaceStore) window.WorkspaceStore.saveCardsLocal(updated);
             };
 
+            const handleCancelEdit = () => {
+                if (currentView === 'card_editor') {
+                    if (editBackup && Array.isArray(editBackup.cards)) {
+                        setCards(editBackup.cards);
+                        if (window.WorkspaceStore) {
+                            window.WorkspaceStore.saveCardsLocal(editBackup.cards);
+                        }
+                    }
+                    setEditBackup(null);
+                    setCurrentView('gallery');
+                    showToast('已取消編輯，未保存任何修改。');
+                } else if (currentView === 'template_editor') {
+                    if (editBackup && Array.isArray(editBackup.templates)) {
+                        setTemplates(editBackup.templates);
+                        if (window.WorkspaceStore) {
+                            window.WorkspaceStore.saveTemplatesLocal(editBackup.templates);
+                        }
+                    }
+                    setEditBackup(null);
+                    setEditingTemplate(null);
+                    setCurrentView('gallery');
+                    showToast('已取消模板設計，未保存任何修改。');
+                } else {
+                    setCurrentView('gallery');
+                }
+            };
+
             const handleSaveCurrentCard = async () => {
                 if (!currentEditingCard) {
                     setCurrentView('gallery');
                     return;
                 }
+                setEditBackup(null);
                 // 明確保存並標記為 dirty 啟動雲端同步
                 saveCards(cards, currentEditingCard.id);
                 setCurrentView('gallery');
@@ -344,8 +373,12 @@
                         currentEditingCard={currentEditingCard}
                         editorPreviewDevice={editorPreviewDevice}
                         setEditorPreviewDevice={setEditorPreviewDevice}
-                        onSaveTemplate={() => handleSaveTemplate(editingTemplate)}
+                        onSaveTemplate={() => {
+                            setEditBackup(null);
+                            handleSaveTemplate(editingTemplate);
+                        }}
                         onSaveCard={handleSaveCurrentCard}
+                        onCancelEdit={handleCancelEdit}
                         onCloudPublish={() => handleCloudPublish(currentEditingCard)}
                         onExportAllJSON={exportAllJSON}
                         syncStatus={syncStatus}
@@ -365,6 +398,7 @@
                                     onDeleteCard={handleDeleteCard}
                                     onPreviewCard={(c, t) => setPreviewModalCard({ card: c, template: t })}
                                     onEditCard={(id) => {
+                                        setEditBackup({ cards: JSON.parse(JSON.stringify(cards)) });
                                         setEditingCardId(id);
                                         setCurrentView('card_editor');
                                     }}
@@ -380,6 +414,7 @@
                                     onDeleteTemplate={handleDeleteTemplate}
                                     onPreviewTemplate={(t) => setPreviewModalCard({ card: TEMPLATE_DUMMY_CARD, template: t })}
                                     onEditTemplate={(t) => {
+                                        setEditBackup({ templates: JSON.parse(JSON.stringify(templates)) });
                                         setEditingTemplate({ ...t });
                                         setCurrentView('template_editor');
                                     }}

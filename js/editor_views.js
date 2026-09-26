@@ -164,6 +164,30 @@
                             onChange: e => updateEditingCard({ sender: e.target.value }),
                             className: 'w-full bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1.5 text-white outline-none focus:border-amber-400 resize-none font-sans'
                         })
+                    ),
+                    // 💌 卡片社群專屬寄語 (純祝福本文，不帶稱謂防呆)
+                    h('div', { className: 'pt-2 border-t border-zinc-800/80 space-y-1' },
+                        h('div', { className: 'flex items-center justify-between' },
+                            h('label', { className: 'block text-zinc-300 text-xs font-semibold flex items-center gap-1.5' },
+                                h('i', { className: 'fa-solid fa-paper-plane text-amber-400 text-[11px]' }),
+                                h('span', null, '卡片社群寄語 (Share Message)')
+                            ),
+                            h('span', { className: 'text-[10px] text-amber-400/90 font-mono' }, '純正文')
+                        ),
+                        h('div', { className: 'p-2 bg-amber-950/20 border border-amber-900/40 rounded text-[10px] text-amber-200/90 leading-relaxed' },
+                            '💡 ',
+                            h('strong', { className: 'text-amber-300' }, '防呆說明：'),
+                            '此處請填寫純祝福內容，',
+                            h('span', { className: 'text-rose-300 font-bold underline' }, '切勿包含「親愛的」或人名'),
+                            '！在點擊右上角「分享卡片」時，系統會自動在前面加上您指定的敬稱與收件人姓名。'
+                        ),
+                        h('textarea', {
+                            rows: 2,
+                            value: currentEditingCard.shareCaption !== undefined ? currentEditingCard.shareCaption : '',
+                            placeholder: '範例：這是我為你定制的賀卡，祝你中秋節快樂。',
+                            onChange: e => updateEditingCard({ shareCaption: e.target.value }),
+                            className: 'w-full bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1.5 text-white text-xs outline-none focus:border-amber-400 font-sans resize-y'
+                        })
                     )
                 ),
 

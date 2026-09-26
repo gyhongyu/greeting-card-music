@@ -167,12 +167,22 @@
                 saluteText = recipientPrefix === 'Dear' ? 'Dear Friend' : (recipientPrefix === '尊敬的' ? '尊敬的貴賓' : (recipientPrefix === '致' ? '致尊榮夥伴' : '親愛的朋友'));
             }
 
-            const wishHoliday = cardTitle ? `${cardTitle}快樂` : '佳節愉快';
-            const introLine = `${saluteText}，這是我為你定制的賀卡，祝你${wishHoliday}。`;
+            // 優先讀取卡片裡自定義的純祝福本文 (shareCaption)
+            let baseCaption = (card.shareCaption && card.shareCaption.trim()) 
+                ? card.shareCaption.trim() 
+                : `這是我為你定制的賀卡，祝你${cardTitle ? cardTitle + '快樂' : '佳節愉快'}。`;
+
+            // 🛡️ 防呆去重：若使用者不小心在編輯器正文前面又寫了稱謂 (如「親愛的」或「Dear」)，自動除重消除雙重稱呼
+            baseCaption = baseCaption.replace(/^(親愛的|尊敬的|致|Dear|Dearest)[^，,：:！!\n]+[，,：:！!]\s*/i, '');
+            // 清理開頭可能殘留的多餘逗號
+            baseCaption = baseCaption.replace(/^[，,：:！!。.、\s]+/, '');
+
+            const separator = (recipientPrefix === 'Dear') ? ', ' : '，';
+            const introLine = `${saluteText}${separator}${baseCaption}`;
 
             // 網址獨立成行，保證社群抓取與高亮不黏連
             return `${introLine}\n\n${finalShareUrl}`;
-        }, [card.title, card.name, recipientPrefix, recipientName, finalShareUrl]);
+        }, [card.shareCaption, card.title, card.name, recipientPrefix, recipientName, finalShareUrl]);
 
         // 複製完整兩行式訊息 (導語 + 網址)
         const handleCopyFullMessage = () => {
@@ -413,24 +423,57 @@
                     h('i', { className: 'fa-solid fa-wand-magic-sparkles' }),
                     h('span', null, `模板管理 (${templatesCount})`)
                 )
-            ) : isTplEditor ? h('div', { className: 'flex items-center gap-3' },
+            ) : isTplEditor ? h('div', { className: 'flex items-center gap-2' },
                 h('button', {
                     onClick: () => {
-                        setEditingTemplate(null);
-                        setCurrentView('gallery');
+                        if (typeof onCancelEdit === 'function') {
+                            onCancelEdit();
+                        } else {
+                            setEditingTemplate(null);
+                            setCurrentView('gallery');
+                        }
                     },
-                    className: 'px-4 py-1.5 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-indigo-400 hover:bg-zinc-800 text-indigo-300 font-bold text-xs flex items-center gap-2 shadow transition-all',
-                    title: '已實時自動儲存，點擊返回模板庫'
+                    className: 'px-3 py-1.5 rounded-lg bg-zinc-900 border border-rose-900/60 hover:border-rose-500 hover:bg-rose-950/30 text-rose-300 font-semibold text-xs flex items-center gap-1.5 shadow transition-all active:scale-95',
+                    title: '放棄本次修改，不保存直接退出回模板庫'
                 },
-                    h('i', { className: 'fa-solid fa-arrow-left' }),
+                    h('i', { className: 'fa-solid fa-xmark text-sm' }),
+                    h('span', null, '取消編輯')
+                ),
+                h('button', {
+                    onClick: () => {
+                        if (typeof onSaveTemplate === 'function') {
+                            onSaveTemplate();
+                        } else {
+                            setEditingTemplate(null);
+                            setCurrentView('gallery');
+                        }
+                    },
+                    className: 'px-4 py-1.5 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-indigo-400 hover:bg-zinc-800 text-indigo-300 font-bold text-xs flex items-center gap-2 shadow transition-all active:scale-95',
+                    title: '保存修改並同步雲端，返回模板庫'
+                },
+                    h('i', { className: 'fa-solid fa-cloud-arrow-up' }),
                     h('span', null, '保存並返回模板庫')
                 ),
-                h('span', { className: 'text-zinc-500 text-xs' }, '|'),
+                h('span', { className: 'text-zinc-600 text-xs' }, '|'),
                 h('span', { className: 'text-xs text-zinc-300 font-medium hidden sm:inline' },
                     '正在設計模板：',
                     h('span', { className: 'text-indigo-300 font-bold' }, editingTemplate?.name)
                 )
-            ) : h('div', { className: 'flex items-center gap-3' },
+            ) : h('div', { className: 'flex items-center gap-2' },
+                h('button', {
+                    onClick: () => {
+                        if (typeof onCancelEdit === 'function') {
+                            onCancelEdit();
+                        } else {
+                            setCurrentView('gallery');
+                        }
+                    },
+                    className: 'px-3 py-1.5 rounded-lg bg-zinc-900 border border-rose-900/60 hover:border-rose-500 hover:bg-rose-950/30 text-rose-300 font-semibold text-xs flex items-center gap-1.5 shadow transition-all active:scale-95',
+                    title: '放棄本次修改，不保存直接退出回卡片庫'
+                },
+                    h('i', { className: 'fa-solid fa-xmark text-sm' }),
+                    h('span', null, '取消編輯')
+                ),
                 h('button', {
                     onClick: () => {
                         if (typeof onSaveCard === 'function') {
@@ -439,13 +482,13 @@
                             setCurrentView('gallery');
                         }
                     },
-                    className: 'px-4 py-1.5 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-amber-400 hover:bg-zinc-800 text-amber-300 font-bold text-xs flex items-center gap-2 shadow transition-all',
+                    className: 'px-4 py-1.5 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-amber-400 hover:bg-zinc-800 text-amber-300 font-bold text-xs flex items-center gap-2 shadow transition-all active:scale-95',
                     title: '保存修改並同步雲端，返回卡片庫'
                 },
                     h('i', { className: 'fa-solid fa-cloud-arrow-up' }),
-                    h('span', null, '保存並返回卡片庫')
+                    h('span', null, '保存並返回卡片車')
                 ),
-                h('span', { className: 'text-zinc-500 text-xs' }, '|'),
+                h('span', { className: 'text-zinc-600 text-xs' }, '|'),
                 h('span', { className: 'text-xs text-zinc-300 font-medium hidden sm:inline' },
                     '正在編輯：',
                     h('span', { className: 'text-amber-300 font-bold' }, currentEditingCard?.name)
