@@ -184,7 +184,7 @@
                         h('textarea', {
                             rows: 2,
                             value: currentEditingCard.shareCaption !== undefined ? currentEditingCard.shareCaption : '',
-                            placeholder: '範例：這是我為你定制的賀卡，祝你中秋節快樂。',
+                            placeholder: '範例：這是我為你定制的賀卡，願你平安喜樂、一切順心。',
                             onChange: e => updateEditingCard({ shareCaption: e.target.value }),
                             className: 'w-full bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1.5 text-white text-xs outline-none focus:border-amber-400 font-sans resize-y'
                         })

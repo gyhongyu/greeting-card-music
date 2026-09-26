@@ -167,14 +167,14 @@
                 saluteText = recipientPrefix === 'Dear' ? 'Dear Friend' : (recipientPrefix === '尊敬的' ? '尊敬的貴賓' : (recipientPrefix === '致' ? '致尊榮夥伴' : '親愛的朋友'));
             }
 
-            // 優先讀取卡片裡自定義的純祝福本文 (shareCaption)
+            // 優先讀取卡片裡自定義的純祝福本文 (shareCaption)；留空時回退至普適得體的標準祝福，絕不妄自拼接「快樂」
             let baseCaption = (card.shareCaption && card.shareCaption.trim()) 
                 ? card.shareCaption.trim() 
-                : `這是我為你定制的賀卡，祝你${cardTitle ? cardTitle + '快樂' : '佳節愉快'}。`;
+                : '這是我為你定制的賀卡，願你一切順心。';
 
             // 🛡️ 防呆去重：若使用者不小心在編輯器正文前面又寫了稱謂 (如「親愛的」或「Dear」)，自動除重消除雙重稱呼
             baseCaption = baseCaption.replace(/^(親愛的|尊敬的|致|Dear|Dearest)[^，,：:！!\n]+[，,：:！!]\s*/i, '');
-            // 清理開頭可能殘留的多餘逗號
+            // 清理開頭可能殘留的多餘逗號與標點
             baseCaption = baseCaption.replace(/^[，,：:！!。.、\s]+/, '');
 
             const separator = (recipientPrefix === 'Dear') ? ', ' : '，';
