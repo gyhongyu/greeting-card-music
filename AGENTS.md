@@ -52,7 +52,13 @@
    - ⚡ **GAS 強制部署閉環**：凡修改 `gas/` 代碼，必須強制立即執行：
      1. `py C:\Users\9892\.gemini\config\skills\gas_clasp_manager\scripts\clasp_manager.py push --name greeting_card_gateway`（推送至 GAS HEAD）
      2. `py C:\Users\9892\.gemini\config\skills\gas_clasp_manager\scripts\clasp_manager.py deploy --name greeting_card_gateway --desc "部署說明"`（原地升級發布新版本 Web App）
-   - 🌐 **Cloudflare Worker 強制部署**：凡修改 `cloudflare/worker_og_proxy.js`，必須立即執行專案標準部署指令：
-     👉 `py scripts\deploy_worker.py`（一鍵熱推至 `card.teaforia.in` 與 `card.foxlink.co.in` 邊緣節點並核驗 DNS 橘雲）！
    - 🚨 **違者視為一級翻車事故**：嚴禁在未完成雲端部署前宣稱功能完成或妄下斷言「功能無法實現只能硬編碼」！
+
+10. 🔄【PWA 資源破快取與代理人發布閉環鐵律 (PWA Cache-Busting & Release Invariant)】：
+   - ⛔ **嚴禁改完代碼不上調版本號**：本專案為雙網域 PWA 旗艦專案，瀏覽器與 Service Worker 快取極其頑固！凡修改 `js/`、`css/`、`core/` 或 `styles/` 下的任何代碼，**必須強制同步在 `workspace.html` 與 `play.html` 中將該腳本的引用 query 參數遞增（例如 `?v=3` ➔ `?v=4`）**！
+   - 📚 **專案發布技能真理源**：所有發布、快取破除與閉環規範一律遵循 `.agents/skills/cardforge_pwa_release/`。
+   - 🚀 **授權推送流程**：當使用者授權推送倉庫時，必須依序完成：
+     1. HTML 版本號遞增破快取
+     2. `py scripts/deploy_worker.py`（若有改 Worker）
+     3. `git commit` 並 `git push` 至 GitHub 倉庫！
 </RULE[development_invariants]>

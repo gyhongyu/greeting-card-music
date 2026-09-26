@@ -143,51 +143,41 @@
             return toVal ? `${targetUrl}&to=${encodeURIComponent(toVal)}` : targetUrl;
         }, [baseShareUrl, selectedDomain, recipientName, card.id]);
 
-        // 計算兩行式分享訊息 (社群導語首句智能拼接對象稱呼)
+        // 計算兩行式分享訊息 (專屬定制導語 + 網址)
         const fullShareMessage = React.useMemo(() => {
-            const rawCaption = card.shareCaption || '{name}，佳節愉快！這是一張為你特別定製的 3D 星空賀卡，祝你一切順心：';
-            
-            // 決定導語開頭顯示的對象呼喚 (例如: Dear Danny, 或 王總， 或 親愛的 Danny，)，過濾重複標點
-            let saluteText = '朋友，';
+            const cardTitle = (card.title || card.name || '節日').replace(/賀卡|祝福卡|卡片/g, '').trim();
             const trimmedName = recipientName.trim().replace(/[，,：:！!。.、]/g, '');
+
+            let saluteText = '';
             if (trimmedName) {
                 if (recipientPrefix === 'Dear') {
-                    saluteText = `Dear ${trimmedName}, `;
+                    saluteText = `Dear ${trimmedName}`;
                 } else if (recipientPrefix === '尊敬的') {
-                    saluteText = `尊敬的 ${trimmedName}，`;
+                    saluteText = `尊敬的 ${trimmedName}`;
                 } else if (recipientPrefix === '致') {
-                    saluteText = `致 ${trimmedName}，`;
+                    saluteText = `致 ${trimmedName}`;
                 } else if (recipientPrefix === '親愛的') {
-                    saluteText = `親愛的 ${trimmedName}，`;
+                    saluteText = `親愛的 ${trimmedName}`;
+                } else if (recipientPrefix === 'none') {
+                    saluteText = `${trimmedName}`;
                 } else {
-                    saluteText = `${trimmedName}，`;
+                    saluteText = `${recipientPrefix} ${trimmedName}`;
                 }
-            }
-
-            let formattedCaption = '';
-            if (rawCaption.includes('{name}，') || rawCaption.includes('{name},')) {
-                formattedCaption = rawCaption.replace(/\{name\}[，,]/g, saluteText);
-            } else if (rawCaption.includes('{name}')) {
-                formattedCaption = rawCaption.replace(/\{name\}/g, trimmedName || '朋友');
             } else {
-                // 使用者自填了完整導語（如 Happy Birthday, My Love...），完全尊重原創，不擅自重複前置稱謂
-                formattedCaption = rawCaption;
+                saluteText = recipientPrefix === 'Dear' ? 'Dear Friend' : (recipientPrefix === '尊敬的' ? '尊敬的貴賓' : (recipientPrefix === '致' ? '致尊榮夥伴' : '親愛的朋友'));
             }
 
-            // 網址獨立成行並空一行，防止微信/LINE文字標點符號與 URL 黏連引發截斷
-            return `${formattedCaption}\n\n${finalShareUrl}`;
-        }, [card.shareCaption, recipientPrefix, recipientName, finalShareUrl]);
+            const wishHoliday = cardTitle ? `${cardTitle}快樂` : '佳節愉快';
+            const introLine = `${saluteText}，這是我為你定制的賀卡，祝你${wishHoliday}。`;
 
-        // 複製純網址
-        const handleCopyUrlOnly = () => {
-            navigator.clipboard.writeText(finalShareUrl);
-            onShowToast('已複製卡片連結！');
-        };
+            // 網址獨立成行，保證社群抓取與高亮不黏連
+            return `${introLine}\n\n${finalShareUrl}`;
+        }, [card.title, card.name, recipientPrefix, recipientName, finalShareUrl]);
 
         // 複製完整兩行式訊息 (導語 + 網址)
         const handleCopyFullMessage = () => {
             navigator.clipboard.writeText(fullShareMessage);
-            onShowToast('🎉 已複製【社群導語 + 連結】兩行訊息！');
+            onShowToast('🎉 已複製【定制導語 + 連結】專屬訊息！');
         };
 
         // 喚醒 WhatsApp 發送
@@ -309,34 +299,17 @@
                         h('div', { className: 'grid grid-cols-2 gap-2 pt-1' },
                             h('button', {
                                 onClick: handleCopyFullMessage,
-                                className: 'py-2 px-2.5 bg-amber-400 hover:bg-amber-300 text-zinc-950 font-bold rounded text-xs flex items-center justify-center gap-1.5 shadow transition-all active:scale-95'
+                                className: 'py-2.5 px-3 bg-amber-400 hover:bg-amber-300 text-zinc-950 font-bold rounded-lg text-xs flex items-center justify-center gap-2 shadow-lg transition-all active:scale-95'
                             },
-                                h('i', { className: 'fa-solid fa-copy' }),
+                                h('i', { className: 'fa-solid fa-copy text-sm' }),
                                 h('span', null, '一鍵複製【導語+網址】')
                             ),
                             h('button', {
                                 onClick: handleOpenWhatsApp,
-                                className: 'py-2 px-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded text-xs flex items-center justify-center gap-1.5 shadow transition-all active:scale-95'
+                                className: 'py-2.5 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs flex items-center justify-center gap-2 shadow-lg transition-all active:scale-95'
                             },
-                                h('i', { className: 'fa-brands fa-whatsapp text-sm' }),
+                                h('i', { className: 'fa-brands fa-whatsapp text-base' }),
                                 h('span', null, '發送【導語+網址】')
-                            ),
-                            h('button', {
-                                onClick: handleCopyUrlOnly,
-                                className: 'py-2 px-2.5 bg-zinc-800 hover:bg-zinc-700 text-amber-300 font-semibold rounded text-xs flex items-center justify-center gap-1.5 border border-zinc-700 shadow transition-all active:scale-95'
-                            },
-                                h('i', { className: 'fa-solid fa-link' }),
-                                h('span', null, '僅複製【純網址】')
-                            ),
-                            h('button', {
-                                onClick: () => {
-                                    const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(finalShareUrl)}`;
-                                    window.open(waUrl, '_blank');
-                                },
-                                className: 'py-2 px-2.5 bg-emerald-800 hover:bg-emerald-700 text-emerald-100 font-semibold rounded text-xs flex items-center justify-center gap-1.5 border border-emerald-600/40 shadow transition-all active:scale-95'
-                            },
-                                h('i', { className: 'fa-brands fa-whatsapp text-sm' }),
-                                h('span', null, '發送【純網址】')
                             )
                         )
                     ),
@@ -357,28 +330,19 @@
                     ),
 
                     // 4. 底部動作列
-                    h('div', { className: 'flex items-center justify-between pt-2 border-t border-zinc-800' },
-                        h('button', {
-                            onClick: handleCopyUrlOnly,
-                            className: 'text-zinc-400 hover:text-sky-300 text-[11px] flex items-center gap-1'
+                    h('div', { className: 'flex items-center justify-end gap-2 pt-2 border-t border-zinc-800' },
+                        h('a', {
+                            href: finalShareUrl,
+                            target: '_blank',
+                            className: 'px-3.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded text-xs font-medium flex items-center gap-1.5 transition-colors'
                         },
-                            h('i', { className: 'fa-solid fa-link text-[10px]' }),
-                            h('span', null, '僅複製純網址')
+                            h('i', { className: 'fa-solid fa-arrow-up-right-from-square text-[10px]' }),
+                            h('span', null, '親自體驗')
                         ),
-                        h('div', { className: 'flex items-center gap-2' },
-                            h('a', {
-                                href: finalShareUrl,
-                                target: '_blank',
-                                className: 'px-3.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded text-xs font-medium flex items-center gap-1.5 transition-colors'
-                            },
-                                h('i', { className: 'fa-solid fa-arrow-up-right-from-square text-[10px]' }),
-                                h('span', null, '親自體驗')
-                            ),
-                            h('button', {
-                                onClick: onClose,
-                                className: 'px-4 py-1.5 bg-zinc-700 hover:bg-zinc-600 text-white font-medium rounded text-xs transition-all'
-                            }, '完成')
-                        )
+                        h('button', {
+                            onClick: onClose,
+                            className: 'px-4 py-1.5 bg-zinc-700 hover:bg-zinc-600 text-white font-medium rounded text-xs transition-all'
+                        }, '完成')
                     )
                 )
             )

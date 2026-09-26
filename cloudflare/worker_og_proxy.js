@@ -66,56 +66,10 @@ async function handleRequest(request) {
  * 為社群爬蟲動態產生帶有 Open Graph 標籤的 HTML
  */
 async function handleBotPreview(request, url, cardId, toName = "") {
-  let title = "A Special Gift for You";
-  let description = "Warmest Wishes & Best Regards.";
-  let imageUrl = "https://i.ibb.co/YFsSdsjg/share-cover-webp.webp";
-
-  try {
-    // 嘗試向 GAS 查詢卡片元數據 (Google Apps Script 重定向冷啟動通常需要 2~3.5 秒，放寬至 4.5 秒)
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 4500);
-
-    const gasRes = await fetch(`${GAS_API_URL}?action=get_card&id=${encodeURIComponent(cardId)}`, {
-      signal: controller.signal,
-      redirect: "follow"
-    });
-    clearTimeout(timeoutId);
-
-    if (gasRes.ok) {
-      const data = await gasRes.json();
-      if (data.success && data.card) {
-        const card = data.card;
-        title = card.title || card.name || title;
-        
-        // 優先讀取自訂社群導語/寄語 (shareCaption)，其次第一段落，再其次 description
-        if (card.shareCaption && card.shareCaption.trim()) {
-          description = card.shareCaption.trim();
-        } else if (card.paragraphs && card.paragraphs.length > 0 && card.paragraphs[0]) {
-          description = card.paragraphs[0];
-        } else if (card.description && card.description.trim()) {
-          description = card.description.trim();
-        }
-
-        // 若描述中有 {name} 佔位符，且網址帶有 toName，自動智慧替換為好友姓名
-        if (toName && description.includes('{name}')) {
-          description = description.replace(/\{name\}/g, toName);
-        } else if (!toName && description.includes('{name}')) {
-          description = description.replace(/\{name\}[，,：:]?\s*/g, '');
-        }
-
-        // 優先使用自訂社群封面 coverImage，其次相片，無則保持全局預設
-        if (card.coverImage) {
-          imageUrl = card.coverImage;
-        } else if (card.media && card.media.photos && card.media.photos.length > 0) {
-          imageUrl = card.media.photos[0];
-        } else if (card.imageUrl) {
-          imageUrl = card.imageUrl;
-        }
-      }
-    }
-  } catch (err) {
-    // 若 GAS 查詢失敗或超時，使用優雅保底資訊，保證不報錯
-  }
+  // ⚡ 0ms 極速硬編碼秒回：徹底杜絕 GAS 冷啟動逾時與 WhatsApp 爬蟲掉圖問題
+  const title = "A Special Gift for You";
+  const description = "Warmest Wishes & Best Regards.";
+  const imageUrl = "https://i.ibb.co/YFsSdsjg/share-cover-webp.webp";
 
   const targetPlayUrl = `${url.origin}${url.pathname}${url.search}`;
 
