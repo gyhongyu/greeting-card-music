@@ -62,3 +62,20 @@
      2. `py scripts/deploy_worker.py`（若有改 Worker）
      3. `git commit` 並 `git push` 至 GitHub 倉庫！
 </RULE[development_invariants]>
+
+<!-- [START: CODE_MAP_INVARIANT] -->
+## 🗺️ 專案代碼導航與呼叫鏈門禁 (Code Map Navigation Invariant)
+1. **嚴禁盲目摸象**：排查 Bug、尋找函式位置或跨檔案追蹤時，**絕對嚴禁**一上來直接使用全局 `grep` 大海撈針！
+2. **第一步宏觀導航**：凡面對未知代碼或排查架構，優先在終端執行極速地圖命令（0 成本在記憶體建立心智模型）：
+   ```powershell
+   py .agents\skills\agent_code_map\scripts\map.py
+   ```
+3. **第二步微觀定位 (Unified Search)**：同時獲取符號定義位置與所有被呼叫點：
+   ```powershell
+   py .agents\skills\agent_code_map\scripts\callers.py <symbol_name>
+   ```
+4. **專項指令速查**：
+   - 原始定義尋址: `py .agents\skills\agent_code_map\scripts\callers.py def <symbol_name>`
+   - 提取函式文檔/簽名: `py .agents\skills\agent_code_map\scripts\callers.py doc <symbol_name>`
+   - 前端 DOM 錨點查詢: `py .agents\skills\agent_code_map\scripts\callers.py dom <id_or_class>`
+<!-- [END: CODE_MAP_INVARIANT] -->
