@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Happy Diwali 2026 · Light Conquers Darkness | Foxlink</title>
+    
+    <!-- Open Graph / WhatsApp / LINE / Facebook / iMessage Hero Preview -->
+    <meta property="og:site_name" content="Foxlink Festive Greetings">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Happy Diwali 2026 · Light Conquers Darkness">
+    <meta property="og:description" content="Wishing you and your family abundant peace, great health, and enduring prosperity in this auspicious festival of lights.">
+    <meta property="og:image" content="https://card.foxlink.co.in/diwali/diwali_grand_night.webp">
+    <meta property="og:image:secure_url" content="https://card.foxlink.co.in/diwali/diwali_grand_night.webp">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <!-- Twitter / X Cards -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Happy Diwali 2026 · Light Conquers Darkness">
+    <meta name="twitter:description" content="Wishing you and your family abundant peace, great health, and enduring prosperity.">
+    <meta name="twitter:image" content="https://card.foxlink.co.in/diwali/diwali_grand_night.webp">
+
+    <!-- Favicon & Touch Icons -->
+    <link rel="icon" type="image/x-icon" href="../favicon.ico">
+    <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Jost:wght@300;400;600&family=Playfair+Display:ital,wght@1,600&display=swap');
+        
+        body {
+            font-family: 'Cinzel', serif;
+            background-color: #06040b;
+            color: #f8fafc;
+            user-select: none;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+        }
+
+        .font-sans-body {
+            font-family: 'Jost', sans-serif;
+        }
+        .font-quote {
+            font-family: 'Playfair Display', serif;
+        }
+
+        .diwali-gold-title {
+            background: linear-gradient(135deg, #fef08a 0%, #fbbf24 45%, #f97316 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* 🔥 Fire Shimmer Keyframes */
+        @keyframes fireShimmer {
+            0% {
+                opacity: 0;
+                filter: brightness(3.5) drop-shadow(0 0 30px #f59e0b) drop-shadow(0 0 10px #fbbf24);
+                transform: scale(0.92) translateY(20px);
+            }
+            30% {
+                opacity: 0.8;
+                filter: brightness(2.5) drop-shadow(0 0 20px #f59e0b);
+            }
+            60% {
+                opacity: 1;
+                filter: brightness(1.6) drop-shadow(0 0 12px #fbbf24);
+                transform: scale(1.02) translateY(-2px);
+            }
+            100% {
+                opacity: 1;
+                filter: brightness(1.0) drop-shadow(0 0 8px rgba(245, 158, 11, 0.4));
+                transform: scale(1.0) translateY(0);
+            }
+        }
+        .fx-fire-shimmer {
+            animation: fireShimmer 1.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        /* 🀄 3D Domino Flip In/Out */
+        @keyframes dominoIn {
+            0% { opacity: 0; transform: perspective(800px) rotateX(-70deg) translateY(18px); filter: blur(4px); }
+            100% { opacity: 1; transform: perspective(800px) rotateX(0deg) translateY(0); filter: blur(0); }
+        }
+        @keyframes dominoOut {
+            0% { opacity: 1; transform: perspective(800px) rotateX(0deg) translateY(0); filter: blur(0); }
+            100% { opacity: 0; transform: perspective(800px) rotateX(60deg) translateY(-18px); filter: blur(4px); }
+        }
+
+        /* ✨ Star Focus Zoom In / Soft Dissolve Out */
+        @keyframes zoomGlowIn {
+            0% { opacity: 0; transform: scale(0.85); filter: blur(8px) brightness(2.2); }
+            100% { opacity: 1; transform: scale(1); filter: blur(0) brightness(1); }
+        }
+        @keyframes fadeOutDown {
+            0% { opacity: 1; transform: translateY(0); filter: blur(0); }
+            100% { opacity: 0; transform: translateY(16px); filter: blur(6px); }
+        }
+
+        /* 📜 Smooth Slide Float In / Fly Up Out */
+        @keyframes floatUpIn {
+            0% { opacity: 0; transform: translateY(24px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes blurFlyOut {
+            0% { opacity: 1; transform: scale(1); filter: blur(0); }
+            100% { opacity: 0; transform: scale(1.08); filter: blur(8px); }
+        }
+
+        /* 💫 Subtle Rotate & Soft Expand In / Shrink Out */
+        @keyframes rotateFadeIn {
+            0% { opacity: 0; transform: rotate(-2deg) scale(0.92); filter: blur(5px); }
+            100% { opacity: 1; transform: rotate(0deg) scale(1); filter: blur(0); }
+        }
+        @keyframes shrinkFadeOut {
+            0% { opacity: 1; transform: scale(1); filter: blur(0); }
+            100% { opacity: 0; transform: scale(0.9); filter: blur(6px); }
+        }
+
+        .anim-domino-in { animation: dominoIn 0.85s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards; }
+        .anim-domino-out { animation: dominoOut 0.7s cubic-bezier(0.7, 0, 0.84, 0) forwards; }
+
+        .anim-zoom-in { animation: zoomGlowIn 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .anim-zoom-out { animation: fadeOutDown 0.7s ease-in forwards; }
+
+        .anim-float-in { animation: floatUpIn 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+        .anim-float-out { animation: blurFlyOut 0.7s ease-in forwards; }
+
+        .anim-rotate-in { animation: rotateFadeIn 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .anim-rotate-out { animation: shrinkFadeOut 0.7s ease-in forwards; }
+
+        .ken-burns {
+            animation: kenburns 10s infinite alternate ease-in-out;
+        }
+        @keyframes kenburns {
+            0% { transform: scale(1.0); }
+            100% { transform: scale(1.08); }
+        }
+
+        .photo-layer {
+            transition: opacity 1.2s ease-in-out;
+        }
+
+        .pulse-soundwave-btn {
+            box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
+            animation: pulse-ring 2s infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.98); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 18px rgba(245, 158, 11, 0); }
+            100% { transform: scale(0.98); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+        }
+
+        .foxlink-brand-pill {
+            background: rgba(10, 8, 16, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(245, 158, 11, 0.35);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8), 0 0 15px rgba(245, 158, 11, 0.15);
+        }
+
+        .pure-floating-text {
+            text-shadow: 
+                0 2px 4px rgba(0, 0, 0, 0.95),
+                0 4px 14px rgba(0, 0, 0, 0.9),
+                0 0 25px rgba(245, 158, 11, 0.45);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center bg-black">
+
+    <!-- Responsive Phone Frame (Max width 420px on desktop, 100% on mobile) -->
+    <div class="relative w-full max-w-[420px] h-full sm:h-[94vh] sm:max-h-[880px] sm:rounded-3xl overflow-hidden shadow-2xl border-0 sm:border border-amber-500/30 bg-black flex flex-col justify-between">
+        
+        <!-- ================= LAYER 0: BACKGROUND MEDIA CONTAINER (z-0) ================= -->
+        <div class="absolute inset-0 w-full h-full z-0 overflow-hidden">
+            <!-- 1. 8-Second Video Background -->
+            <video 
+                id="intro-video" 
+                src="a488c1e6-8d77-4184-aa08-cbf2e048ee00.mp4" 
+                playsinline 
+                preload="auto" 
+                class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 opacity-100"
+                style="filter: brightness(0.72) saturate(1.1);"
+            ></video>
+
+            <!-- 2. 17-Photo Carousel (Transitions in after 8s) -->
+            <div id="photo-container" class="absolute inset-0 w-full h-full opacity-0 transition-opacity duration-1000">
+                <img id="bg-img-0" src="diwali_01_ganesha_lakshmi_idols.webp" alt="Diwali" class="photo-layer ken-burns absolute inset-0 w-full h-full object-cover opacity-100" style="filter: brightness(0.78) saturate(1.1);" />
+                <img id="bg-img-1" src="diwali_02_golden_temple_amritsar.webp" alt="Diwali" class="photo-layer ken-burns absolute inset-0 w-full h-full object-cover opacity-0" style="filter: brightness(0.78) saturate(1.1);" />
+            </div>
+
+            <!-- 3. Soft Dark Vignette -->
+            <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-transparent to-black/80 pointer-events-none"></div>
+        </div>
+
+        <!-- ================= LAYER 1: DIYA WARM EMBERS CANVAS (z-10) ================= -->
+        <canvas id="diya-canvas" class="absolute inset-0 w-full h-full pointer-events-none z-10 opacity-0 transition-opacity duration-1000"></canvas>
+
+        <!-- ================= LAYER 2: TOP POSTER TEXT (z-20 FOREGROUND, TIGHT & HIGH UP) ================= -->
+        <div id="poster-content" class="relative z-20 px-6 pt-7 sm:pt-8 flex flex-col items-center text-center opacity-0 transition-opacity duration-1000 pointer-events-none">
+            <span class="text-amber-400 text-[10px] sm:text-[11px] tracking-widest uppercase font-semibold mb-1 fx-fire-shimmer">Happy Diwali 2026</span>
+            <h2 class="text-xl sm:text-2xl font-bold diwali-gold-title tracking-wider fx-fire-shimmer" style="animation-delay: 0.2s;">Light Conquers Darkness</h2>
+            <p class="text-[11px] sm:text-xs text-zinc-200 mt-2 font-sans-body leading-relaxed opacity-90 fx-fire-shimmer max-w-[280px]" style="animation-delay: 0.4s; text-shadow: 0 2px 6px rgba(0,0,0,0.9);">
+                Wishing you and your family abundant peace, great health, and enduring prosperity in this auspicious season.
+            </p>
+        </div>
+
+        <!-- ================= LAYER 3: DYNAMIC BLESSING TEXT (z-20 CENTER, 100% PURE TEXT) ================= -->
+        <div class="absolute inset-0 z-20 flex items-center justify-center px-8 pointer-events-none">
+            <div 
+                id="dynamic-quote-box" 
+                class="w-full text-center flex flex-col items-center opacity-0 pure-floating-text"
+            >
+                <h3 id="quote-headline" class="text-xs sm:text-sm font-bold text-amber-300 tracking-widest uppercase mb-1 font-sans-body"></h3>
+                <p id="quote-body" class="text-sm sm:text-base text-white font-quote italic leading-relaxed"></p>
+            </div>
+        </div>
+
+        <!-- ================= LAYER 4: BOTTOM ELEGANT BRAND PILL (z-20, SITS ABOVE LAMPS) ================= -->
+        <div id="footer-brand" class="relative z-20 px-4 pb-14 flex flex-col items-center text-center opacity-0 transition-opacity duration-1000 pointer-events-none">
+            <div class="foxlink-brand-pill inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full fx-fire-shimmer" style="animation-delay: 0.6s;">
+                <img 
+                    src="https://i.postimg.cc/PfMJs2P7/wlogo-foxlink-s.png" 
+                    alt="Foxlink Logo" 
+                    class="h-4 sm:h-4.5 w-auto object-contain drop-shadow"
+                    onerror="this.style.display='none'"
+                />
+                <div class="h-3 w-[1px] bg-amber-500/40"></div>
+                <span class="text-[10px] text-amber-200 font-sans-body font-medium tracking-wider uppercase">
+                    Foxlink Global Partners &amp; Teams
+                </span>
+            </div>
+        </div>
+
+        <!-- ================= LAYER 5: WELCOME GATE WITH PRELOAD GUARD (z-30 TOP OVERLAY) ================= -->
+        <div id="welcome-gate" class="absolute inset-0 z-30 flex flex-col items-center justify-center p-6 bg-black/60 backdrop-blur-sm transition-opacity duration-700">
+            <div class="flex flex-col items-center text-center space-y-4">
+                <span class="text-amber-400 text-xs tracking-widest uppercase font-semibold">Happy Diwali 2026</span>
+                <h2 class="text-2xl font-bold diwali-gold-title tracking-wider">Festival of Lights</h2>
+                <div class="pt-4 flex flex-col items-center">
+                    <button 
+                        id="play-button"
+                        onclick="startCinematicExperience()" 
+                        disabled
+                        class="w-18 h-18 sm:w-20 sm:h-20 rounded-full flex items-center justify-center bg-zinc-800 text-zinc-400 shadow-2xl cursor-wait opacity-85 transition-all duration-300 group"
+                        title="Loading Experience..."
+                        style="width: 72px; height: 72px;"
+                    >
+                        <!-- Loading spinner initially -->
+                        <i id="play-button-icon" class="fa-solid fa-circle-notch fa-spin text-2xl"></i>
+                    </button>
+                    <!-- Preload progress status text -->
+                    <span id="preload-status-text" class="text-[10px] text-amber-400/80 font-mono tracking-widest pt-3 uppercase">Loading Assets (0%)...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hidden Audio Element -->
+        <audio id="bg-audio" loop preload="auto">
+            <source src="Deep_Jalao_Khushi_Manao.mp3" type="audio/mpeg">
+        </audio>
+    </div>
+
+    <script>
+        const video = document.getElementById('intro-video');
+        const audio = document.getElementById('bg-audio');
+        const welcomeGate = document.getElementById('welcome-gate');
+        const playButton = document.getElementById('play-button');
+        const playButtonIcon = document.getElementById('play-button-icon');
+        const preloadStatusText = document.getElementById('preload-status-text');
+        const photoContainer = document.getElementById('photo-container');
+        const diyaCanvas = document.getElementById('diya-canvas');
+        const posterContent = document.getElementById('poster-content');
+        const footerBrand = document.getElementById('footer-brand');
+        const quoteBox = document.getElementById('dynamic-quote-box');
+        const quoteHeadline = document.getElementById('quote-headline');
+        const quoteBody = document.getElementById('quote-body');
+
+        let isTransitioned = false;
+        let slideTimer = null;
+        let audioDelayTimer = null;
+        let quoteSequenceTimer = null;
+
+        // 🌟 Full 17 Diwali Photo Carousel Assets
+        const photoList = [
+            'diwali_01_ganesha_lakshmi_idols.webp',
+            'diwali_02_golden_temple_amritsar.webp',
+            'diwali_03_sweets_mithai_silver_platter.webp',
+            'diwali_04_peacock_rangoli_art.webp',
+            'diwali_05_father_son_lantern_skylantern.webp',
+            'diwali_06_floating_diyas_ganges_river.webp',
+            'diwali_07_royal_doorway_toran_entry.webp',
+            'diwali_08_sparklers_hands_macro_festive.webp',
+            'diwali_09_luxury_gift_hamper_unboxing.webp',
+            'diwali_10_modern_kids_laughter_celebration.webp',
+            'diwali_grand_night.webp',
+            'diwali_luxury_aerial_mumbai.webp',
+            'diwali_royal_palace_luxury.webp',
+            'diwali_luxury_puja_ritual.webp',
+            'diwali_portrait.webp',
+            'diwali_mop_joyful_portrait.webp',
+            'diwali_mop_joyful_street.webp'
+        ];
+        let currentPhotoIdx = 0;
+        let activeLayer = 0;
+        const img0 = document.getElementById('bg-img-0');
+        const img1 = document.getElementById('bg-img-1');
+
+        // 🌟 6 Distinct Festive Quotes
+        const dynamicQuotes = [
+            {
+                headline: 'Divine Blessings',
+                text: 'May Goddess Lakshmi & Lord Ganesha shower your endeavors with wisdom, wealth, and timeless success.',
+                inFx: 'anim-domino-in',
+                outFx: 'anim-domino-out'
+            },
+            {
+                headline: 'Eternal Radiance',
+                text: 'May the sacred lamps of Diwali illuminate your life with endless joy, prosperity, and radiant health.',
+                inFx: 'anim-zoom-in',
+                outFx: 'anim-zoom-out'
+            },
+            {
+                headline: 'Triumph & Harmony',
+                text: 'Let this auspicious festival bring sweet triumphs, inner peace, and enduring harmony to your path.',
+                inFx: 'anim-float-in',
+                outFx: 'anim-float-out'
+            },
+            {
+                headline: 'Sweet Celebrations',
+                text: 'May the sweetness of Mithai and warm festive cheers fill your homes with laughter and cherished memories.',
+                inFx: 'anim-rotate-in',
+                outFx: 'anim-rotate-out'
+            },
+            {
+                headline: 'Sacred Light',
+                text: 'Like floating diyas dancing along sacred waters, may your aspirations glide gracefully toward great horizons.',
+                inFx: 'anim-domino-in',
+                outFx: 'anim-domino-out'
+            },
+            {
+                headline: 'New Horizons',
+                text: 'Auspicious beginnings start with light. Wishing all our partners, teams, and families boundless glory ahead.',
+                inFx: 'anim-zoom-in',
+                outFx: 'anim-zoom-out'
+            }
+        ];
+        let currentQuoteIdx = 0;
+
+        // ==========================================
+        // 🚀 Intelligent Preloader Pipeline
+        // ==========================================
+        let isPreloadReady = false;
+        function initAssetPreload() {
+            // Priority 1: Key media required for the opening 20 seconds
+            const criticalPhotos = photoList.slice(0, 5);
+            const totalCriticalAssets = criticalPhotos.length + 1; // 5 photos + 1 video
+            let loadedCount = 0;
+
+            function updateProgress() {
+                loadedCount++;
+                const percent = Math.min(100, Math.round((loadedCount / totalCriticalAssets) * 100));
+                preloadStatusText.textContent = `Loading Assets (${percent}%)...`;
+
+                if (loadedCount >= totalCriticalAssets && !isPreloadReady) {
+                    markReadyToPlay();
+                }
+            }
+
+            // Preload 8s Video Header / Buffer
+            if (video.readyState >= 3) {
+                updateProgress();
+            } else {
+                video.addEventListener('canplay', () => updateProgress(), { once: true });
+                video.load();
+            }
+
+            // Preload Critical Images
+            criticalPhotos.forEach(src => {
+                const img = new Image();
+                img.onload = updateProgress;
+                img.onerror = updateProgress; // Fallback so we never freeze
+                img.src = src;
+            });
+
+            // Hard 3.5s Safety Fuse: Never keep user waiting if network has hiccups
+            setTimeout(() => {
+                if (!isPreloadReady) {
+                    markReadyToPlay();
+                }
+            }, 3500);
+
+            // Background Silent Cache for remaining photos (6 ~ 17)
+            setTimeout(() => {
+                photoList.slice(5).forEach(src => {
+                    const backgroundImg = new Image();
+                    backgroundImg.src = src;
+                });
+            }, 2000);
+        }
+
+        function markReadyToPlay() {
+            isPreloadReady = true;
+            playButton.disabled = false;
+            playButton.classList.remove('bg-zinc-800', 'text-zinc-400', 'cursor-wait', 'opacity-85');
+            playButton.classList.add('bg-gradient-to-tr', 'from-amber-500', 'to-amber-300', 'text-zinc-950', 'pulse-soundwave-btn', 'cursor-pointer');
+            playButtonIcon.className = "fa-solid fa-play text-2xl pl-1 group-hover:scale-110 transition-transform";
+            preloadStatusText.textContent = "TAP TO CELEBRATE";
+        }
+
+        // Run Preloader on DOM ready
+        initAssetPreload();
+
+        function startCinematicExperience() {
+            if (!isPreloadReady) return;
+
+            welcomeGate.style.opacity = '0';
+            setTimeout(() => { welcomeGate.style.display = 'none'; }, 700);
+
+            posterContent.style.opacity = '1';
+            footerBrand.style.opacity = '1';
+            diyaCanvas.style.opacity = '1';
+            initDiyas();
+            startCanvasLoop();
+
+            video.currentTime = 0;
+            video.play().catch(e => console.log('Video play error:', e));
+
+            audio.currentTime = 0;
+            audio.volume = 0;
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    audioDelayTimer = setTimeout(() => {
+                        let vol = 0;
+                        const fadeAudio = setInterval(() => {
+                            vol += 0.1;
+                            if (vol >= 1.0) {
+                                audio.volume = 1.0;
+                                clearInterval(fadeAudio);
+                            } else {
+                                audio.volume = vol;
+                            }
+                        }, 100);
+                    }, 6000);
+                }).catch(e => console.log('Audio immediate play unlock failed:', e));
+            }
+
+            video.onended = () => { transitionBackgroundToPhotos(); };
+            setTimeout(() => { if (!isTransitioned) transitionBackgroundToPhotos(); }, 8200);
+        }
+
+        function transitionBackgroundToPhotos() {
+            if (isTransitioned) return;
+            isTransitioned = true;
+
+            video.style.opacity = '0';
+            photoContainer.style.opacity = '1';
+            startPhotoCarousel();
+
+            setTimeout(() => {
+                triggerQuoteCycle();
+            }, 1800);
+        }
+
+        function triggerQuoteCycle() {
+            if (!isTransitioned) return;
+
+            const q = dynamicQuotes[currentQuoteIdx];
+            quoteHeadline.textContent = q.headline;
+            quoteBody.textContent = `“${q.text}”`;
+
+            // 1. Enter with pure text animation (No box, No background!)
+            quoteBox.className = `w-full text-center flex flex-col items-center pure-floating-text ${q.inFx}`;
+
+            // 2. Stay for 4.2s
+            setTimeout(() => {
+                // 3. Exit with pure text animation
+                quoteBox.className = `w-full text-center flex flex-col items-center pure-floating-text ${q.outFx}`;
+
+                // 4. Pure photo gap of 3.8s
+                quoteSequenceTimer = setTimeout(() => {
+                    currentQuoteIdx = (currentQuoteIdx + 1) % dynamicQuotes.length;
+                    triggerQuoteCycle();
+                }, 3800);
+
+            }, 4200);
+        }
+
+        function startPhotoCarousel() {
+            if (slideTimer) clearInterval(slideTimer);
+            slideTimer = setInterval(() => {
+                currentPhotoIdx = (currentPhotoIdx + 1) % photoList.length;
+                const nextUrl = photoList[currentPhotoIdx];
+                if (activeLayer === 0) {
+                    img1.src = nextUrl;
+                    img1.style.opacity = '1';
+                    img0.style.opacity = '0';
+                    activeLayer = 1;
+                } else {
+                    img0.src = nextUrl;
+                    img0.style.opacity = '1';
+                    img1.style.opacity = '0';
+                    activeLayer = 0;
+                }
+            }, 4500);
+        }
+
+        // ==========================================
+        // Canvas Particle Engine (Diya Clay Lamps & Embers)
+        // ==========================================
+        const canvas = document.getElementById('diya-canvas');
+        const ctx = canvas.getContext('2d');
+        let animId = null;
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        let diyas = [];
+        let embers = [];
+
+        function initDiyas() {
+            resizeCanvas();
+            diyas = [];
+            embers = [];
+            const count = 5;
+            const step = canvas.width / (count + 1);
+            for (let i = 1; i <= count; i++) {
+                diyas.push({
+                    x: step * i,
+                    y: canvas.height - 24,
+                    baseFlameSize: 13,
+                    phase: Math.random() * Math.PI * 2
+                });
+            }
+            for (let i = 0; i < 35; i++) {
+                embers.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 2.0 + 0.8,
+                    speedY: Math.random() * 0.8 + 0.35,
+                    speedX: (Math.random() - 0.5) * 0.4,
+                    opacity: Math.random() * 0.65 + 0.25,
+                    wobble: Math.random() * Math.PI * 2
+                });
+            }
+        }
+
+        let time = 0;
+        function loop() {
+            time += 0.02;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            diyas.forEach(d => {
+                const flicker = Math.sin(time * 6 + d.phase) * 2.2;
+                const flameH = d.baseFlameSize + flicker;
+
+                const rad = ctx.createRadialGradient(d.x, d.y, 2, d.x, d.y, 38);
+                rad.addColorStop(0, 'rgba(251, 191, 36, 0.45)');
+                rad.addColorStop(0.5, 'rgba(234, 88, 12, 0.2)');
+                rad.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = rad;
+                ctx.beginPath();
+                ctx.arc(d.x, d.y, 38, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.save();
+                ctx.translate(d.x, d.y);
+                ctx.fillStyle = '#fef08a';
+                ctx.shadowColor = '#f59e0b';
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.moveTo(0, -flameH);
+                ctx.quadraticCurveTo(5, -flameH * 0.4, 0, 3);
+                ctx.quadraticCurveTo(-5, -flameH * 0.4, 0, -flameH);
+                ctx.fill();
+                ctx.restore();
+            });
+
+            embers.forEach(e => {
+                e.y -= e.speedY;
+                e.x += Math.sin(time * 2 + e.wobble) * 0.5 + e.speedX;
+                if (e.y < -10) {
+                    e.y = canvas.height + 5;
+                    e.x = Math.random() * canvas.width;
+                }
+                ctx.fillStyle = `rgba(251, 191, 36, ${e.opacity})`;
+                ctx.shadowColor = '#f59e0b';
+                ctx.shadowBlur = 5;
+                ctx.beginPath();
+                ctx.arc(e.x, e.y, e.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            animId = requestAnimationFrame(loop);
+        }
+
+        function startCanvasLoop() {
+            if (animId) cancelAnimationFrame(animId);
+            loop();
+        }
+    </script>
+</body>
+</html>
