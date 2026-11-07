@@ -666,7 +666,7 @@
                                         },
                                             h('i', { className: 'fa-solid fa-pen text-[10px]' }),
                                             h('span', null, '編輯')
-                                        }),
+                                        ),
                                         h('button', {
                                             key: 'del',
                                             onClick: () => onDeleteCard(c.id, c.name),
