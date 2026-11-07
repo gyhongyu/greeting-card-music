@@ -62,3 +62,8 @@ description: CardForge 獨立節慶賀卡與高階多媒體微站發布技能。
 
 ## 🛠️ 發布與版本管理聯動
 * 凡發布獨立微站或修改其代碼，必須同步遵循 [cardforge_pwa_release](file:///e:/Projects/greeting-card-music/.agents/skills/cardforge_pwa_release/SKILL.md) 規範，完成 Git 提交與遠端推送閉環。
+* **強制 CLI 推送登記**：嚴禁只改本地！新獨立卡片必須調用專屬腳本推送到 Google Sheet：
+  ```powershell
+  py .agents\skills\cardforge_standalone_experience\scripts\cardforge_standalone_experience.py push <card_id>
+  ```
+

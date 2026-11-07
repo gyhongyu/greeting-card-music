@@ -104,6 +104,22 @@
                 }
             }
 
+            // 優先合併 window.DEFAULT_CARDS 中的獨立微站或預設卡片，確保新發布卡片在有快取時依然秒現
+            const defaultCards = window.DEFAULT_CARDS || [];
+            if (defaultCards.length > 0) {
+                if (!loadedCards || loadedCards.length === 0) {
+                    loadedCards = defaultCards;
+                } else {
+                    const cardMap = new Map(loadedCards.map(c => [c.id, c]));
+                    defaultCards.forEach(dc => {
+                        if (!cardMap.has(dc.id)) {
+                            cardMap.set(dc.id, dc);
+                        }
+                    });
+                    loadedCards = Array.from(cardMap.values());
+                }
+            }
+
             const localTpls = localStorage.getItem(STORAGE_KEY_TEMPLATES);
             if (localTpls) {
                 try { loadedTemplates = JSON.parse(localTpls); } catch (e) {}
