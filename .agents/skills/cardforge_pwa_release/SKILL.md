@@ -62,3 +62,12 @@ py C:\Users\9892\.gemini\config\skills\gas_clasp_manager\scripts\clasp_manager.p
 2. 提交變更：`git commit -am "chore/fix: 變更說明"`
 3. **推送到遠端**：`git push origin main`（或當前分支）。
    - GitHub Pages 約在 30 秒至 1 分鐘內完成全球 CDN 部署。
+
+---
+
+## 🌟 獨立微站與獨立賀卡發布特別規範 (Standalone Micro-Site Policy)
+當發布或維護類似 `diwali/` 這種非通用模板、具備專屬視訊/相簿/音樂的**獨立多媒體微站賀卡**時：
+1. **目錄與技能對齊**：必須完全遵循 [.agents/skills/cardforge_standalone_experience/](file:///e:/Projects/greeting-card-music/.agents/skills/cardforge_standalone_experience/SKILL.md) 規範，保持資源完全同源收斂。
+2. **卡片台帳與工坊標籤治理**：獨立微站必須登記入 `data/cards.json` 與 `constants.js`（`category: 'standalone'`, `isStandalone: true`），在工坊（`workspace.html`）中以**金色「獨立微站」專屬標籤**清晰區隔，並硬性禁止線上編輯以防篡改破壞，僅提供直接開啟與專屬短網址複製。
+3. **PWA 快取閉環聯動**：凡修改了獨立微站專屬的資源或其在主站中的登記腳本（如 `workspace_views.js`），必須嚴格執行本技能之**步驟 1（版本號遞增）**，確保公網即時生效！
+

@@ -582,15 +582,18 @@
             ),
             h('div', { className: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' },
                 cards.map(c => {
+                    const isStandalone = !!c.isStandalone || c.category === 'standalone';
                     const appliedTpl = templates.find(t => t.id === c.templateId) || templates[0];
                     return h('div', {
                         key: c.id,
-                        className: 'bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 rounded-xl p-5 flex flex-col justify-between shadow-xl transition-all hover:bg-zinc-900/90 group'
+                        className: `bg-zinc-900/60 border ${isStandalone ? 'border-amber-500/50 hover:border-amber-400' : 'border-zinc-800 hover:border-zinc-700'} rounded-xl p-5 flex flex-col justify-between shadow-xl transition-all hover:bg-zinc-900/90 group relative overflow-hidden`
                     },
                         h('div', null,
                             h('div', { className: 'flex items-center justify-between text-[11px] text-zinc-400 mb-2' },
-                                h('span', { className: 'px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 font-medium border border-zinc-700/60' },
-                                    c.category === 'business' ? '商務夥伴' : c.category === 'festive' ? '節慶祝賀' : '個人親友'
+                                h('span', { 
+                                    className: `px-2 py-0.5 rounded font-medium border ${isStandalone ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 flex items-center gap-1' : 'bg-zinc-800 text-zinc-300 border-zinc-700/60'}` 
+                                },
+                                    isStandalone ? [h('i', { key: 'icon', className: 'fa-solid fa-sparkles text-[10px]' }), '獨立微站'] : (c.category === 'business' ? '商務夥伴' : c.category === 'festive' ? '節慶祝賀' : '個人親友')
                                 ),
                                 h('span', { className: 'font-mono text-zinc-500' }, c.updatedAt)
                             ),
@@ -609,47 +612,71 @@
                                 )
                             ),
                             h('div', { className: 'mt-3 flex items-center gap-2 text-[11px] text-zinc-400' },
-                                h('span', null, '套用風格：'),
-                                h('span', { className: 'font-semibold text-amber-400/90' }, appliedTpl ? appliedTpl.name : '預設模板')
+                                h('span', null, isStandalone ? '架構類型：' : '套用風格：'),
+                                h('span', { className: 'font-semibold text-amber-400/90' }, isStandalone ? '實體獨立目錄 (高階多媒體)' : (appliedTpl ? appliedTpl.name : '預設模板'))
                             )
                         ),
                         h('div', { className: 'mt-5 pt-3 border-t border-zinc-800/80 flex items-center justify-between' },
                             h('div', { className: 'flex items-center gap-1.5' },
-                                h('button', {
-                                    onClick: () => onPreviewCard(c, appliedTpl),
-                                    className: 'px-2.5 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs flex items-center gap-1 transition-colors',
-                                    title: '預覽卡片效果'
-                                },
-                                    h('i', { className: 'fa-regular fa-eye text-[11px]' }),
-                                    h('span', null, '預覽')
-                                ),
-                                h('button', {
-                                    onClick: () => onCloudPublish(c),
-                                    className: 'px-2.5 py-1.5 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/30 text-xs flex items-center gap-1 transition-colors',
-                                    title: '一鍵上傳 Google Sheet 並取得短網址'
-                                },
-                                    h('i', { className: 'fa-solid fa-cloud-arrow-up text-[10px]' }),
-                                    h('span', null, '分享')
+                                isStandalone ? (
+                                    h('a', {
+                                        href: c.standaloneUrl || 'diwali/',
+                                        target: '_blank',
+                                        className: 'px-3 py-1.5 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 text-xs flex items-center gap-1.5 font-medium transition-colors'
+                                    },
+                                        h('i', { className: 'fa-solid fa-arrow-up-right-from-square text-[10px]' }),
+                                        h('span', null, '開啟獨立卡')
+                                    )
+                                ) : (
+                                    [
+                                        h('button', {
+                                            key: 'preview',
+                                            onClick: () => onPreviewCard(c, appliedTpl),
+                                            className: 'px-2.5 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs flex items-center gap-1 transition-colors',
+                                            title: '預覽卡片效果'
+                                        },
+                                            h('i', { className: 'fa-regular fa-eye text-[11px]' }),
+                                            h('span', null, '預覽')
+                                        ),
+                                        h('button', {
+                                            key: 'publish',
+                                            onClick: () => onCloudPublish(c),
+                                            className: 'px-2.5 py-1.5 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/30 text-xs flex items-center gap-1 transition-colors',
+                                            title: '一鍵上傳 Google Sheet 並取得短網址'
+                                        },
+                                            h('i', { className: 'fa-solid fa-cloud-arrow-up text-[10px]' }),
+                                            h('span', null, '分享')
+                                        )
+                                    ]
                                 )
                             ),
                             h('div', { className: 'flex items-center gap-1' },
-                                h('button', {
-                                    onClick: () => onDuplicateCard(c),
-                                    className: 'p-1.5 text-zinc-400 hover:text-white transition-colors',
-                                    title: '複製卡片'
-                                }, h('i', { className: 'fa-regular fa-copy' })),
-                                h('button', {
-                                    onClick: () => onEditCard(c.id),
-                                    className: 'px-3 py-1.5 rounded bg-amber-400 hover:bg-amber-300 text-zinc-950 font-bold text-xs flex items-center gap-1 shadow transition-all ml-1'
-                                },
-                                    h('i', { className: 'fa-solid fa-pen text-[10px]' }),
-                                    h('span', null, '編輯')
-                                ),
-                                h('button', {
-                                    onClick: () => onDeleteCard(c.id, c.name),
-                                    className: 'p-1.5 text-zinc-500 hover:text-rose-400 transition-colors ml-1',
-                                    title: '刪除卡片'
-                                }, h('i', { className: 'fa-regular fa-trash-can' }))
+                                !isStandalone ? (
+                                    [
+                                        h('button', {
+                                            key: 'dup',
+                                            onClick: () => onDuplicateCard(c),
+                                            className: 'p-1.5 text-zinc-400 hover:text-white transition-colors',
+                                            title: '複製卡片'
+                                        }, h('i', { className: 'fa-regular fa-copy' })),
+                                        h('button', {
+                                            key: 'edit',
+                                            onClick: () => onEditCard(c.id),
+                                            className: 'px-3 py-1.5 rounded bg-amber-400 hover:bg-amber-300 text-zinc-950 font-bold text-xs flex items-center gap-1 shadow transition-all ml-1'
+                                        },
+                                            h('i', { className: 'fa-solid fa-pen text-[10px]' }),
+                                            h('span', null, '編輯')
+                                        }),
+                                        h('button', {
+                                            key: 'del',
+                                            onClick: () => onDeleteCard(c.id, c.name),
+                                            className: 'p-1.5 text-zinc-500 hover:text-rose-400 transition-colors ml-1',
+                                            title: '刪除卡片'
+                                        }, h('i', { className: 'fa-regular fa-trash-can' }))
+                                    ]
+                                ) : (
+                                    h('span', { className: 'text-[11px] text-zinc-500 font-mono italic pr-1' }, '實體發布·不可線上編輯')
+                                )
                             )
                         )
                     );
